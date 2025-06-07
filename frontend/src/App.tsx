@@ -41,6 +41,7 @@ import DeliveryNoteVoucher from './components/vouchers/deliverynote/DeliveryNote
 import JournalVoucher from './components/vouchers/journal/JournalVoucher';
 import SalesVoucher from './components/vouchers/sales/SalesVoucher';
 import PurchaseVoucher from './components/vouchers/purches/PurcheseVoucher';
+import StockJournalVoucher from './components/vouchers/stockjournal/StockJournalVoucher';
 import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
 
 
@@ -128,6 +129,7 @@ function App() {
             
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
+            <Route path="vouchers/stock-journal/create" element={<StockJournalVoucher />} />
             <Route path="reports/trial-balance" element={<TrialBalance />} />
 
 
