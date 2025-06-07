@@ -38,6 +38,7 @@ import ContraVoucher from './components/vouchers/Contra/ContraVoucher';
 import CreditNoteVoucher from './components/vouchers/creditnote/CreditNoteVoucher';
 import DebitNoteVoucher from './components/vouchers/debitnote/DebitNoteVoucher';
 import DeliveryNoteVoucher from './components/vouchers/deliverynote/DeliveryNoteVoucher';
+import JournalVoucher from './components/vouchers/journal/JournalVoucher';
 
 // // Reports Components
 import ReportsIndex from './components/reports/ReportsIndex';
@@ -116,6 +117,7 @@ function App() {
             <Route path="vouchers/credit-note/create" element={<CreditNoteVoucher />} />
             <Route path="vouchers/debit-note/create" element={<DebitNoteVoucher />} />
             <Route path="vouchers/delivery-note/create" element={<DeliveryNoteVoucher />} />
+            <Route path="vouchers/stock-journal/create" element={<JournalVoucher />} />
             
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
