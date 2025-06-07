@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import type { VoucherEntry, Ledger } from '../../../types';
 import { Save, Plus, Trash2, ArrowLeft } from 'lucide-react';
 
-const ContraVoucher: React.FC = () => {
+const ReceiptVoucher: React.FC = () => {
   const { theme, ledgers, addVoucher } = useAppContext();
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>({
     date: new Date().toISOString().split('T')[0],
-    type: 'contra',
+    type: 'receipt',
     number: '',
     narration: '',
     entries: [
@@ -86,7 +86,8 @@ const ContraVoucher: React.FC = () => {
     <div className='pt-[56px] px-4 '>
       <div className="flex items-center mb-6">
         <button
-            title="Back to Voucher List"
+        title='Back to Vouchers'
+        type="button"
           onClick={() => navigate('/vouchers')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
@@ -94,7 +95,7 @@ const ContraVoucher: React.FC = () => {
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold">Contra Voucher</h1>
+        <h1 className="text-2xl font-bold">Receipt Voucher</h1>
       </div>
       
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
@@ -145,7 +146,7 @@ const ContraVoucher: React.FC = () => {
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-semibold">Entries</h3>
               <button
-              title='Add Entry'
+                title='Add Entry'
                 type="button"
                 onClick={addEntry}
                 className={`flex items-center text-sm px-2 py-1 rounded ${
@@ -181,7 +182,7 @@ const ContraVoucher: React.FC = () => {
                     >
                       <td className="px-4 py-2">
                         <select
-                        title='Select Ledger'
+                        title='Ledger Account'
                           name="ledgerId"
                           value={entry.ledgerId}
                           onChange={(e) => handleEntryChange(index, e)}
@@ -202,7 +203,7 @@ const ContraVoucher: React.FC = () => {
                       </td>
                       <td className="px-4 py-2">
                         <select
-                        title='Select Debit/Credit'
+                        title='Dr/Cr'
                           name="type"
                           value={entry.type}
                           onChange={(e) => handleEntryChange(index, e)}
@@ -219,7 +220,7 @@ const ContraVoucher: React.FC = () => {
                       </td>
                       <td className="px-4 py-2">
                         <input
-                        title='Enter Amount'
+                        title='Amount'
                           type="number"
                           name="amount"
                           value={entry.amount}
@@ -318,7 +319,6 @@ const ContraVoucher: React.FC = () => {
               Cancel
             </button>
             <button
-            title='Save Voucher'
               type="submit"
               disabled={!isBalanced}
               className={`flex items-center px-4 py-2 rounded ${
@@ -340,11 +340,11 @@ const ContraVoucher: React.FC = () => {
         theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'
       }`}>
         <p className="text-sm">
-          <span className="font-semibold">Note:</span> Contra vouchers are used for bank-to-bank or cash-to-bank transfers.
+          <span className="font-semibold">Keyboard Shortcuts:</span> F9 to save, F12 to configure, Esc to cancel.
         </p>
       </div>
     </div>
   );
 };
 
-export default ContraVoucher;
+export default ReceiptVoucher;
