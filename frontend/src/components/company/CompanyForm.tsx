@@ -27,6 +27,7 @@ const CompanyForm: React.FC = () => {
     panNumber: '',
     gstNumber: '',
      state: '',
+     country: 'India'
   });
 
   const handleChange = (
@@ -148,6 +149,24 @@ const CompanyForm: React.FC = () => {
                 ))}
               </select>
             </div>
+            <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="financialYear">
+              Country
+            </label>
+            <input
+              type="text"
+              id="financialYear"
+              name="financialYear"
+              value={company.country}
+              onChange={handleChange}
+              required
+              className={`w-full p-2 rounded border ${
+                theme === 'dark' 
+                  ? 'bg-gray-700 border-gray-600 focus:border-blue-500' 
+                  : 'bg-white border-gray-300 focus:border-blue-500'
+              } outline-none transition-colors`}
+            />
+          </div>
 
           
           <div>

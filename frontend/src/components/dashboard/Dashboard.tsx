@@ -221,6 +221,9 @@ const Dashboard: React.FC = () => {
                      <span className="opacity-75">State:</span> {companyInfo.state}
                 </p>
                 <p className="text-sm">
+                     <span className="opacity-75">State:</span> {companyInfo.country}
+                </p>
+                <p className="text-sm">
                   <span className="opacity-75">PIN:</span> {companyInfo.pin}
                 </p>
                 <p className="text-sm">

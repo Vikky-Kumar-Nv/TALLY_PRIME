@@ -10,6 +10,7 @@ export type CompanyInfo = {
   panNumber: string;
   gstNumber: string;
   state?: string;
+  country?: string;
 };
 
 export type LedgerType = 
