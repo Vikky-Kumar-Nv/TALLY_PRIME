@@ -47,6 +47,8 @@ import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
 
 // // Reports Components
 import ReportsIndex from './components/reports/ReportsIndex';
+import DayBook from './components/reports/DayBook';
+import LedgerReport from './components/reports/LedgerReport';
 import TrialBalance from './components/reports/TrialBalance';
 import StockSummary from './components/reports/StockSummary';
 import MovementAnalysis from './components/reports/MovementAnalysis';
@@ -137,6 +139,8 @@ function App() {
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
             <Route path="vouchers/stock-journal/create" element={<StockJournalVoucher />} />
+            <Route path="reports/day-book" element={<DayBook />} />
+            <Route path="reports/ledger" element={<LedgerReport />} />
             <Route path="reports/trial-balance" element={<TrialBalance />} />
             <Route path="reports/stock-summary" element={<StockSummary />} />
              <Route path="reports/movement-analysis" element={<MovementAnalysis />} />

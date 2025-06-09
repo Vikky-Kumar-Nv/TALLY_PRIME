@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Filter, Upload } from 'lucide-react';
+import { ArrowLeft, Printer ,Download, Filter, Upload } from 'lucide-react';
 
 const GSTR1: React.FC = () => {
   const { theme } = useAppContext();
@@ -34,7 +34,7 @@ const GSTR1: React.FC = () => {
             <Filter size={18} />
           </button>
           <button
-          title='Print'
+          title='upload'
           type='button'
             className={`p-2 rounded-md ${
               theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
@@ -42,6 +42,15 @@ const GSTR1: React.FC = () => {
           >
             <Upload size={18} />
           </button>
+           <button
+             title='Print Report'
+             type='button'
+             className={`p-2 rounded-md ${
+                theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
+                      }`}
+                    >
+             <Printer size={18} />
+                    </button>
           <button
           title='Export'
           type='button'
