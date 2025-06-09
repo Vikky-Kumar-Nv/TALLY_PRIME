@@ -212,6 +212,7 @@ const Dashboard: React.FC = () => {
           >
             <h2 className="text-xl font-semibold mb-2"> {companyInfo.name}</h2>
             <p className="text-sm opacity-75 mb-4">Financial Year: {companyInfo.financialYear}</p>
+            <p className="text-sm opacity-75 mb-4">Books Begining From: {companyInfo.booksBeginningYear}</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm">

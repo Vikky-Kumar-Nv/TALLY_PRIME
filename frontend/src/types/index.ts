@@ -3,6 +3,7 @@
 export type CompanyInfo = {
   name: string;
   financialYear: string;
+  booksBeginningYear: string;
   address: string;
   pin: string;
   phoneNumber: string;
@@ -11,6 +12,7 @@ export type CompanyInfo = {
   gstNumber: string;
   state?: string;
   country?: string;
+
 };
 
 export type LedgerType = 

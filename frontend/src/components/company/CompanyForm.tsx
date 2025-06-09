@@ -44,7 +44,8 @@ const CompanyForm: React.FC = () => {
   
   const [company, setCompany] = useState<CompanyInfo>({
     name: '',
-    financialYear: '2024-2025',
+    financialYear: '',
+    booksBeginningYear: '',
     address: '',
     pin: '',
     phoneNumber: '',
@@ -123,9 +124,9 @@ const CompanyForm: React.FC = () => {
             <input
             title='Enter the beginning financial year'
               type="text"
-              id=" beginningFinancialYear"
-              name="beginningFinancialYear"
-              value={company.financialYear}
+              id="booksBeginningYear"
+              name="booksBeginningYear"
+              value={company.booksBeginningYear}
               onChange={handleChange}
               required
               className={`w-full p-2 rounded border ${
