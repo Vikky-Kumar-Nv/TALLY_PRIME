@@ -32,6 +32,7 @@ const TrialBalance: React.FC = () => {
     <div>
       <div className="flex items-center mb-6">
         <button
+        type='button'
             title='Back to Reports'
           onClick={() => navigate('/reports')}
           className={`mr-4 p-2 rounded-full ${

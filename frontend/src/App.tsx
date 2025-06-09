@@ -48,6 +48,7 @@ import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
 // // Reports Components
 import ReportsIndex from './components/reports/ReportsIndex';
 import TrialBalance from './components/reports/TrialBalance';
+import GSTR1 from './components/reports/GSTR1';
 
 // Other Modules
 import AccountingModule from './components/modules/AccountingModule';
@@ -131,6 +132,7 @@ function App() {
             <Route path="reports" element={<ReportsIndex />} />
             <Route path="vouchers/stock-journal/create" element={<StockJournalVoucher />} />
             <Route path="reports/trial-balance" element={<TrialBalance />} />
+            <Route path="reports/gstr-1" element={<GSTR1 />} />
 
 
                {/* Other Module Routes */}
