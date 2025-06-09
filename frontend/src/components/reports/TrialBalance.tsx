@@ -29,7 +29,7 @@ const TrialBalance: React.FC = () => {
   }, 0);
 
   return (
-    <div>
+    <div className='pt-[56px] px-4 '>
       <div className="flex items-center mb-6">
         <button
         type='button'
