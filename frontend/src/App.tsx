@@ -50,6 +50,7 @@ import ReportsIndex from './components/reports/ReportsIndex';
 import DayBook from './components/reports/DayBook';
 import LedgerReport from './components/reports/LedgerReport';
 import TrialBalance from './components/reports/TrialBalance';
+import ProfitLoss from './components/reports/ProfitLoss';
 import StockSummary from './components/reports/StockSummary';
 import MovementAnalysis from './components/reports/MovementAnalysis';
 import AgeingAnalysis from './components/reports/AgeingAnalysis';
@@ -120,7 +121,7 @@ function App() {
             <Route path="masters/units" element={<UnitList />} />
             <Route path="masters/unit/create" element={<UnitForm />} />
             <Route path="masters/unit/edit/:id" element={<UnitForm />} />
-             <Route path="masters/godowns" element={<GodownList />} />
+            <Route path="masters/godowns" element={<GodownList />} />
             <Route path="masters/godown/create" element={<GodownForm />} />
             <Route path="masters/godown/edit/:id" element={<GodownForm />} />
             
@@ -142,6 +143,7 @@ function App() {
             <Route path="reports/day-book" element={<DayBook />} />
             <Route path="reports/ledger" element={<LedgerReport />} />
             <Route path="reports/trial-balance" element={<TrialBalance />} />
+             <Route path="reports/profit-loss" element={<ProfitLoss />} />
             <Route path="reports/stock-summary" element={<StockSummary />} />
              <Route path="reports/movement-analysis" element={<MovementAnalysis />} />
               <Route path="reports/ageing-analysis" element={<AgeingAnalysis />} />
