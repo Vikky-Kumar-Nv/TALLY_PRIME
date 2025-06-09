@@ -52,6 +52,7 @@ import LedgerReport from './components/reports/LedgerReport';
 import TrialBalance from './components/reports/TrialBalance';
 import ProfitLoss from './components/reports/ProfitLoss';
 import BalanceSheet from './components/reports/BalanceSheet';
+import CashFlow from './components/reports/CashFlow';
 import StockSummary from './components/reports/StockSummary';
 import MovementAnalysis from './components/reports/MovementAnalysis';
 import AgeingAnalysis from './components/reports/AgeingAnalysis';
@@ -146,10 +147,11 @@ function App() {
             <Route path="reports/trial-balance" element={<TrialBalance />} />
             <Route path="reports/profit-loss" element={<ProfitLoss />} />
             <Route path="reports/balance-sheet" element={<BalanceSheet />} />
+            <Route path="reports/cash-flow" element={<CashFlow />} />
             <Route path="reports/stock-summary" element={<StockSummary />} />
-             <Route path="reports/movement-analysis" element={<MovementAnalysis />} />
-              <Route path="reports/ageing-analysis" element={<AgeingAnalysis />} />
-               <Route path="reports/godown-summary" element={<GodownSummary />} />
+            <Route path="reports/movement-analysis" element={<MovementAnalysis />} />
+            <Route path="reports/ageing-analysis" element={<AgeingAnalysis />} />
+            <Route path="reports/godown-summary" element={<GodownSummary />} />
             <Route path="reports/gstr-1" element={<GSTR1 />} />
             <Route path="reports/gstr-3b" element={<GSTR3B />} />
             <Route path="reports/gst-analysis" element={<GSTAnalysis />} />
