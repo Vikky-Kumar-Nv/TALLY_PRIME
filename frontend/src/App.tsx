@@ -48,6 +48,10 @@ import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
 // // Reports Components
 import ReportsIndex from './components/reports/ReportsIndex';
 import TrialBalance from './components/reports/TrialBalance';
+import StockSummary from './components/reports/StockSummary';
+import MovementAnalysis from './components/reports/MovementAnalysis';
+import AgeingAnalysis from './components/reports/AgeingAnalysis';
+import GodownSummary from './components/reports/GodownSummary';
 import GSTR1 from './components/reports/GSTR1';
 import GSTR3B from './components/reports/GSTR3B';
 import GSTAnalysis from './components/reports/GSTAnalysis';
@@ -134,6 +138,10 @@ function App() {
             <Route path="reports" element={<ReportsIndex />} />
             <Route path="vouchers/stock-journal/create" element={<StockJournalVoucher />} />
             <Route path="reports/trial-balance" element={<TrialBalance />} />
+            <Route path="reports/stock-summary" element={<StockSummary />} />
+             <Route path="reports/movement-analysis" element={<MovementAnalysis />} />
+              <Route path="reports/ageing-analysis" element={<AgeingAnalysis />} />
+               <Route path="reports/godown-summary" element={<GodownSummary />} />
             <Route path="reports/gstr-1" element={<GSTR1 />} />
             <Route path="reports/gstr-3b" element={<GSTR3B />} />
             <Route path="reports/gst-analysis" element={<GSTAnalysis />} />
