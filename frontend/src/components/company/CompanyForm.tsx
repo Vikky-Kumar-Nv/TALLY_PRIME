@@ -5,12 +5,37 @@ import type { CompanyInfo } from '../../types';
 
 
 const states = [
-  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
-  'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya',
-  'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim',
-  'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand',
-  'West Bengal', 'Delhi', 'Jammu and Kashmir', 'Ladakh'
+  { code: '37', name: 'Andhra Pradesh' },
+  { code: '12', name: 'Arunachal Pradesh' },
+  { code: '18', name: 'Assam' },
+  { code: '10', name: 'Bihar' },
+  { code: '22', name: 'Chhattisgarh' },
+  { code: '30', name: 'Goa' },
+  { code: '24', name: 'Gujarat' },
+  { code: '06', name: 'Haryana' },
+  { code: '02', name: 'Himachal Pradesh' },
+  { code: '20', name: 'Jharkhand' },
+  { code: '29', name: 'Karnataka' },
+  { code: '32', name: 'Kerala' },
+  { code: '23', name: 'Madhya Pradesh' },
+  { code: '27', name: 'Maharashtra' },
+  { code: '14', name: 'Manipur' },
+  { code: '17', name: 'Meghalaya' },
+  { code: '15', name: 'Mizoram' },
+  { code: '13', name: 'Nagaland' },
+  { code: '21', name: 'Odisha' },
+  { code: '03', name: 'Punjab' },
+  { code: '08', name: 'Rajasthan' },
+  { code: '11', name: 'Sikkim' },
+  { code: '33', name: 'Tamil Nadu' },
+  { code: '36', name: 'Telangana' },
+  { code: '16', name: 'Tripura' },
+  { code: '09', name: 'Uttar Pradesh' },
+  { code: '05', name: 'Uttarakhand' },
+  { code: '19', name: 'West Bengal' },
+  { code: '07', name: 'Delhi' },
+  { code: '01', name: 'Jammu and Kashmir' },
+  { code: '38', name: 'Ladakh' },
 ];
 
 const CompanyForm: React.FC = () => {
@@ -89,6 +114,27 @@ const CompanyForm: React.FC = () => {
               } outline-none transition-colors`}
             />
           </div>
+
+
+          <div>
+            <label className="block text-sm font-medium mb-1" htmlFor="financialYear">
+              Books Beginning From
+            </label>
+            <input
+            title='Enter the beginning financial year'
+              type="text"
+              id=" beginningFinancialYear"
+              name="beginningFinancialYear"
+              value={company.financialYear}
+              onChange={handleChange}
+              required
+              className={`w-full p-2 rounded border ${
+                theme === 'dark' 
+                  ? 'bg-gray-700 border-gray-600 focus:border-blue-500' 
+                  : 'bg-white border-gray-300 focus:border-blue-500'
+              } outline-none transition-colors`}
+            />
+          </div>
           
           <div className="md:col-span-2">
             <label className="block text-sm font-medium mb-1" htmlFor="address">
@@ -142,9 +188,9 @@ const CompanyForm: React.FC = () => {
                 } outline-none transition-colors`}
               >
                 <option value="">Select State</option>
-                {states.map((state) => (
-                  <option key={state} value={state}>
-                    {state}
+                {states.map(({code , name}) => (
+                  <option key={code} value={`${name}(${code})`}>
+                    {name} ({code})
                   </option>
                 ))}
               </select>
