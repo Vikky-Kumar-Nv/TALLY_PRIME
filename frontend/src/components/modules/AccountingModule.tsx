@@ -16,8 +16,8 @@ const AccountingModule: React.FC = () => {
       items: [
         { icon: <BookOpen size={20} />, name: 'Ledger Accounts', path: '/masters/ledger' },
         { icon: <FileText size={20} />, name: 'Groups', path: '/masters/group' },
-        { icon: <DollarSign size={20} />, name: 'Cost Centers', path: '/masters/cost-center' },
-        { icon: <Calculator size={20} />, name: 'Budgets', path: '/masters/budget' }
+        { icon: <DollarSign size={20} />, name: 'Cost Centers', path: '/masters/cost-centers' },
+        { icon: <Calculator size={20} />, name: 'Budgets', path: '/masters/budgets' }
       ]
     },
     {

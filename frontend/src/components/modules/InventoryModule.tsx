@@ -16,8 +16,8 @@ const InventoryModule: React.FC = () => {
       items: [
         { icon: <Package size={20} />, name: 'Stock Items', path: '/masters/stock-item' },
         { icon: <Archive size={20} />, name: 'Stock Groups', path: '/masters/stock-group' },
-        { icon: <Building size={20} />, name: 'Godowns', path: '/masters/godown' },
-        { icon: <FileText size={20} />, name: 'Units', path: '/masters/unit' }
+        { icon: <Building size={20} />, name: 'Godowns', path: '/masters/godowns' },
+        { icon: <FileText size={20} />, name: 'Units', path: '/masters/units' }
       ]
     },
     {
