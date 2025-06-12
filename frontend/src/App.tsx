@@ -60,11 +60,24 @@ import GodownSummary from './components/reports/GodownSummary';
 import GSTR1 from './components/reports/GSTR1';
 import GSTR3B from './components/reports/GSTR3B';
 import GSTAnalysis from './components/reports/GSTAnalysis';
+import TradingAccount from './components/reports/TradingAccount';
+
+
+// GST Module Components
+
+import GSTModule from './components/modules/gst/GSTModul';
+import GSTCalculator from './components/modules/gst/GSTCalculator';
+import GSTRates from './components/modules/gst/GSTRates';
+import HSNCodes from './components/modules/gst/HSNCode';
+import GSTRegistration from './components/modules/gst/GSTRegistration';
+import ComplianceCheck from './components/modules/gst/ComplianceCheck';
+import ImportData from './components/modules/gst/ImportData';
+import Reconciliation from './components/modules/gst/Reconciliation';
+import GSTSummary from './components/modules/gst/GSTSummary';
 
 // Other Modules
 import AccountingModule from './components/modules/AccountingModule';
 import InventoryModule from './components/modules/InventoryModule';
-import GSTModule from './components/modules/GSTModul';
 import TDSModule from './components/modules/TDSModule';
 import AuditModule from './components/modules/AuditModule';
 import ConfigModule from './components/modules/ConfigModule';
@@ -141,6 +154,7 @@ function App() {
             
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
+            <Route path="/reports/trading-account" element={<TradingAccount />} />
             <Route path="vouchers/stock-journal/create" element={<StockJournalVoucher />} />
             <Route path="reports/day-book" element={<DayBook />} />
             <Route path="reports/ledger" element={<LedgerReport />} />
@@ -155,6 +169,20 @@ function App() {
             <Route path="reports/gstr-1" element={<GSTR1 />} />
             <Route path="reports/gstr-3b" element={<GSTR3B />} />
             <Route path="reports/gst-analysis" element={<GSTAnalysis />} />
+
+
+            {/* GST Module Routes */}
+           
+            <Route path="gst" element={<GSTModule />} />
+             <Route path="gst/calculator" element={<GSTCalculator />} />
+            <Route path="gst/hsn-codes" element={<HSNCodes />} />
+            <Route path="gst/compliance" element={<ComplianceCheck />} />
+            <Route path="gst/rates" element={<GSTRates />} />
+            <Route path="gst/registration" element={<GSTRegistration />} />
+            <Route path="gst/import" element={<ImportData />} />
+            <Route path="gst/reconciliation" element={<Reconciliation />} />
+            <Route path='gst/summary' element={<GSTSummary />} />
+
 
 
                {/* Other Module Routes */}

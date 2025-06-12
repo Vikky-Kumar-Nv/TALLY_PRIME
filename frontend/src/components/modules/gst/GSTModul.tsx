@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAppContext } from '../../context/AppContext';
+import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { 
   FileText, BarChart2, Calculator, Settings, 
@@ -14,9 +14,9 @@ const GSTModule: React.FC = () => {
     {
       title: 'GST Returns',
       items: [
-        { icon: <FileText size={20} />, name: 'GSTR-1', path: '/reports/gstr-1' },
-        { icon: <FileText size={20} />, name: 'GSTR-3B', path: '/reports/gstr-3b' },
-        { icon: <BarChart2 size={20} />, name: 'GST Analysis', path: '/reports/gst-analysis' },
+        { icon: <FileText size={20} />, name: 'GSTR-1', path: '../reports/gstr-1' },
+        { icon: <FileText size={20} />, name: 'GSTR-3B', path: '../reports/gstr-3b' },
+        { icon: <BarChart2 size={20} />, name: 'GST Analysis', path: '../reports/gst-analysis' },
         { icon: <Calculator size={20} />, name: 'GST Calculator', path: '/gst/calculator' }
       ]
     },
