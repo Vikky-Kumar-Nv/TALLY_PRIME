@@ -71,7 +71,6 @@ const GSTCalculator: React.FC = () => {
          
         <div className="max-w-4xl mx-auto ">
         <div className="flex items-center mb-4">
-
             <button
                 title='Back to Reports'
                 type='button'
