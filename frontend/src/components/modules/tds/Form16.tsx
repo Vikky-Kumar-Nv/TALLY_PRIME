@@ -73,7 +73,7 @@ const Form16: React.FC = () => {
   ];
 
   const departments = ['all', ...Array.from(new Set(employees.map(emp => emp.department)))];
-  const statuses = ['all', 'generated', 'pending', 'sent'];
+  // const statuses = ['all', 'generated', 'pending', 'sent'];
 
   const filteredEmployees = employees.filter(employee => {
     const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

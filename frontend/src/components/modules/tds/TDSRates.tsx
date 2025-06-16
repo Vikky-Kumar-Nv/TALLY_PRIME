@@ -123,7 +123,7 @@ const TDSRates: React.FC = () => {
     }
   ];
 
-  const categories = ['all', 'salary', 'interest', 'professional', 'rent', 'contractor', 'commission'];
+  // const categories = ['all', 'salary', 'interest', 'professional', 'rent', 'contractor', 'commission'];
 
   const filteredRates = tdsRates.filter(rate => {
     const matchesSearch = rate.section.toLowerCase().includes(searchTerm.toLowerCase()) ||
