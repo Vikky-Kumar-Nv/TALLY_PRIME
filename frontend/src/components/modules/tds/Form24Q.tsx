@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Download, Upload, Calendar, Search, Filter,ArrowLeft } from 'lucide-react';
+import { FileText, Download, Upload,ArrowLeft } from 'lucide-react'; //, Calendar, Search, Filter
 import { useNavigate } from 'react-router-dom';
 
 interface QuarterlyReturn {
@@ -107,8 +107,10 @@ const Form24Q: React.FC = () => {
                 { id: 'upload', label: 'Upload Return' }
               ].map((tab) => (
                 <button
+                title='navigation'
+                type='button'
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id as 'returns' )}
                   className={`py-2 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
@@ -126,12 +128,17 @@ const Form24Q: React.FC = () => {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row gap-4 justify-between">
                 <div className="flex gap-4">
-                  <select className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <select 
+                  title='Returns'
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="2023-24">FY 2023-24</option>
                     <option value="2022-23">FY 2022-23</option>
                     <option value="2021-22">FY 2021-22</option>
                   </select>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                  <button
+                  title='Export'
+                  type='button'
+                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                     <Download className="h-4 w-4" />
                     Export
                   </button>
@@ -195,7 +202,8 @@ const Form24Q: React.FC = () => {
                         </td>
                         <td className="p-4 border-b">
                           <div className="flex gap-2">
-                            <button className="text-blue-600 hover:text-blue-800 text-sm">View</button>
+                            <button title='View' type='button'
+                             className="text-blue-600 hover:text-blue-800 text-sm">View</button>
                             <button className="text-green-600 hover:text-green-800 text-sm">Download</button>
                             {return_.status === 'draft' && (
                               <button className="text-orange-600 hover:text-orange-800 text-sm">Edit</button>
@@ -226,6 +234,7 @@ const Form24Q: React.FC = () => {
                     Financial Year *
                   </label>
                   <select
+                  title='Financial Year'
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -241,6 +250,7 @@ const Form24Q: React.FC = () => {
                     Quarter *
                   </label>
                   <select
+                  title='Quarter'
                     value={selectedQuarter}
                     onChange={(e) => setSelectedQuarter(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -310,7 +320,9 @@ const Form24Q: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Quarter
                   </label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <select 
+                  title='Quarter'
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="Q1">Q1 (Apr-Jun)</option>
                     <option value="Q2">Q2 (Jul-Sep)</option>
                     <option value="Q3">Q3 (Oct-Dec)</option>
@@ -322,7 +334,9 @@ const Form24Q: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Financial Year
                   </label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <select
+                   title='Financial Year'
+                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="2023-24">2023-24</option>
                     <option value="2022-23">2022-23</option>
                     <option value="2021-22">2021-22</option>

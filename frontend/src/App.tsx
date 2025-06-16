@@ -75,6 +75,7 @@ import ImportData from './components/modules/gst/ImportData';
 import Reconciliation from './components/modules/gst/Reconciliation';
 import ExportReturns from './components/modules/gst/ExportReturns';
 import GSTSummary from './components/modules/gst/GSTSummary';
+import TDSSummary from './components/modules/tds/TDSSummary';
 
 
 
@@ -83,12 +84,31 @@ import TDSModule from './components/modules/tds/TDSModule';
 import Form24Q from './components/modules/tds/Form24Q';
 import Form26Q from './components/modules/tds/Form26Q';
 import Form27Q from './components/modules/tds/Form27Q';
+import TDSRates from './components/modules/tds/TDSRates';
+import Form16 from './components/modules/tds/Form16';
+import ComplianceCheck2 from './components/modules/tds/ComplianceCheck';
+import DeducteeMaster from './components/modules/tds/DeducteeMaster';
+import TANRegistration from './components/modules/tds/TANRegistration';
+import AuditCompliance from './components/audit/ComplianceCheck';
+import FraudDetection from './components/audit/FraudDetection';
+
+
+
+//Audit Modules
+import AuditModule from './components/modules/AuditModule';
+import AuditSummary from './components/audit/AuditSummary';
+import TransactionLog from './components/audit/TransactionLog';
+import UserActivity from './components/audit/UserActivity'; 
+import LoginHistory from './components/audit/LoginHistory';
+import DataChanges from './components/audit/DataChanges';
+import SecuritySettings from './components/audit/SecuritySettings';
+import RiskAssessment from './components/audit/RiskAssessment';
 
 // Other Modules
 import AccountingModule from './components/modules/AccountingModule';
 import InventoryModule from './components/modules/InventoryModule';
 
-import AuditModule from './components/modules/AuditModule';
+
 import ConfigModule from './components/modules/ConfigModule';
 
 
@@ -202,13 +222,43 @@ function App() {
                <Route path='tds/form-24q' element={<Form24Q />} />
                <Route path='tds/form-26q' element={<Form26Q />} />
                <Route path='tds/form-27q' element={<Form27Q />} />
+               <Route path='tds/summary' element={<TDSSummary />} />
+               <Route path='tds/rates' element={<TDSRates />} />
+               <Route path='tds/form-16' element={<Form16 />} />
+               <Route path='tds/compliance' element={<ComplianceCheck2 />} />
+               <Route path='tds/deductees' element={<DeducteeMaster />} />
+               <Route path='tds/tan' element={<TANRegistration />} />
+
+
+
+
+                  //Audit Module 
+                <Route path="audit" element={<AuditModule />} />
+                <Route path='audit/summary' element={<AuditSummary />} />
+                <Route path='audit/transaction-log' element={<TransactionLog />} />
+                <Route path='audit/user-activity'   element= {<UserActivity />} />
+                <Route path='audit/login-history'  element={<LoginHistory />} />
+                <Route path='audit/data-changes' element={<DataChanges />} />
+                <Route path='audit/security'  element={<SecuritySettings />} />
+                <Route path='audit/compliance' element={<AuditCompliance />} />
+                <Route path='audit/risk' element={<RiskAssessment />} />
+                <Route path='audit/fraud' element={<FraudDetection />} />
+
+
+
+
+
+
+
+
+
 
                {/* Other Module Routes */}
             <Route path="accounting" element={<AccountingModule />} />
             <Route path="inventory" element={<InventoryModule />} />
             <Route path="gst" element={<GSTModule />} />
             
-            <Route path="audit" element={<AuditModule />} />
+           
             <Route path="config" element={<ConfigModule />} />
           </Route>
         </Routes>
