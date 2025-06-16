@@ -12,6 +12,7 @@ export type CompanyInfo = {
   gstNumber: string;
   state?: string;
   country?: string;
+  taxType?: 'GST' | 'VAT';
 
 };
 
