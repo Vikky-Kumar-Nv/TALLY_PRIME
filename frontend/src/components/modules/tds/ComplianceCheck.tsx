@@ -153,6 +153,7 @@ const ComplianceCheck: React.FC = () => {
               Select Period
             </label>
             <select
+            title='Select Period'
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -174,7 +175,7 @@ const ComplianceCheck: React.FC = () => {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id as 'overview' )}
                   className={`py-2 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'

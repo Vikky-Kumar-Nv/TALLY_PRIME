@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, CheckCircle, AlertCircle, Clock, Upload, Download, FileText,ArrowLeft } from 'lucide-react';
+import { Shield, CheckCircle, AlertCircle, Clock, Upload, Download ,ArrowLeft } from 'lucide-react';//FileText
 import {useNavigate } from 'react-router-dom';
 
 interface RegistrationStep {

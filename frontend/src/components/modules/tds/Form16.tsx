@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Download, Search, Filter, Calendar, Users,ArrowLeft } from 'lucide-react';
+import { FileText, Download, Search, Calendar, Users,ArrowLeft } from 'lucide-react'; //, Filter
 import { useNavigate } from 'react-router-dom';
 
 interface Employee {
@@ -183,6 +183,7 @@ const Form16: React.FC = () => {
             </div>
 
             <select
+            title='fy'
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -193,6 +194,7 @@ const Form16: React.FC = () => {
             </select>
 
             <select
+            title='All '
               value={selectedDepartment}
               onChange={(e) => setSelectedDepartment(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -204,6 +206,7 @@ const Form16: React.FC = () => {
             </select>
 
             <select
+            title='All Status'
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Search, Plus, Edit, Download, Upload, Filter ,ArrowLeft } from 'lucide-react';
+import { Users, Search, Plus, Edit, Download, Upload,ArrowLeft } from 'lucide-react'; //, Filter 
 import { useNavigate } from 'react-router-dom';
 
 interface Deductee {
@@ -87,7 +87,7 @@ const DeducteeMaster: React.FC = () => {
     }
   ];
 
-  const categories = ['all', 'individual', 'company', 'huf', 'firm', 'aop', 'trust'];
+  // const categories = ['all', 'individual', 'company', 'huf', 'firm', 'aop', 'trust'];
 
   const filteredDeductees = deductees.filter(deductee => {
     const matchesSearch = deductee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -142,7 +142,8 @@ const DeducteeMaster: React.FC = () => {
               <h1 className="text-2xl font-bold text-gray-900">Deductee Master</h1>
             </div>
             <div className="flex gap-2">
-              <button 
+              <button  
+              title='add'
                 onClick={() => setShowAddModal(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
@@ -174,6 +175,7 @@ const DeducteeMaster: React.FC = () => {
             </div>
 
             <select
+              title='all Categories'
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -243,7 +245,7 @@ const DeducteeMaster: React.FC = () => {
                     </td>
                     <td className="p-4 border-b">
                       <div className="flex gap-2">
-                        <button className="p-2 text-gray-400 hover:text-blue-600 transition-colors">
+                        <button title='Edit' className="p-2 text-gray-400 hover:text-blue-600 transition-colors">
                           <Edit className="h-4 w-4" />
                         </button>
                       </div>
@@ -303,7 +305,7 @@ const DeducteeMaster: React.FC = () => {
                 placeholder="PAN Number"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <select title='Pan Number' className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 <option value="">Select Category</option>
                 <option value="individual">Individual</option>
                 <option value="company">Company</option>
@@ -312,7 +314,7 @@ const DeducteeMaster: React.FC = () => {
                 <option value="aop">AOP/BOI</option>
                 <option value="trust">Trust</option>
               </select>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <select title='catogery' className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 <option value="">Select TDS Section</option>
                 <option value="194C">194C - Contractor</option>
                 <option value="194J">194J - Professional</option>

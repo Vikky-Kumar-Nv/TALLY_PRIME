@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, FileText, Calendar, Filter, CheckCircle, Clock ,ArrowLeft} from 'lucide-react';
+import { Download, FileText,  CheckCircle, Clock ,ArrowLeft} from 'lucide-react';//Calendar, Filter,
 import { useNavigate } from 'react-router-dom';
 
 interface ReturnType {
@@ -148,7 +148,7 @@ const ExportReturns: React.FC = () => {
                 Select Period
               </label>
               <select
-            
+                title='Select Period'
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -166,6 +166,7 @@ const ExportReturns: React.FC = () => {
                 Export Format
               </label>
               <select
+               title='Export Format'
                 value={exportFormat}
                 onChange={(e) => setExportFormat(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -190,6 +191,7 @@ const ExportReturns: React.FC = () => {
                   From Date
                 </label>
                 <input
+                title='Form Date'
                   type="date"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -199,6 +201,7 @@ const ExportReturns: React.FC = () => {
                   To Date
                 </label>
                 <input
+                title='To Date'
                   type="date"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -212,12 +215,15 @@ const ExportReturns: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-900">Select Returns to Export</h3>
               <div className="flex gap-2">
                 <button
+                 type='button'
                   onClick={() => setSelectedReturns(returnTypes.filter(r => r.status === 'ready').map(r => r.id))}
                   className="text-sm text-blue-600 hover:text-blue-800"
                 >
                   Select All Ready
                 </button>
                 <button
+                  title='Select All Ready'
+                  type='button'
                   onClick={() => setSelectedReturns([])}
                   className="text-sm text-gray-600 hover:text-gray-800"
                 >
@@ -320,6 +326,8 @@ const ExportReturns: React.FC = () => {
           {/* Export Actions */}
           <div className="flex flex-col sm:flex-row gap-3">
             <button
+            title='Export'
+            type='button'
               disabled={selectedReturns.length === 0}
               className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
