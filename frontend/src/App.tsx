@@ -103,13 +103,23 @@ import LoginHistory from './components/audit/LoginHistory';
 import DataChanges from './components/audit/DataChanges';
 import SecuritySettings from './components/audit/SecuritySettings';
 import RiskAssessment from './components/audit/RiskAssessment';
+import ExceptionReports from './components/audit/ExceptionReports';
+import PeriodAnalysis from './components/audit/PeriodAnalysis';
+import UserReports from './components/audit/UserReports';
 
 // Other Modules
 import AccountingModule from './components/modules/AccountingModule';
 import InventoryModule from './components/modules/InventoryModule';
 
-
+//config module
 import ConfigModule from './components/modules/ConfigModule';
+import GeneralSettings from './components/config/GeneralSettings';
+import DatabaseSettings from './components/config/DatabaseSettings';
+import BackupRestore from './components/config/BackupRestore';
+import DisplaySettings from './components/config/DisplaySettings';
+import UserAccounts from './components/config/UserAccounts';
+import Permissions from './components/config/Permissions';
+import RoleManagement from './components/config/RoleManagement';
 
 
 
@@ -243,6 +253,9 @@ function App() {
                 <Route path='audit/compliance' element={<AuditCompliance />} />
                 <Route path='audit/risk' element={<RiskAssessment />} />
                 <Route path='audit/fraud' element={<FraudDetection />} />
+                <Route path='audit/exceptions' element={<ExceptionReports />} />
+                <Route path='audit/period-analysis' element={<PeriodAnalysis />} />
+                <Route path='audit/user-reports' element={<UserReports />} />
 
 
 
@@ -258,8 +271,20 @@ function App() {
             <Route path="inventory" element={<InventoryModule />} />
             <Route path="gst" element={<GSTModule />} />
             
-           
+           //Config module
             <Route path="config" element={<ConfigModule />} />
+            <Route path='config/general' element={<GeneralSettings />} />
+            <Route path='config/database' element={<DatabaseSettings />} />
+            <Route path='config/backup' element={<BackupRestore />} />
+            <Route path='config/display' element={<DisplaySettings />} />
+            <Route path='config/backup' element={<BackupRestore />} />
+            <Route path='config/users' element={<UserAccounts />} />
+            <Route path='config/permissions' element={<Permissions />} />
+            <Route path='config/roles' element={<RoleManagement />} />
+
+
+
+
           </Route>
         </Routes>
       </Router>
