@@ -435,7 +435,8 @@
 
 
 import { useState } from 'react';
-import { Users, Shield, Plus, Edit, Trash2, UserCheck, Key } from 'lucide-react';
+import { Users, Shield, Plus, Edit, Trash2, UserCheck, Key ,ArrowLeft} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // Define Role interface
 interface Role {
@@ -457,6 +458,7 @@ interface Permission {
 }
 
 const RoleManagement = () => {
+  const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [showAddRole, setShowAddRole] = useState(false);
   const [showEditRole, setShowEditRole] = useState(false);
@@ -586,8 +588,19 @@ const RoleManagement = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="pt-[56px] px-4">
       <div className="mb-6">
+        <div className="flex items-center mb-4">
+            <button
+                title='Back to Reports'
+                type='button'
+                  onClick={() => navigate('/config')}
+                  className="mr-4 p-2 rounded-full hover:bg-gray-200"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+                  <h2 className="text-xl font-semibold text-gray-900">Role Management</h2>
+            </div>
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">Role Management</h2>

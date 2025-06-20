@@ -1,7 +1,10 @@
 import  { useState } from 'react';
-import { Settings, Save, RefreshCw, Globe, Calendar, Clock, Building } from 'lucide-react';
+import { Settings, Save, RefreshCw, Globe, Calendar, Clock, Building ,ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
 
 const GeneralSettings = () => {
+  const navigate= useNavigate();
   const [settings, setSettings] = useState({
     companyName: 'Acme Corporation',
     companyAddress: '123 Business Street, City, State 12345',
@@ -59,11 +62,22 @@ const GeneralSettings = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="pt-[56px] px-4">
       <div className="mb-6">
+         <div className="flex items-center mb-4">
+            <button
+                title='Back to Reports'
+                type='button'
+                  onClick={() => navigate('/config')}
+                  className="mr-4 p-2 rounded-full hover:bg-gray-200"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+                <h2 className="text-xl font-semibold text-gray-900">General Settings</h2>
+            </div>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">General Settings</h2>
+            
             <p className="text-sm text-gray-600 mt-1">Configure basic system settings and company information</p>
           </div>
           <div className="flex items-center space-x-4">

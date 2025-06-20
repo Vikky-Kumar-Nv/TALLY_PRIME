@@ -125,7 +125,9 @@ import {
   AlertTriangle,
   Trash2,
   Play,
+  ArrowLeft
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 type BackupStatus = "completed" | "failed" | "pending";
 
@@ -150,6 +152,7 @@ interface BackupSettings {
 }
 
 const BackupRestore = () => {
+  const navigate = useNavigate();
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [selectedBackup, setSelectedBackup] = useState<number | null>(null);
@@ -262,13 +265,24 @@ const BackupRestore = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="pt-[56px] px-4">
       <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">
+        <div className="flex items-center mb-4">
+            <button
+                title='Back to Reports'
+                type='button'
+                  onClick={() => navigate('/config')}
+                  className="mr-4 p-2 rounded-full hover:bg-gray-200"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+                <h2 className="text-xl font-semibold text-gray-900">
               Backup & Restore
             </h2>
+            </div>
+        <div className="flex items-center justify-between">
+          <div>
+            
             <p className="text-sm text-gray-600 mt-1">
               Manage database backups and restore operations
             </p>

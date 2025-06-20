@@ -551,7 +551,8 @@
 
 
 import { useState } from 'react';
-import { Users, Plus, Edit, Trash2, Search, Filter, Shield, Mail, Phone, Eye, Lock } from 'lucide-react';
+import { Users, Plus, Edit, Trash2, Search, Filter, Shield, Mail, Phone, Eye, Lock ,ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // Define User interface
 interface User {
@@ -568,6 +569,7 @@ interface User {
 }
 
 const UserAccounts = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -714,11 +716,22 @@ const UserAccounts = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="pt-[56px] px-4">
       <div className="mb-6">
+        <div className="flex items-center mb-4">
+            <button
+                title='Back to Reports'
+                type='button'
+                  onClick={() => navigate('/config')}
+                  className="mr-4 p-2 rounded-full hover:bg-gray-200"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+                <h2 className="text-xl font-semibold text-gray-900">User Accounts</h2>
+            </div>
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">User Accounts</h2>
+            
             <p className="text-sm text-gray-600 mt-1">Manage user accounts and access permissions</p>
           </div>
           <button
