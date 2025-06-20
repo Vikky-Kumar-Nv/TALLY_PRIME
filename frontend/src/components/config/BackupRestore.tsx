@@ -1,11 +1,164 @@
-import  { useState } from 'react';
-import { Download, Upload, RefreshCw, Calendar, HardDrive, Clock, CheckCircle, AlertTriangle, Trash2, Play } from 'lucide-react';
+// import  { useState } from 'react';
+// import { Download, Upload, RefreshCw, Calendar, HardDrive, Clock, CheckCircle, AlertTriangle, Trash2, Play } from 'lucide-react';
+
+
+
+
+// type BackupStatus = 'completed' | 'failed' | 'pending';
+
+// const BackupRestore = () => {
+//   const [isBackingUp, setIsBackingUp] = useState(false);
+//   const [isRestoring, setIsRestoring] = useState(false);
+//   const [selectedBackup, setSelectedBackup] = useState(null);
+//   const [backupSettings, setBackupSettings] = useState({
+//     autoBackup: true,
+//     frequency: 'daily',
+//     time: '02:00',
+//     retention: 30,
+//     compression: true,
+//     includeFiles: true,
+//     location: 'local'
+//   });
+
+//   const backupHistory = [
+//     {
+//       id: 1,
+//       name: 'backup_2024_01_15_02_00.sql',
+//       date: '2024-01-15 02:00:00',
+//       size: '245 MB',
+//       type: 'Automatic',
+//       status: 'completed',
+//       duration: '3m 45s'
+//     },
+//     {
+//       id: 2,
+//       name: 'backup_2024_01_14_02_00.sql',
+//       date: '2024-01-14 02:00:00',
+//       size: '243 MB',
+//       type: 'Automatic',
+//       status: 'completed',
+//       duration: '3m 52s'
+//     },
+//     {
+//       id: 3,
+//       name: 'backup_manual_2024_01_13_15_30.sql',
+//       date: '2024-01-13 15:30:00',
+//       size: '241 MB',
+//       type: 'Manual',
+//       status: 'completed',
+//       duration: '3m 38s'
+//     },
+//     {
+//       id: 4,
+//       name: 'backup_2024_01_13_02_00.sql',
+//       date: '2024-01-13 02:00:00',
+//       size: '240 MB',
+//       type: 'Automatic',
+//       status: 'failed',
+//       duration: '0m 15s'
+//     },
+//     {
+//       id: 5,
+//       name: 'backup_2024_01_12_02_00.sql',
+//       date: '2024-01-12 02:00:00',
+//       size: '238 MB',
+//       type: 'Automatic',
+//       status: 'completed',
+//       duration: '3m 41s'
+//     }
+//   ];
+
+//   const handleCreateBackup = async () => {
+//     setIsBackingUp(true);
+//     // Simulate backup process
+//     await new Promise(resolve => setTimeout(resolve, 3000));
+//     setIsBackingUp(false);
+//     alert('Backup created successfully!');
+//   };
+
+//   const handleRestore = async (backup) => {
+//     if (confirm(`Are you sure you want to restore from ${backup.name}? This will overwrite current data.`)) {
+//       setIsRestoring(true);
+//       setSelectedBackup(backup.id);
+//       // Simulate restore process
+//       await new Promise(resolve => setTimeout(resolve, 5000));
+//       setIsRestoring(false);
+//       setSelectedBackup(null);
+//       alert('Database restored successfully!');
+//     }
+//   };
+
+//   const handleDeleteBackup = (backup) => {
+//     if (confirm(`Are you sure you want to delete ${backup.name}?`)) {
+//       alert('Backup deleted successfully!');
+//     }
+//   };
+
+//   const getStatusIcon = (status) => {
+//     switch (status) {
+//       case 'completed':
+//         return <CheckCircle className="h-4 w-4 text-green-600" />;
+//       case 'failed':
+//         return <AlertTriangle className="h-4 w-4 text-red-600" />;
+//       default:
+//         return <Clock className="h-4 w-4 text-gray-600" />;
+//     }
+//   };
+
+//   const getStatusColor = (status) => {
+//     switch (status) {
+//       case 'completed':
+//         return 'bg-green-100 text-green-800';
+//       case 'failed':
+//         return 'bg-red-100 text-red-800';
+//       default:
+//         return 'bg-gray-100 text-gray-800';
+//     }
+//   };
+
+
+
+import { useState } from 'react';
+import {
+  Download,
+  Upload,
+  RefreshCw,
+  Calendar,
+  HardDrive,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  Trash2,
+  Play
+} from 'lucide-react';
+
+type BackupStatus = 'completed' | 'failed' | 'pending';
+
+interface BackupEntry {
+  id: number;
+  name: string;
+  date: string;
+  size: string;
+  type: string;
+  status: BackupStatus;
+  duration: string;
+}
+
+interface BackupSettings {
+  autoBackup: boolean;
+  frequency: 'hourly' | 'daily' | 'weekly' | 'monthly';
+  time: string;
+  retention: number;
+  compression: boolean;
+  includeFiles: boolean;
+  location: 'local' | 'cloud' | 'ftp' | 'network';
+}
 
 const BackupRestore = () => {
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
-  const [selectedBackup, setSelectedBackup] = useState(null);
-  const [backupSettings, setBackupSettings] = useState({
+  const [selectedBackup, setSelectedBackup] = useState<number | null>(null);
+  const [backupSettings, setBackupSettings] = useState<BackupSettings>({
     autoBackup: true,
     frequency: 'daily',
     time: '02:00',
@@ -15,7 +168,7 @@ const BackupRestore = () => {
     location: 'local'
   });
 
-  const backupHistory = [
+  const backupHistory: BackupEntry[] = [
     {
       id: 1,
       name: 'backup_2024_01_15_02_00.sql',
@@ -65,31 +218,33 @@ const BackupRestore = () => {
 
   const handleCreateBackup = async () => {
     setIsBackingUp(true);
-    // Simulate backup process
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise((resolve) => setTimeout(resolve, 3000));
     setIsBackingUp(false);
     alert('Backup created successfully!');
   };
 
-  const handleRestore = async (backup) => {
-    if (confirm(`Are you sure you want to restore from ${backup.name}? This will overwrite current data.`)) {
+  const handleRestore = async (backup: BackupEntry) => {
+    if (
+      confirm(
+        `Are you sure you want to restore from ${backup.name}? This will overwrite current data.`
+      )
+    ) {
       setIsRestoring(true);
       setSelectedBackup(backup.id);
-      // Simulate restore process
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
       setIsRestoring(false);
       setSelectedBackup(null);
       alert('Database restored successfully!');
     }
   };
 
-  const handleDeleteBackup = (backup) => {
+  const handleDeleteBackup = (backup: BackupEntry) => {
     if (confirm(`Are you sure you want to delete ${backup.name}?`)) {
       alert('Backup deleted successfully!');
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status: BackupStatus) => {
     switch (status) {
       case 'completed':
         return <CheckCircle className="h-4 w-4 text-green-600" />;
@@ -100,7 +255,7 @@ const BackupRestore = () => {
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: BackupStatus) => {
     switch (status) {
       case 'completed':
         return 'bg-green-100 text-green-800';

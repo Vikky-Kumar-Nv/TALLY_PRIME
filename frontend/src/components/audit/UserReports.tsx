@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { Users, TrendingUp, Download,  BarChart3, PieChart, Activity } from 'lucide-react';//Search, Filter,
 
 const UserReports = () => {
   const [selectedReport, setSelectedReport] = useState('activity');
-  const [selectedUser, setSelectedUser] = useState('all');
+  // const [selectedUser, setSelectedUser] = useState('all');
   const [timeRange, setTimeRange] = useState('month');
 
   const userMetrics = {
@@ -61,7 +61,7 @@ const UserReports = () => {
     { id: 'compliance', name: 'Compliance', icon: BarChart3 }
   ];
 
-  const getRiskColor = (level) => {
+  const getRiskColor = (level:string) => {
     switch (level.toLowerCase()) {
       case 'high':
         return 'bg-red-100 text-red-800';
@@ -74,7 +74,7 @@ const UserReports = () => {
     }
   };
 
-  const getTrendColor = (trend) => {
+  const getTrendColor = (trend:string) => {
     return trend === 'up' ? 'text-green-600' : 'text-red-600';
   };
 

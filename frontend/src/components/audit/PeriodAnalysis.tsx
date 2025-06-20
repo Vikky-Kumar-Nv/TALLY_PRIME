@@ -3,8 +3,8 @@ import { Calendar, TrendingUp, TrendingDown, BarChart3, PieChart, Download, } fr
 
 const PeriodAnalysis = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('month');
-  const [comparisonPeriod, setComparisonPeriod] = useState('previous');
-  const [analysisType, setAnalysisType] = useState('overview');
+  // const [comparisonPeriod, setComparisonPeriod] = useState('previous');
+  // const [analysisType, setAnalysisType] = useState('overview');
 
   const periodData = {
     current: {
@@ -95,7 +95,7 @@ const PeriodAnalysis = () => {
     { date: '2024-01-05', activity: 'Data Privacy Assessment', status: 'scheduled', findings: 0 }
   ];
 
-  const getTrendIcon = (trend) => {
+  const getTrendIcon = (trend:string) => {
     switch (trend) {
       case 'up':
         return <TrendingUp className="h-4 w-4 text-green-600" />;
@@ -106,7 +106,7 @@ const PeriodAnalysis = () => {
     }
   };
 
-  const getTrendColor = (trend, isPositive = true) => {
+  const getTrendColor = (trend:string, isPositive = true) => {
     if (trend === 'up') {
       return isPositive ? 'text-green-600' : 'text-red-600';
     } else if (trend === 'down') {
@@ -115,7 +115,7 @@ const PeriodAnalysis = () => {
     return 'text-gray-600';
   };
 
-  const formatValue = (metric, value) => {
+  const formatValue = (metric:string, value:string) => {
     if (metric === 'Revenue') {
       return `$${(value / 1000000).toFixed(1)}M`;
     } else if (metric === 'Compliance Score') {

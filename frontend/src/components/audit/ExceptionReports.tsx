@@ -101,8 +101,10 @@ const ExceptionReports = () => {
     const matchesSeverity = selectedSeverity === 'all' || exception.severity === selectedSeverity;
     return matchesCategory && matchesSeverity;
   });
+   
+ type Severity = 'critical' | 'high' | 'medium' | 'low' | string;
 
-  const getSeverityColor = (severity:string) => {
+  const getSeverityColor = (severity:Severity) => {
     switch (severity) {
       case 'critical':
         return 'bg-red-100 text-red-800 border-red-200';
@@ -116,8 +118,9 @@ const ExceptionReports = () => {
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
-
-  const getStatusColor = (status:string) => {
+  
+  type Status = 'open' | 'investigating' | 'in-progress' | 'resolved' | 'closed' | string; 
+  const getStatusColor = (status:Status) => {
     switch (status) {
       case 'open':
         return 'bg-red-100 text-red-800';
@@ -133,7 +136,7 @@ const ExceptionReports = () => {
     }
   };
 
-  const getSeverityIcon = (severity:string) => {
+  const getSeverityIcon = (severity:Severity) => {
     switch (severity) {
       case 'critical':
         return <AlertTriangle className="h-4 w-4 text-red-600" />;
