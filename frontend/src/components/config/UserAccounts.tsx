@@ -1,6 +1,21 @@
 import  { useState } from 'react';
 import { Users, Plus, Edit, Trash2, Search, Filter, Shield, Mail, Phone, Eye, Lock } from 'lucide-react'; //Calendar
 
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  department: string;
+  status: string;
+  lastLogin: string;
+  createdAt: string;
+  permissions: string[];
+}
+
+
 const UserAccounts = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -8,10 +23,10 @@ const UserAccounts = () => {
   const [showAddUser, setShowAddUser] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const users = [
+  const users:User[]  = [
     {
       id: 1,
-      name: 'John Doe',
+      name: 'vikky kumar',
       email: 'john.doe@company.com',
       phone: '+1 (555) 123-4567',
       role: 'Admin',
@@ -23,7 +38,7 @@ const UserAccounts = () => {
     },
     {
       id: 2,
-      name: 'Jane Smith',
+      name: 'kunal',
       email: 'jane.smith@company.com',
       phone: '+1 (555) 234-5678',
       role: 'Manager',
@@ -35,7 +50,7 @@ const UserAccounts = () => {
     },
     {
       id: 3,
-      name: 'Mike Johnson',
+      name: 'kunal',
       email: 'mike.johnson@company.com',
       phone: '+1 (555) 345-6789',
       role: 'User',
@@ -47,7 +62,7 @@ const UserAccounts = () => {
     },
     {
       id: 4,
-      name: 'Sarah Wilson',
+      name: 'vikky',
       email: 'sarah.wilson@company.com',
       phone: '+1 (555) 456-7890',
       role: 'Manager',
@@ -59,7 +74,7 @@ const UserAccounts = () => {
     },
     {
       id: 5,
-      name: 'David Brown',
+      name: 'vikky kumar',
       email: 'david.brown@company.com',
       phone: '+1 (555) 567-8901',
       role: 'User',
@@ -89,7 +104,7 @@ const UserAccounts = () => {
     return matchesSearch && matchesStatus && matchesRole;
   });
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status:string) => {
     switch (status) {
       case 'active':
         return 'bg-green-100 text-green-800';
@@ -102,7 +117,7 @@ const UserAccounts = () => {
     }
   };
 
-  const getRoleColor = (role) => {
+  const getRoleColor = (role:string) => {
     switch (role) {
       case 'Admin':
         return 'bg-purple-100 text-purple-800';
@@ -134,13 +149,13 @@ const UserAccounts = () => {
     });
   };
 
-  const handleDeleteUser = (user) => {
+  const handleDeleteUser = (user:User) => {
     if (confirm(`Are you sure you want to delete ${user.name}?`)) {
       alert('User deleted successfully!');
     }
   };
 
-  const handleSuspendUser = (user) => {
+  const handleSuspendUser = (user:User) => {
     if (confirm(`Are you sure you want to suspend ${user.name}?`)) {
       alert('User suspended successfully!');
     }
