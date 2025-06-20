@@ -89,37 +89,37 @@ import Form16 from './components/modules/tds/Form16';
 import ComplianceCheck2 from './components/modules/tds/ComplianceCheck';
 import DeducteeMaster from './components/modules/tds/DeducteeMaster';
 import TANRegistration from './components/modules/tds/TANRegistration';
-// import AuditCompliance from './components/audit/ComplianceCheck';
-// import FraudDetection from './components/audit/FraudDetection';
+import AuditCompliance from './components/audit/ComplianceCheck';
+import FraudDetection from './components/audit/FraudDetection';
 
 
 
 //Audit Modules
-// import AuditModule from './components/modules/AuditModule';
-// import AuditSummary from './components/audit/AuditSummary';
-// import TransactionLog from './components/audit/TransactionLog';
-// import UserActivity from './components/audit/UserActivity'; 
-// import LoginHistory from './components/audit/LoginHistory';
-// import DataChanges from './components/audit/DataChanges';
-// import SecuritySettings from './components/audit/SecuritySettings';
-// import RiskAssessment from './components/audit/RiskAssessment';
-// import ExceptionReports from './components/audit/ExceptionReports';
-// import PeriodAnalysis from './components/audit/PeriodAnalysis';
-// import UserReports from './components/audit/UserReports';
+import AuditModule from './components/modules/AuditModule';
+import AuditSummary from './components/audit/AuditSummary';
+import TransactionLog from './components/audit/TransactionLog';
+import UserActivity from './components/audit/UserActivity'; 
+import LoginHistory from './components/audit/LoginHistory';
+import DataChanges from './components/audit/DataChanges';
+import SecuritySettings from './components/audit/SecuritySettings';
+import RiskAssessment from './components/audit/RiskAssessment';
+import ExceptionReports from './components/audit/ExceptionReports';
+import PeriodAnalysis from './components/audit/PeriodAnalysis';
+import UserReports from './components/audit/UserReports';
 
 // Other Modules
 import AccountingModule from './components/modules/AccountingModule';
 import InventoryModule from './components/modules/InventoryModule';
 
 //config module
-// import ConfigModule from './components/modules/ConfigModule';
-// import GeneralSettings from './components/config/GeneralSettings';
-// import DatabaseSettings from './components/config/DatabaseSettings';
-// import BackupRestore from './components/config/BackupRestore';
-// import DisplaySettings from './components/config/DisplaySettings';
-// import UserAccounts from './components/config/UserAccounts';
-// import Permissions from './components/config/Permissions';
-// import RoleManagement from './components/config/RoleManagement';
+import ConfigModule from './components/modules/ConfigModule';
+import GeneralSettings from './components/config/GeneralSettings';
+import DatabaseSettings from './components/config/DatabaseSettings';
+import BackupRestore from './components/config/BackupRestore';
+import DisplaySettings from './components/config/DisplaySettings';
+import UserAccounts from './components/config/UserAccounts';
+import Permissions from './components/config/Permissions';
+import RoleManagement from './components/config/RoleManagement';
 
 
 
@@ -243,7 +243,7 @@ function App() {
 
 
                   //Audit Module 
-                {/* <Route path="audit" element={<AuditModule />} />
+                <Route path="audit" element={<AuditModule />} />
                 <Route path='audit/summary' element={<AuditSummary />} />
                 <Route path='audit/transaction-log' element={<TransactionLog />} />
                 <Route path='audit/user-activity'   element= {<UserActivity />} />
@@ -255,7 +255,7 @@ function App() {
                 <Route path='audit/fraud' element={<FraudDetection />} />
                 <Route path='audit/exceptions' element={<ExceptionReports />} />
                 <Route path='audit/period-analysis' element={<PeriodAnalysis />} />
-                <Route path='audit/user-reports' element={<UserReports />} /> */}
+                <Route path='audit/user-reports' element={<UserReports />} />
 
 
 
@@ -272,8 +272,6 @@ function App() {
             <Route path="gst" element={<GSTModule />} />
             
            //Config module
-
-{/*            
             <Route path="config" element={<ConfigModule />} />
             <Route path='config/general' element={<GeneralSettings />} />
             <Route path='config/database' element={<DatabaseSettings />} />
@@ -282,7 +280,7 @@ function App() {
             <Route path='config/backup' element={<BackupRestore />} />
             <Route path='config/users' element={<UserAccounts />} />
             <Route path='config/permissions' element={<Permissions />} />
-            <Route path='config/roles' element={<RoleManagement />} /> */}
+            <Route path='config/roles' element={<RoleManagement />} />
 
 
 
