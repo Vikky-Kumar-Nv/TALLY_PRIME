@@ -6,6 +6,10 @@ const Permissions = () => {
   const [showAddRole, setShowAddRole] = useState(false);
   const [newRole, setNewRole] = useState({ name: '', description: '' });
 
+
+
+
+  
   const roles = [
     {
       name: 'Admin',
@@ -111,7 +115,7 @@ const Permissions = () => {
     }
   };
 
-  const handlePermissionToggle = (module, permission) => {
+  const handlePermissionToggle = (module:string, permission:string) => {
     // Toggle permission logic here
     console.log(`Toggling ${permission} for ${module} in role ${selectedRole}`);
   };
@@ -124,14 +128,14 @@ const Permissions = () => {
     }
   };
 
-  const handleDeleteRole = (roleName) => {
+  const handleDeleteRole = (roleName:string) => {
     if (confirm(`Are you sure you want to delete the ${roleName} role?`)) {
       alert('Role deleted successfully!');
     }
   };
 
-  const getRoleColor = (color) => {
-    const colors = {
+  const getRoleColor = (color:string):string => {
+    const colors : Record<string, string> = {
       purple: 'bg-purple-100 text-purple-800',
       blue: 'bg-blue-100 text-blue-800',
       green: 'bg-green-100 text-green-800',
@@ -140,7 +144,7 @@ const Permissions = () => {
     return colors[color] || colors.gray;
   };
 
-  const hasPermission = (module, permission) => {
+  const hasPermission = (module:string, permission:string):boolean => {
     return rolePermissions[selectedRole]?.[module]?.includes(permission) || false;
   };
 
