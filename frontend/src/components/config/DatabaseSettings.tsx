@@ -19,7 +19,7 @@ const DatabaseSettings = () => {
 
   const [connectionStatus, setConnectionStatus] = useState('disconnected');
   const [isLoading, setIsLoading] = useState(false);
-  const [testResult, setTestResult] = useState(null);
+  const [testResult, setTestResult] =  useState<string | null>(null);
 
   const handleTestConnection = async () => {
     setIsLoading(true);
