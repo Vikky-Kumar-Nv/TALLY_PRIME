@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import  { useState } from 'react';
 import { Users, Plus, Edit, Trash2, Search, Filter, Shield, Mail, Phone, Eye, Lock } from 'lucide-react'; //Calendar
 
 const UserAccounts = () => {

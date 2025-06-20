@@ -102,7 +102,7 @@ const ExceptionReports = () => {
     return matchesCategory && matchesSeverity;
   });
 
-  const getSeverityColor = (severity) => {
+  const getSeverityColor = (severity:string) => {
     switch (severity) {
       case 'critical':
         return 'bg-red-100 text-red-800 border-red-200';
@@ -117,7 +117,7 @@ const ExceptionReports = () => {
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status:string) => {
     switch (status) {
       case 'open':
         return 'bg-red-100 text-red-800';
@@ -133,7 +133,7 @@ const ExceptionReports = () => {
     }
   };
 
-  const getSeverityIcon = (severity) => {
+  const getSeverityIcon = (severity:string) => {
     switch (severity) {
       case 'critical':
         return <AlertTriangle className="h-4 w-4 text-red-600" />;
@@ -232,6 +232,7 @@ const ExceptionReports = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
             <select
+              title='category'
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -248,6 +249,7 @@ const ExceptionReports = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Severity</label>
             <select
+            title='severity'
               value={selectedSeverity}
               onChange={(e) => setSelectedSeverity(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -263,6 +265,7 @@ const ExceptionReports = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
             <select
+              title='Range'
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
