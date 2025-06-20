@@ -115,7 +115,7 @@ const PeriodAnalysis = () => {
     return 'text-gray-600';
   };
 
-  const formatValue = (metric:string, value:string) => {
+  const formatValue = (metric:string, value:number) => {
     if (metric === 'Revenue') {
       return `$${(value / 1000000).toFixed(1)}M`;
     } else if (metric === 'Compliance Score') {
@@ -134,6 +134,7 @@ const PeriodAnalysis = () => {
           </div>
           <div className="flex items-center space-x-4">
             <select
+            title='period'
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -178,7 +179,9 @@ const PeriodAnalysis = () => {
                     {formatValue(trend.metric, trend.previous)}
                   </span>
                   <span className={`text-sm font-medium ${getTrendColor(trend.trend, !['System Errors', 'Security Incidents'].includes(trend.metric))}`}>
-                    {trend.change > 0 ? '+' : ''}{trend.change}%
+                    {/* {trend.change > 0 ? '+' : ''}{trend.change}% */}
+                    {parseFloat(trend.change) > 0 ? '+' : ''}{trend.change}%
+
                   </span>
                 </div>
               </div>
