@@ -120,6 +120,7 @@ import DisplaySettings from './components/config/DisplaySettings';
 import UserAccounts from './components/config/UserAccounts';
 import Permissions from './components/config/Permissions';
 import RoleManagement from './components/config/RoleManagement';
+import AccessControl from './components/config/AccessControl';
 
 
 
@@ -281,6 +282,7 @@ function App() {
             <Route path='config/users' element={<UserAccounts />} />
             <Route path='config/permissions' element={<Permissions />} />
             <Route path='config/roles' element={<RoleManagement />} />
+            <Route path='config/access' element={<AccessControl />} />
 
 
 
