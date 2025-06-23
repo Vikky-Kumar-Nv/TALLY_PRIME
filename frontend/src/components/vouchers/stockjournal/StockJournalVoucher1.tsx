@@ -270,9 +270,8 @@ const StockJournalVoucher: React.FC = () => {
                     <th className="px-4 py-2 text-left">Godown</th>
                     <th className="px-4 py-2 text-center">Action</th>
                   </tr>
-                </thead>
-                <tbody>
-                  {sourceEntries.map((entry, index) => {
+                </thead>                <tbody>
+                  {sourceEntries.map((entry) => {
                     const globalIndex = formData.entries.indexOf(entry);
                     const selectedItem = stockItems.find(item => item.id === entry.itemId);
                     return (
@@ -402,9 +401,8 @@ const StockJournalVoucher: React.FC = () => {
                     <th className="px-4 py-2 text-left">Godown</th>
                     <th className="px-4 py-2 text-center">Action</th>
                   </tr>
-                </thead>
-                <tbody>
-                  {destEntries.map((entry, index) => {
+                </thead>                <tbody>
+                  {destEntries.map((entry) => {
                     const globalIndex = formData.entries.indexOf(entry);
                     const selectedItem = stockItems.find(item => item.id === entry.itemId);
                     return (

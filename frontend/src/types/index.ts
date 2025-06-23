@@ -426,7 +426,9 @@ export type LedgerType =
   | 'indirect-expenses'
   | 'indirect-income'
   | 'sundry-debtors'
-  | 'sundry-creditors';
+  | 'sundry-creditors'
+  | 'cash'
+  | 'bank';
 
 export type LedgerGroup = {
   id: string;

@@ -5,7 +5,7 @@ import type { VoucherEntry, StockItem, Ledger, Godown } from '../../../types';
 import { Save, Plus, Trash2, ArrowLeft } from 'lucide-react';
 
 const SalesVoucher: React.FC = () => {
-  const { theme, stockItems, ledgers, godowns = [], units, updateStockItem, addVoucher, addLedgerEntry } = useAppContext();
+  const { theme, stockItems, ledgers, godowns = [], updateStockItem, addVoucher } = useAppContext();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>({
@@ -40,7 +40,11 @@ const SalesVoucher: React.FC = () => {
       const field = name.split('.')[1];
       setFormData(prev => ({
         ...prev,
-        dispatchDetails: { ...prev.dispatchDetails, [field]: value }
+        dispatchDetails: { 
+          docNo: field === 'docNo' ? value : prev.dispatchDetails?.docNo || '',
+          through: field === 'through' ? value : prev.dispatchDetails?.through || '',
+          destination: field === 'destination' ? value : prev.dispatchDetails?.destination || ''
+        }
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
@@ -206,7 +210,14 @@ const SalesVoucher: React.FC = () => {
       const gstTotal = formData.entries.reduce((sum, e) => sum + ((e.quantity ?? 0) * (e.rate ?? 0) * (e.gstRate ?? 0) / 100), 0);
       const discountTotal = formData.entries.reduce((sum, e) => sum + (e.discount ?? 0), 0);
       const total = subtotal + gstTotal - discountTotal;
-      return { subtotal, gstTotal, discountTotal, total };
+      return { 
+        subtotal, 
+        gstTotal, 
+        discountTotal, 
+        total,
+        debitTotal: 0,
+        creditTotal: 0
+      };
     } else {
       const debitTotal = formData.entries
         .filter(e => e.type === 'debit')
@@ -214,7 +225,14 @@ const SalesVoucher: React.FC = () => {
       const creditTotal = formData.entries
         .filter(e => e.type === 'credit')
         .reduce((sum, e) => sum + e.amount, 0);
-      return { debitTotal, creditTotal, total: debitTotal };
+      return { 
+        debitTotal, 
+        creditTotal, 
+        total: debitTotal,
+        subtotal: 0,
+        gstTotal: 0,
+        discountTotal: 0
+      };
     }
   };
 
@@ -242,69 +260,8 @@ const SalesVoucher: React.FC = () => {
         }
       });
 
-      // Post accounting entries
-      const { subtotal, gstTotal, total } = calculateTotals();
-      const salesLedger = ledgers.find(l => l.type === 'sales');
-      const cgstLedger = ledgers.find(l => l.name.toLowerCase().includes('cgst'));
-      const sgstLedger = ledgers.find(l => l.name.toLowerCase().includes('sgst'));
-      const partyLedger = ledgers.find(l => l.id === formData.partyId);
-
-      if (salesLedger && partyLedger) {
-        // Debit Party/Cash
-        addLedgerEntry({
-          id: Math.random().toString(36).substring(2, 9),
-          ledgerId: formData.partyId,
-          amount: total,
-          type: 'debit',
-          voucherId: newVoucher.id,
-          date: formData.date
-        });
-
-        // Credit Sales
-        addLedgerEntry({
-          id: Math.random().toString(36).substring(2, 9),
-          ledgerId: salesLedger.id,
-          amount: subtotal,
-          type: 'credit',
-          voucherId: newVoucher.id,
-          date: formData.date
-        });
-
-        // Credit GST
-        if (gstTotal > 0 && cgstLedger && sgstLedger) {
-          const halfGst = gstTotal / 2;
-          addLedgerEntry({
-            id: Math.random().toString(36).substring(2, 9),
-            ledgerId: cgstLedger.id,
-            amount: halfGst,
-            type: 'credit',
-            voucherId: newVoucher.id,
-            date: formData.date
-          });
-          addLedgerEntry({
-            id: Math.random().toString(36).substring(2, 9),
-            ledgerId: sgstLedger.id,
-            amount: halfGst,
-            type: 'credit',
-            voucherId: newVoucher.id,
-            date: formData.date
-          });
-        }
-      }
-    } else {
-      // Post ledger entries directly
-      formData.entries.forEach(entry => {
-        if (entry.ledgerId && entry.amount) {
-          addLedgerEntry({
-            id: Math.random().toString(36).substring(2, 9),
-            ledgerId: entry.ledgerId,
-            amount: entry.amount,
-            type: entry.type,
-            voucherId: newVoucher.id,
-            date: formData.date
-          });
-        }
-      });
+      // TODO: Implement ledger entry posting when AppContext supports it
+      // For now, we only update stock and create the voucher record
     }
 
     navigate('/vouchers');
@@ -370,7 +327,7 @@ const SalesVoucher: React.FC = () => {
                 className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors.partyId ? 'border-red-500' : ''}`}
               >
                 <option value="">Select Party</option>
-                {ledgers.filter(l => l.type === 'sundry-debtors' || l.type === 'cash' || l.type === 'current-assets').map((ledger: Ledger) => (
+                {ledgers.filter(l => l.type === 'sundry-debtors' || l.type === 'current-assets').map((ledger: Ledger) => (
                   <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
                 ))}
               </select>
