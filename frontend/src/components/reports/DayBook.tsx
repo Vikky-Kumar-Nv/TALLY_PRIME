@@ -7,8 +7,8 @@ const DayBook: React.FC = () => {
   const { theme, vouchers, ledgers } = useAppContext();
   const navigate = useNavigate();
   const [showFilterPanel, setShowFilterPanel] = useState(false);
-
-  const getLedgerName = (ledgerId: string) => {
+  const getLedgerName = (ledgerId: string | undefined) => {
+    if (!ledgerId) return '';
     return ledgers.find(ledger => ledger.id === ledgerId)?.name || '';
   };
 
