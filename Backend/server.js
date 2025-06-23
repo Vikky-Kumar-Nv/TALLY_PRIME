@@ -58,13 +58,6 @@ if (req.body.taxType === 'GST') {
 
 
 
-console.log("✅ POST /api/company HIT");
-console.log("📦 Request Body:", req.body);
-console.log("taxType:", taxType);
-console.log("vatNumber:", vatNumber);
-console.log("vat_number going to SQL:", vat_number);
-
-
   const sql = `INSERT INTO tbCompanies 
     (name, financial_year, books_beginning_year, address, pin, phone_number, email, pan_number, gst_number, vat_number, state, country, tax_type, employee_id)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
