@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+model user {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique(map: "User_email_key")
+  password  String
+  role      user_role @default(user)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+
+  company   company[]
+
+  @@index([email], map: "User_email_idx")
+}
+
+enum user_role {
+  user
+  super_user
+}
+
+
+model admin {
+  id        Int        @id @default(autoincrement())
+  name      String
+  email     String     @unique(map: "Admin_email_key")
+  password  String
+  role      admin_role @default(sub_admin)
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime
+
+  @@index([email], map: "Admin_email_idx")
+}
+enum admin_role {
+  admin
+  sub_admin
+}
+
+model company {
+  id        Int      @id @default(autoincrement())
+  userId    Int      
+  name      String
+  financialYear DateTime
+  booksbeginingfrom DateTime
+  address   String
+  pinCode   String
+  state     String
+  country  String
+  gstNumber String
+  vatNumber String
+  phone     String
+  email     String   @unique(map: "Company_email_key")
+  panNumber String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+
+  user      user?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledger    ledger[]
+
+  @@index([email], map: "Company_email_idx")
+}
+model ledger {
+  id        Int      @id @default(autoincrement())
+  companyId Int
+  name      String
+  openingBalance Decimal @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+
+  company   company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  @@index([companyId], map: "Ledger_companyId_idx")
+}

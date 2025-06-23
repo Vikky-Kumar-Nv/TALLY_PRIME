@@ -3,8 +3,8 @@ import { Shield, Users, Lock, Key, Save, Plus, Edit, Trash2,  Search, ArrowLeft 
 import { useNavigate } from 'react-router-dom';
 
 const AccessControl = () => {
-//   const [selectedUser, setSelectedUser] = useState(null);
-//   const [showAddUser, setShowAddUser] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showAddUser, setShowAddUser] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const navigate = useNavigate();
@@ -88,7 +88,7 @@ const AccessControl = () => {
     return matchesSearch && matchesRole;
   });
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status:string) => {
     switch (status) {
       case 'active':
         return 'bg-green-100 text-green-800';
@@ -101,7 +101,7 @@ const AccessControl = () => {
     }
   };
 
-  const getRoleColor = (role) => {
+  const getRoleColor = (role:string) => {
     switch (role) {
       case 'Admin':
         return 'bg-purple-100 text-purple-800';

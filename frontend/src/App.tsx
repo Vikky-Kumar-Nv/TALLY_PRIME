@@ -39,9 +39,9 @@ import CreditNoteVoucher from './components/vouchers/creditnote/CreditNoteVouche
 import DebitNoteVoucher from './components/vouchers/debitnote/DebitNoteVoucher';
 import DeliveryNoteVoucher from './components/vouchers/deliverynote/DeliveryNoteVoucher';
 import JournalVoucher from './components/vouchers/journal/JournalVoucher';
-import SalesVoucher from './components/vouchers/sales/SalesVoucher';
+import SalesVoucher1 from './components/vouchers/sales/SalesVoucher1';
 import PurchaseVoucher from './components/vouchers/purches/PurcheseVoucher';
-import StockJournalVoucher from './components/vouchers/stockjournal/StockJournalVoucher';
+import StockJournalVoucher1 from './components/vouchers/stockjournal/StockJournalVoucher1';
 import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
 
 
@@ -191,12 +191,13 @@ function App() {
             <Route path="vouchers/delivery-note/create" element={<DeliveryNoteVoucher />} />
             <Route path="vouchers/journal/create" element={<JournalVoucher />} />
             <Route path="vouchers/purchase/create" element={<PurchaseVoucher />} />
-            <Route path="vouchers/sales/create" element={<SalesVoucher />} />
+            <Route path="vouchers/stock-journal/create" element={<StockJournalVoucher1 />} />
+            <Route path="vouchers/sales/create" element={<SalesVoucher1 />} />
             
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
             <Route path="/reports/trading-account" element={<TradingAccount />} />
-            <Route path="vouchers/stock-journal/create" element={<StockJournalVoucher />} />
+            
             <Route path="reports/day-book" element={<DayBook />} />
             <Route path="reports/ledger" element={<LedgerReport />} />
             <Route path="reports/trial-balance" element={<TrialBalance />} />
