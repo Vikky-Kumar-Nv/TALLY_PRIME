@@ -409,9 +409,13 @@ export type CompanyInfo = {
   email: string;
   panNumber: string;
   gstNumber: string;
+  vatNumber: string;
+
   state?: string;
   country?: string;
   taxType?: 'GST' | 'VAT';
+  employeeId?: number;
+
 };
 
 export type LedgerType = 

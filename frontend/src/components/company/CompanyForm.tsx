@@ -410,19 +410,21 @@ const CompanyForm: React.FC = () => {
   const navigate = useNavigate();
 
   const [company, setCompany] = useState<CompanyInfo>({
-    name: "",
-    financialYear: "",
-    booksBeginningYear: "",
-    address: "",
-    pin: "",
-    phoneNumber: "",
-    email: "",
-    panNumber: "",
-    gstNumber: "",
-    state: "",
-    country: "India",
-    taxType: "GST", // Initialize taxType in company state
-  });
+  name: "",
+  financialYear: "",
+  booksBeginningYear: "",
+  address: "",
+  pin: "",
+  phoneNumber: "",
+  email: "",
+  panNumber: "",
+  gstNumber: "",
+  vatNumber: "", // Add this
+  state: "",
+  country: "India",
+  taxType: "VAT",
+});
+
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -431,11 +433,35 @@ const CompanyForm: React.FC = () => {
     setCompany((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCompanyInfo(company); // Save company including taxType
-    navigate("/");
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const res = await fetch("http://localhost:5000/api/company", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(company),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("Company created successfully!");
+      console.log("🔍 Submitting company:", company);
+
+      setCompanyInfo(company); // Optional: store in context
+      navigate("/");
+    } else {
+      alert(data.message || "Failed to create company");
+    }
+  } catch (err) {
+    console.error("Submit error:", err);
+    alert("Something went wrong!");
+  }
+};
+
 
   return (
     <div className="pt-[56px] px-4">
@@ -685,19 +711,25 @@ const CompanyForm: React.FC = () => {
               >
                 {company.taxType} Number
               </label>
-              <input
-                type="text"
-                id="gstNumber"
-                name="gstNumber"
-                value={company.gstNumber}
-                onChange={handleChange}
-                placeholder={`Enter ${company.taxType} Number`}
-                className={`w-full p-2 rounded border ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 focus:border-blue-500"
-                    : "bg-white border-gray-300 focus:border-blue-500"
-                } outline-none transition-colors`}
-              />
+              {company.taxType === "GST" ? (
+  <input
+    type="text"
+    id="gstNumber"
+    name="gstNumber"
+    value={company.gstNumber}
+    onChange={handleChange}
+  />
+) : (
+  <input
+    type="text"
+    id="vatNumber"
+    name="vatNumber"
+    value={company.vatNumber}
+    onChange={handleChange}
+  />
+)}
+
+              
             </div>
           </div>
 

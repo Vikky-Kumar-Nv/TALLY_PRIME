@@ -433,12 +433,13 @@ const Dashboard: React.FC = () => {
                   <span className="opacity-75">PAN:</span>{" "}
                   {companyInfo.panNumber}
                 </p>
-                <p className="text-sm">
-                  <span className="opacity-75">
-                    {companyInfo.taxType === "VAT" ? "VAT Number:" : "GST Number:"}
-                  </span>{" "}
-                  {companyInfo.gstNumber}
-                </p>
+               <p className="text-sm">
+  <span className="opacity-75">
+    {companyInfo.taxType === "VAT" ? "VAT Number:" : "GST Number:"}
+  </span>{" "}
+  {companyInfo.taxType === "VAT" ? companyInfo.vatNumber : companyInfo.gstNumber}
+</p>
+
               </div>
             </div>
           </div>
