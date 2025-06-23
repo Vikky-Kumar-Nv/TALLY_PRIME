@@ -176,12 +176,14 @@ const DisplaySettings = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
                 <div className="flex items-center space-x-2">
                   <input
+                  title='Primary Color'
                     type="color"
                     value={settings.primaryColor}
                     onChange={(e) => setSettings({...settings, primaryColor: e.target.value})}
                     className="w-12 h-10 border border-gray-300 rounded-lg"
                   />
                   <input
+                    title='Primary Color'
                     type="text"
                     value={settings.primaryColor}
                     onChange={(e) => setSettings({...settings, primaryColor: e.target.value})}
@@ -194,12 +196,14 @@ const DisplaySettings = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Secondary Color</label>
                 <div className="flex items-center space-x-2">
                   <input
+                  title='Secondary Color'
                     type="color"
                     value={settings.secondaryColor}
                     onChange={(e) => setSettings({...settings, secondaryColor: e.target.value})}
                     className="w-12 h-10 border border-gray-300 rounded-lg"
                   />
                   <input
+                    title='Secondary Color'
                     type="text"
                     value={settings.secondaryColor}
                     onChange={(e) => setSettings({...settings, secondaryColor: e.target.value})}
@@ -222,6 +226,7 @@ const DisplaySettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Font Family</label>
               <select
+                title='Font Family'
                 value={settings.fontFamily}
                 onChange={(e) => setSettings({...settings, fontFamily: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -290,6 +295,7 @@ const DisplaySettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Sidebar Width</label>
                 <select
+                  title='Sidebar Width'
                   value={settings.sidebarWidth}
                   onChange={(e) => setSettings({...settings, sidebarWidth: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -303,6 +309,7 @@ const DisplaySettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Header Height</label>
                 <select
+                  title='Header Height'
                   value={settings.headerHeight}
                   onChange={(e) => setSettings({...settings, headerHeight: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -369,6 +376,7 @@ const DisplaySettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Rows Per Page</label>
               <select
+                title='Rows Per Page'
                 value={settings.tableRowsPerPage}
                 onChange={(e) => setSettings({...settings, tableRowsPerPage: parseInt(e.target.value)})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -426,6 +434,7 @@ const DisplaySettings = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date Format</label>
             <select
+            title='Date Format'
               value={settings.dateFormat}
               onChange={(e) => setSettings({...settings, dateFormat: e.target.value})}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -440,6 +449,7 @@ const DisplaySettings = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Number Format</label>
             <select
+              title='Number Format'
               value={settings.numberFormat}
               onChange={(e) => setSettings({...settings, numberFormat: e.target.value})}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -453,6 +463,7 @@ const DisplaySettings = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Currency Position</label>
             <select
+              title='Currency Position'
               value={settings.currencyPosition}
               onChange={(e) => setSettings({...settings, currencyPosition: e.target.value})}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"

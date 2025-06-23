@@ -112,6 +112,7 @@ const GeneralSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
               <input
+              title='Company Name'
                 type="text"
                 value={settings.companyName}
                 onChange={(e) => setSettings({...settings, companyName: e.target.value})}
@@ -122,6 +123,7 @@ const GeneralSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
               <textarea
+                title='Company Address'
                 value={settings.companyAddress}
                 onChange={(e) => setSettings({...settings, companyAddress: e.target.value})}
                 rows={3}
@@ -133,6 +135,7 @@ const GeneralSettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
                 <input
+                  title='Company Phone'
                   type="text"
                   value={settings.companyPhone}
                   onChange={(e) => setSettings({...settings, companyPhone: e.target.value})}
@@ -143,6 +146,7 @@ const GeneralSettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                 <input
+                title='Company Email'
                   type="email"
                   value={settings.companyEmail}
                   onChange={(e) => setSettings({...settings, companyEmail: e.target.value})}
@@ -154,6 +158,7 @@ const GeneralSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Website</label>
               <input
+              title='Company Website'
                 type="url"
                 value={settings.companyWebsite}
                 onChange={(e) => setSettings({...settings, companyWebsite: e.target.value})}
@@ -174,6 +179,7 @@ const GeneralSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Financial Year</label>
               <input
+              title='Financial Year'
                 type="text"
                 value={settings.financialYear}
                 onChange={(e) => setSettings({...settings, financialYear: e.target.value})}
@@ -185,6 +191,7 @@ const GeneralSettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
                 <input
+                title='Financial Year Start Date'
                   type="date"
                   value={settings.financialYearStart}
                   onChange={(e) => setSettings({...settings, financialYearStart: e.target.value})}
@@ -195,6 +202,7 @@ const GeneralSettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
                 <input
+                title='Financial Year End Date'
                   type="date"
                   value={settings.financialYearEnd}
                   onChange={(e) => setSettings({...settings, financialYearEnd: e.target.value})}
@@ -207,6 +215,7 @@ const GeneralSettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Base Currency</label>
                 <select
+                title='Base Currency'
                   value={settings.baseCurrency}
                   onChange={(e) => setSettings({...settings, baseCurrency: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -222,6 +231,7 @@ const GeneralSettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Decimal Places</label>
                 <select
+                title='Decimal Places'
                   value={settings.decimalPlaces}
                   onChange={(e) => setSettings({...settings, decimalPlaces: parseInt(e.target.value)})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -249,6 +259,7 @@ const GeneralSettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Date Format</label>
                 <select
+                title='Date Format'
                   value={settings.dateFormat}
                   onChange={(e) => setSettings({...settings, dateFormat: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -263,6 +274,7 @@ const GeneralSettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Time Format</label>
                 <select
+                title='Time Format'
                   value={settings.timeFormat}
                   onChange={(e) => setSettings({...settings, timeFormat: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -276,6 +288,7 @@ const GeneralSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
               <select
+              title='Timezone'
                 value={settings.timezone}
                 onChange={(e) => setSettings({...settings, timezone: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -292,6 +305,7 @@ const GeneralSettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Language</label>
                 <select
+                  title='Language'
                   value={settings.language}
                   onChange={(e) => setSettings({...settings, language: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -307,6 +321,7 @@ const GeneralSettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Number Format</label>
                 <select
+                title='Number Format'
                   value={settings.numberFormat}
                   onChange={(e) => setSettings({...settings, numberFormat: e.target.value})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -331,6 +346,7 @@ const GeneralSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Tax Registration Number</label>
               <input
+              title='Tax Registration Number'
                 type="text"
                 value={settings.taxRegistration}
                 onChange={(e) => setSettings({...settings, taxRegistration: e.target.value})}
@@ -341,6 +357,7 @@ const GeneralSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">PAN Number</label>
               <input
+              title='PAN Number'
                 type="text"
                 value={settings.panNumber}
                 onChange={(e) => setSettings({...settings, panNumber: e.target.value})}
@@ -351,6 +368,7 @@ const GeneralSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">GST Number</label>
               <input
+              title='GST Number'
                 type="text"
                 value={settings.gstNumber}
                 onChange={(e) => setSettings({...settings, gstNumber: e.target.value})}
@@ -447,6 +465,7 @@ const GeneralSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Session Timeout (minutes)</label>
               <input
+              title='Session Timeout'
                 type="number"
                 value={settings.sessionTimeout}
                 onChange={(e) => setSettings({...settings, sessionTimeout: parseInt(e.target.value)})}
@@ -457,6 +476,7 @@ const GeneralSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Backup Frequency</label>
               <select
+              title='Backup Frequency'
                 value={settings.backupFrequency}
                 onChange={(e) => setSettings({...settings, backupFrequency: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"

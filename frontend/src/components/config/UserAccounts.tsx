@@ -811,6 +811,7 @@ const UserAccounts = () => {
 
           <div>
             <select
+            title='Filter by Status'
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -824,6 +825,7 @@ const UserAccounts = () => {
 
           <div>
             <select
+            title='Filter by Role'
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -949,6 +951,7 @@ const UserAccounts = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                 <input
+                title='Enter full name'
                   type="text"
                   value={newUser.name}
                   onChange={(e) => setNewUser({...newUser, name: e.target.value})}
@@ -959,6 +962,7 @@ const UserAccounts = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                 <input
+                title='Enter email address'
                   type="email"
                   value={newUser.email}
                   onChange={(e) => setNewUser({...newUser, email: e.target.value})}
@@ -969,6 +973,7 @@ const UserAccounts = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
                 <input
+                title='Enter phone number'
                   type="tel"
                   value={newUser.phone}
                   onChange={(e) => setNewUser({...newUser, phone: e.target.value})}
@@ -980,6 +985,7 @@ const UserAccounts = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
                   <select
+                  title='Select user role'
                     value={newUser.role}
                     onChange={(e) => setNewUser({...newUser, role: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -993,6 +999,7 @@ const UserAccounts = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
                   <input
+                  title='Enter department name'
                     type="text"
                     value={newUser.department}
                     onChange={(e) => setNewUser({...newUser, department: e.target.value})}
@@ -1004,6 +1011,7 @@ const UserAccounts = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
                 <input
+                title='Enter password'
                   type="password"
                   value={newUser.password}
                   onChange={(e) => setNewUser({...newUser, password: e.target.value})}
@@ -1014,6 +1022,7 @@ const UserAccounts = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
                 <input
+                title='Confirm password'
                   type="password"
                   value={newUser.confirmPassword}
                   onChange={(e) => setNewUser({...newUser, confirmPassword: e.target.value})}

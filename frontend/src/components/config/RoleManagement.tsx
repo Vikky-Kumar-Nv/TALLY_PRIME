@@ -433,7 +433,6 @@
 
 
 
-
 import { useState } from 'react';
 import { Users, Shield, Plus, Edit, Trash2, UserCheck, Key ,ArrowLeft} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -588,27 +587,29 @@ const RoleManagement = () => {
   };
 
   return (
-    <div className="pt-[56px] px-4">
-      <div className="mb-6">
-        <div className="flex items-center mb-4">
+    <div className="pt-[56px] px-4">      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
             <button
                 title='Back to Reports'
                 type='button'
-                  onClick={() => navigate('/config')}
-                  className="mr-4 p-2 rounded-full hover:bg-gray-200"
-                >
-                  <ArrowLeft size={20} />
-                </button>
-                  <h2 className="text-xl font-semibold text-gray-900">Role Management</h2>
+                onClick={() => navigate('/config')}
+                className="mr-4 p-2 rounded-full hover:bg-gray-200"
+                aria-label="Back to Reports"
+            >
+                <ArrowLeft size={20} />
+            </button>
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">Role Management</h1>
+              <p className="text-sm text-gray-600 mt-1">Create and manage user roles with specific permissions</p>
             </div>
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Role Management</h2>
-            <p className="text-sm text-gray-600 mt-1">Create and manage user roles with specific permissions</p>
           </div>
           <button
+            title='Add New Role'
+            type='button'
             onClick={() => setShowAddRole(true)}
             className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            aria-label="Add New Role"
           >
             <Plus className="h-4 w-4" />
             <span>Add Role</span>
@@ -683,19 +684,22 @@ const RoleManagement = () => {
                 </div>
                 <p className="text-sm text-gray-600">{role.description}</p>
               </div>
-              <div className="flex items-center space-x-2">
-                <button
+              <div className="flex items-center space-x-2">                <button
+                  title='Edit Role'
+                  type='button'
                   onClick={() => handleEditRole(role)}
                   className="text-blue-600 hover:text-blue-800"
-                  title="Edit Role"
+                  aria-label={`Edit ${role.name} role`}
                 >
                   <Edit className="h-4 w-4" />
                 </button>
                 {!role.isSystem && (
                   <button
+                    type='button'
                     onClick={() => handleDeleteRole(role)}
                     className="text-red-600 hover:text-red-800"
-                    title="Delete Role"
+                    title={`Delete ${role.name} role`}
+                    aria-label={`Delete ${role.name} role`}
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -738,36 +742,40 @@ const RoleManagement = () => {
 
       {/* Add Role Modal */}
       {showAddRole && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Add New Role</h3>
-            
-            <div className="space-y-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">        <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Add New Role</h2>
+              <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Role Name</label>
+                <label htmlFor="role-name" className="block text-sm font-medium text-gray-700 mb-2">Role Name</label>
                 <input
+                  id="role-name"
+                  title='Role Name'
+                  autoFocus
                   type="text"
                   value={newRole.name}
                   onChange={(e) => setNewRole({ ...newRole, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Enter role name"
+                  aria-describedby="role-name-help"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <label htmlFor="role-description" className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                 <textarea
+                  id="role-description"
+                  title='Description'
                   value={newRole.description}
                   onChange={(e) => setNewRole({ ...newRole, description: e.target.value })}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Enter role description"
+                  aria-describedby="role-description-help"
                 />
-              </div>
-
-              <div>
+              </div>              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
-                <div className="space-y-2 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                <fieldset className="space-y-2 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                  <legend className="sr-only">Select permissions for this role</legend>
                   {availablePermissions.map((permission) => (
                     <label key={permission.id} className="flex items-start space-x-3">
                       <input
@@ -775,27 +783,33 @@ const RoleManagement = () => {
                         checked={newRole.permissions.includes(permission.id)}
                         onChange={() => togglePermission(permission.id)}
                         className="mt-1 rounded"
+                        aria-describedby={`permission-${permission.id}-desc`}
                       />
                       <div>
                         <div className="text-sm font-medium text-gray-900">{permission.name}</div>
-                        <div className="text-xs text-gray-600">{permission.description}</div>
+                        <div id={`permission-${permission.id}-desc`} className="text-xs text-gray-600">{permission.description}</div>
                       </div>
                     </label>
                   ))}
-                </div>
+                </fieldset>
               </div>
-            </div>
-
-            <div className="flex justify-end space-x-4 mt-6">
+            </div>            <div className="flex justify-end space-x-4 mt-6">
               <button
+                title='Cancel'
+                type='button'
                 onClick={() => setShowAddRole(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                aria-label="Cancel adding new role"
               >
                 Cancel
               </button>
               <button
+                title='Add Role'
+                type='button'
+                disabled={!newRole.name || !newRole.description}
                 onClick={handleAddRole}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Add new role"
               >
                 Add Role
               </button>
@@ -806,37 +820,38 @@ const RoleManagement = () => {
 
       {/* Edit Role Modal */}
       {showEditRole && selectedRole && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Edit Role: {selectedRole.name}</h3>
-            
-            <div className="space-y-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">        <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Edit Role: {selectedRole.name}</h2>
+              <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Role Name</label>
+                <label htmlFor="edit-role-name" className="block text-sm font-medium text-gray-700 mb-2">Role Name</label>
                 <input
+                  id="edit-role-name"
                   type="text"
                   defaultValue={selectedRole.name}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   disabled={selectedRole.isSystem}
+                  aria-describedby="edit-role-name-help"
                 />
                 {selectedRole.isSystem && (
-                  <p className="text-xs text-gray-500 mt-1">System roles cannot be renamed</p>
+                  <p id="edit-role-name-help" className="text-xs text-gray-500 mt-1">System roles cannot be renamed</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <label htmlFor="edit-role-description" className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                 <textarea
-                title='Description'
+                  id="edit-role-description"
+                  title='Description'
                   defaultValue={selectedRole.description}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  aria-describedby="edit-role-description-help"
                 />
-              </div>
-
-              <div>
+              </div>              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Current Permissions</label>
-                <div className="space-y-2 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                <fieldset className="space-y-2 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                  <legend className="sr-only">Edit permissions for this role</legend>
                   {availablePermissions.map((permission) => (
                     <label key={permission.id} className="flex items-start space-x-3">
                       <input
@@ -844,14 +859,15 @@ const RoleManagement = () => {
                         defaultChecked={selectedRole.permissions.includes(permission.id)}
                         className="mt-1 rounded"
                         disabled={selectedRole.isSystem}
+                        aria-describedby={`edit-permission-${permission.id}-desc`}
                       />
                       <div>
                         <div className="text-sm font-medium text-gray-900">{permission.name}</div>
-                        <div className="text-xs text-gray-600">{permission.description}</div>
+                        <div id={`edit-permission-${permission.id}-desc`} className="text-xs text-gray-600">{permission.description}</div>
                       </div>
                     </label>
                   ))}
-                </div>
+                </fieldset>
                 {selectedRole.isSystem && (
                   <p className="text-xs text-gray-500 mt-1">System role permissions cannot be modified</p>
                 )}
@@ -878,18 +894,22 @@ const RoleManagement = () => {
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div className="flex justify-end space-x-4 mt-6">
+            </div>            <div className="flex justify-end space-x-4 mt-6">
               <button
+                title='Cancel'
+                type='button'
                 onClick={() => setShowEditRole(false)}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                aria-label="Cancel editing role"
               >
                 Cancel
               </button>
               <button
+                title='Save Changes'
+                type='button'
                 disabled={selectedRole.isSystem}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Save role changes"
               >
                 Save Changes
               </button>

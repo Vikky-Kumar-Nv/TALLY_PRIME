@@ -13,11 +13,53 @@ interface ReturnType {
 }
 
 const ExportReturns: React.FC = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [selectedPeriod, setSelectedPeriod] = useState('current');
-  
   const [selectedReturns, setSelectedReturns] = useState<string[]>([]);
   const [exportFormat, setExportFormat] = useState('json');
+  const [customDateFrom, setCustomDateFrom] = useState('');
+  const [customDateTo, setCustomDateTo] = useState('');
+
+  // Export options state
+  const [exportOptions, setExportOptions] = useState({
+    includeTransactionDetails: true,
+    includeTaxCalculations: true,
+    includeAmendments: false,
+    generateSeparateFiles: false
+  });
+
+  const handleExportOptionChange = (option: keyof typeof exportOptions) => {
+    setExportOptions(prev => ({
+      ...prev,
+      [option]: !prev[option]
+    }));
+  };
+
+  const handleExport = () => {
+    if (selectedReturns.length === 0) {
+      alert('Please select at least one return to export.');
+      return;
+    }
+    
+    // Export logic here
+    console.log('Exporting returns:', {
+      returns: selectedReturns,
+      period: selectedPeriod,
+      format: exportFormat,
+      customDates: selectedPeriod === 'custom' ? { from: customDateFrom, to: customDateTo } : null,
+      options: exportOptions
+    });
+  };
+
+  const handlePreview = () => {
+    if (selectedReturns.length === 0) {
+      alert('Please select at least one return to preview.');
+      return;
+    }
+    
+    // Preview logic here
+    console.log('Previewing returns:', selectedReturns);
+  };
 
   const returnTypes: ReturnType[] = [
     {
@@ -141,14 +183,13 @@ const ExportReturns: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-900">Export GST Returns</h1>
           </div>
 
-          {/* Period and Format Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Period and Format Selection */}          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="selectPeriod" className="block text-sm font-medium text-gray-700 mb-2">
                 Select Period
               </label>
               <select
-                title='Select Period'
+                id="selectPeriod"
                 value={selectedPeriod}
                 onChange={(e) => setSelectedPeriod(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -162,11 +203,11 @@ const ExportReturns: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="exportFormat" className="block text-sm font-medium text-gray-700 mb-2">
                 Export Format
               </label>
               <select
-               title='Export Format'
+                id="exportFormat"
                 value={exportFormat}
                 onChange={(e) => setExportFormat(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -184,25 +225,26 @@ const ExportReturns: React.FC = () => {
           </div>
 
           {/* Custom Period Selection */}
-          {selectedPeriod === 'custom' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
+          {selectedPeriod === 'custom' && (            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="fromDate" className="block text-sm font-medium text-gray-700 mb-2">
                   From Date
-                </label>
-                <input
-                title='Form Date'
+                </label>                <input
+                  id="fromDate"
                   type="date"
+                  value={customDateFrom}
+                  onChange={(e) => setCustomDateFrom(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="toDate" className="block text-sm font-medium text-gray-700 mb-2">
                   To Date
-                </label>
-                <input
-                title='To Date'
+                </label>                <input
+                  id="toDate"
                   type="date"
+                  value={customDateTo}
+                  onChange={(e) => setCustomDateTo(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -212,17 +254,15 @@ const ExportReturns: React.FC = () => {
           {/* Return Types Selection */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Select Returns to Export</h3>
-              <div className="flex gap-2">
+              <h3 className="text-lg font-semibold text-gray-900">Select Returns to Export</h3>              <div className="flex gap-2">
                 <button
-                 type='button'
+                  type='button'
                   onClick={() => setSelectedReturns(returnTypes.filter(r => r.status === 'ready').map(r => r.id))}
                   className="text-sm text-blue-600 hover:text-blue-800"
                 >
                   Select All Ready
                 </button>
                 <button
-                  title='Select All Ready'
                   type='button'
                   onClick={() => setSelectedReturns([])}
                   className="text-sm text-gray-600 hover:text-gray-800"
@@ -242,10 +282,10 @@ const ExportReturns: React.FC = () => {
                       : 'border-gray-200 hover:border-gray-300'
                   } ${returnType.status === 'pending' ? 'opacity-60' : ''}`}
                   onClick={() => returnType.status !== 'pending' && handleReturnSelection(returnType.id)}
-                >
-                  <div className="flex items-start justify-between mb-3">
+                >                  <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <input
+                        id={`return-${returnType.id}`}
                         type="checkbox"
                         checked={selectedReturns.includes(returnType.id)}
                         onChange={() => handleReturnSelection(returnType.id)}
@@ -253,7 +293,7 @@ const ExportReturns: React.FC = () => {
                         className="mt-1"
                       />
                       <div>
-                        <h4 className="font-semibold text-gray-900">{returnType.name}</h4>
+                        <label htmlFor={`return-${returnType.id}`} className="font-semibold text-gray-900 cursor-pointer">{returnType.name}</label>
                         <p className="text-sm text-gray-600">{returnType.description}</p>
                       </div>
                     </div>
@@ -290,22 +330,45 @@ const ExportReturns: React.FC = () => {
 
           {/* Export Options */}
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <h4 className="font-medium text-gray-900 mb-3">Export Options</h4>
-            <div className="space-y-3">
+            <h4 className="font-medium text-gray-900 mb-3">Export Options</h4>            <div className="space-y-3">
               <label className="flex items-center">
-                <input type="checkbox" className="mr-2" defaultChecked />
+                <input 
+                  id="includeTransactionDetails" 
+                  type="checkbox" 
+                  className="mr-2" 
+                  checked={exportOptions.includeTransactionDetails}
+                  onChange={() => handleExportOptionChange('includeTransactionDetails')}
+                />
                 <span className="text-sm text-gray-700">Include transaction details</span>
               </label>
               <label className="flex items-center">
-                <input type="checkbox" className="mr-2" defaultChecked />
+                <input 
+                  id="includeTaxCalculations" 
+                  type="checkbox" 
+                  className="mr-2" 
+                  checked={exportOptions.includeTaxCalculations}
+                  onChange={() => handleExportOptionChange('includeTaxCalculations')}
+                />
                 <span className="text-sm text-gray-700">Include tax calculations</span>
               </label>
               <label className="flex items-center">
-                <input type="checkbox" className="mr-2" />
+                <input 
+                  id="includeAmendments" 
+                  type="checkbox" 
+                  className="mr-2" 
+                  checked={exportOptions.includeAmendments}
+                  onChange={() => handleExportOptionChange('includeAmendments')}
+                />
                 <span className="text-sm text-gray-700">Include amendments and corrections</span>
               </label>
               <label className="flex items-center">
-                <input type="checkbox" className="mr-2" />
+                <input 
+                  id="generateSeparateFiles" 
+                  type="checkbox" 
+                  className="mr-2" 
+                  checked={exportOptions.generateSeparateFiles}
+                  onChange={() => handleExportOptionChange('generateSeparateFiles')}
+                />
                 <span className="text-sm text-gray-700">Generate separate files for each return</span>
               </label>
             </div>
@@ -323,18 +386,21 @@ const ExportReturns: React.FC = () => {
             </div>
           )}
 
-          {/* Export Actions */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          {/* Export Actions */}          <div className="flex flex-col sm:flex-row gap-3">
             <button
-            title='Export'
-            type='button'
+              type='button'
               disabled={selectedReturns.length === 0}
+              onClick={handleExport}
               className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
               <Download className="h-4 w-4" />
               Export Selected Returns
             </button>
-            <button className="flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+            <button 
+              type="button"
+              onClick={handlePreview}
+              className="flex items-center justify-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            >
               <FileText className="h-4 w-4" />
               Preview Before Export
             </button>
@@ -362,8 +428,11 @@ const ExportReturns: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                       {export_.status}
-                    </span>
-                    <button className="text-blue-600 hover:text-blue-800 text-sm">
+                    </span>                    <button 
+                      type="button" 
+                      className="text-blue-600 hover:text-blue-800 text-sm"
+                      aria-label={`Download ${export_.name}`}
+                    >
                       Download
                     </button>
                   </div>

@@ -1,13 +1,55 @@
-import  { useState } from 'react';
-import { Shield, Users, Lock, Key, Save, Plus, Edit, Trash2,  Search, ArrowLeft } from 'lucide-react';//Check, X,Filter
+import { useState } from 'react';
+import { Shield, Users, Lock, Key, Save, Plus, Edit, Trash2, Search, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
+// Define the User type
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  department: string;
+  status: string;
+  lastLogin: string;
+  permissions: string[];
+  ipRestrictions: string[];
+  timeRestrictions: { start: string; end: string };
+}
+
+interface AccessRule {
+  id: number;
+  name: string;
+  description: string;
+  type: string;
+  conditions: string[];
+  permissions: string[];
+  priority: number;
+  enabled: boolean;
+}
+
 const AccessControl = () => {
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showAddUser, setShowAddUser] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterRole, setFilterRole] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');  const [filterRole, setFilterRole] = useState('all');
   const navigate = useNavigate();
+
+  // Helper functions
+  const handleAddUser = () => {
+    // Add user logic here
+    console.log('Adding new user...');
+    setShowAddUser(false);
+  };
+
+  const handleSaveUser = () => {
+    // Save user changes logic here
+    console.log('Saving user changes...');
+    setSelectedUser(null);
+  };
+
+  const handleDeleteUser = (userId: number) => {
+    // Delete user logic here
+    console.log('Deleting user with ID:', userId);
+  };
 
   const users = [
     {
@@ -48,7 +90,7 @@ const AccessControl = () => {
     }
   ];
 
-  const accessRules = [
+  const accessRules: AccessRule[] = [
     {
       id: 1,
       name: 'Admin Full Access',
@@ -132,8 +174,7 @@ const AccessControl = () => {
           <div>
            
             <p className="text-sm text-gray-600 mt-1">Manage user access permissions and security policies</p>
-          </div>
-          <div className="flex items-center space-x-4">
+          </div>          <div className="flex items-center space-x-4">
             <button
               onClick={() => setShowAddUser(true)}
               className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -217,6 +258,7 @@ const AccessControl = () => {
                 />
               </div>
               <select
+              title='Filter by Role'
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
                 className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -283,8 +325,10 @@ const AccessControl = () => {
                   >
                     <Edit className="h-4 w-4 inline mr-1" />
                     Edit
-                  </button>
-                  <button className="text-red-600 hover:text-red-800 text-sm">
+                  </button>                  <button 
+                    onClick={() => handleDeleteUser(user.id)}
+                    className="text-red-600 hover:text-red-800 text-sm"
+                  >
                     <Trash2 className="h-4 w-4 inline mr-1" />
                     Remove
                   </button>
@@ -365,42 +409,50 @@ const AccessControl = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h4 className="font-medium text-gray-900 mb-3">IP Address Restrictions</h4>
-            <div className="space-y-3">
+            <h4 className="font-medium text-gray-900 mb-3">IP Address Restrictions</h4>            <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <input type="checkbox" className="rounded" />
-                <span className="text-sm text-gray-700">Enable IP restrictions</span>
+                <input 
+                  id="enableIpRestrictions"
+                  type="checkbox" 
+                  className="rounded" 
+                />
+                <label htmlFor="enableIpRestrictions" className="text-sm text-gray-700">Enable IP restrictions</label>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Allowed IP Ranges</label>
+                <label htmlFor="allowedIpRanges" className="block text-sm font-medium text-gray-700 mb-2">Allowed IP Ranges</label>
                 <textarea
+                  id="allowedIpRanges"
                   rows={3}
                   placeholder="192.168.1.0/24&#10;10.0.0.0/8"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
-          </div>
-
-          <div>
+          </div>          <div>
             <h4 className="font-medium text-gray-900 mb-3">Time-based Access</h4>
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <input type="checkbox" className="rounded" />
-                <span className="text-sm text-gray-700">Enable time restrictions</span>
+                <input 
+                  id="enableTimeRestrictions"
+                  type="checkbox" 
+                  className="rounded" 
+                />
+                <label htmlFor="enableTimeRestrictions" className="text-sm text-gray-700">Enable time restrictions</label>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
+                  <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
                   <input
+                    id="startTime"
                     type="time"
                     defaultValue="09:00"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">End Time</label>
+                  <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-2">End Time</label>
                   <input
+                    id="endTime"
                     type="time"
                     defaultValue="18:00"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -411,6 +463,150 @@ const AccessControl = () => {
           </div>
         </div>
       </div>
+
+      {/* Add User Modal */}
+      {showAddUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Add New User</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="userName" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  id="userName"
+                  type="text"
+                  placeholder="Enter user name"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="userEmail" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <input
+                  id="userEmail"
+                  type="email"
+                  placeholder="Enter email address"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="userRole" className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                <select
+                  id="userRole"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">Select role</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Manager">Manager</option>
+                  <option value="User">User</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowAddUser(false)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>              <button
+                onClick={handleAddUser}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Add User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Details Modal */}
+      {selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">User Details - {selectedUser.name}</h3>
+              <button
+                onClick={() => setSelectedUser(null)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="editUserName" className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <input
+                    id="editUserName"
+                    type="text"
+                    defaultValue={selectedUser.name}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="editUserEmail" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                  <input
+                    id="editUserEmail"
+                    type="email"
+                    defaultValue={selectedUser.email}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="editUserRole" className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                  <select
+                    id="editUserRole"
+                    defaultValue={selectedUser.role}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="Admin">Admin</option>
+                    <option value="Manager">Manager</option>
+                    <option value="User">User</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="editUserDepartment" className="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                  <input
+                    id="editUserDepartment"
+                    type="text"
+                    defaultValue={selectedUser.department}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['read', 'write', 'delete', 'admin'].map((permission) => (
+                    <label key={permission} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        defaultChecked={selectedUser.permissions.includes(permission)}
+                        className="rounded mr-2"
+                      />
+                      <span className="text-sm capitalize">{permission}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setSelectedUser(null)}
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>              <button
+                onClick={handleSaveUser}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

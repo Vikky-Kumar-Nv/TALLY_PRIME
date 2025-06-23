@@ -15,10 +15,81 @@ interface QuarterlyReturn {
 }
 
 const Form27Q: React.FC = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'returns' | 'generate' | 'upload'>('returns');
   const [selectedQuarter, setSelectedQuarter] = useState('Q4');
   const [selectedYear, setSelectedYear] = useState('2023-24');
+  const [filterYear, setFilterYear] = useState('2023-24');
+  const [uploadQuarter, setUploadQuarter] = useState('Q4');
+  const [uploadYear, setUploadYear] = useState('2023-24');
+
+  // Handler functions
+  const handleGenerateReturn = () => {
+    if (!selectedQuarter || !selectedYear) {
+      alert('Please select both quarter and financial year');
+      return;
+    }
+    console.log('Generating return for:', { quarter: selectedQuarter, year: selectedYear });
+    // Add generation logic here
+  };
+
+  const handlePreviewReturn = () => {
+    if (!selectedQuarter || !selectedYear) {
+      alert('Please select both quarter and financial year');
+      return;
+    }
+    console.log('Previewing return for:', { quarter: selectedQuarter, year: selectedYear });
+    // Add preview logic here
+  };
+
+  const handleUploadReturn = () => {
+    if (!uploadQuarter || !uploadYear) {
+      alert('Please select both quarter and financial year');
+      return;
+    }
+    console.log('Uploading return for:', { quarter: uploadQuarter, year: uploadYear });
+    // Add upload logic here
+  };
+
+  const handleExportReturns = () => {
+    console.log('Exporting returns for year:', filterYear);
+    // Add export logic here
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (file.size > maxSize) {
+        alert('File size must be less than 5MB');
+        return;
+      }
+      
+      const allowedTypes = ['text/plain', 'application/pdf'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Only .txt and .pdf files are allowed');
+        return;
+      }
+      
+      console.log('Selected file:', file.name);
+      // Add file upload logic here
+    }
+  };
+
+  const handleViewReturn = (returnId: string) => {
+    console.log('Viewing return:', returnId);
+    // Add view logic here
+  };
+
+  const handleDownloadReturn = (returnId: string) => {
+    console.log('Downloading return:', returnId);
+    // Add download logic here
+  };
+
+  const handleEditReturn = (returnId: string) => {
+    console.log('Editing return:', returnId);
+    // Add edit logic here
+  };
 
   const quarterlyReturns: QuarterlyReturn[] = [
     {
@@ -90,7 +161,7 @@ const Form27Q: React.FC = () => {
                 >
                   <ArrowLeft size={20} />
                 </button>
-                <h1 className="text-2xl font-bold">Form 26Q</h1>
+                <h1 className="text-2xl font-bold">Form 27Q</h1>
             </div>
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex items-center gap-3 mb-6">
@@ -104,11 +175,11 @@ const Form27Q: React.FC = () => {
               {[
                 { id: 'returns', label: 'Filed Returns' },
                 { id: 'generate', label: 'Generate Return' },
-                { id: 'upload', label: 'Upload Return' }
-              ].map((tab) => (
+                { id: 'upload', label: 'Upload Return' }              ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id as 'returns' | 'generate' | 'upload')}
                   className={`py-2 px-1 border-b-2 font-medium text-sm ${
                     activeTab === tab.id
                       ? 'border-purple-500 text-purple-600'
@@ -129,16 +200,26 @@ const Form27Q: React.FC = () => {
                 <p className="text-sm text-purple-700">
                   Quarterly TCS (Tax Collected at Source) return for collection of tax under sections 206C, 206CA, 206CB, 206CC, 206CD, 206CE, 206CF, 206CG, 206CH, 206CI, 206CJ.
                 </p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-between">
+              </div>              <div className="flex flex-col sm:flex-row gap-4 justify-between">
                 <div className="flex gap-4">
-                  <select className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                    <option value="2023-24">FY 2023-24</option>
-                    <option value="2022-23">FY 2022-23</option>
-                    <option value="2021-22">FY 2021-22</option>
-                  </select>
-                  <button className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                  <div>
+                    <label htmlFor="filterYear" className="sr-only">Filter by Financial Year</label>
+                    <select
+                      id="filterYear"
+                      value={filterYear}
+                      onChange={(e) => setFilterYear(e.target.value)}
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    >
+                      <option value="2023-24">FY 2023-24</option>
+                      <option value="2022-23">FY 2022-23</option>
+                      <option value="2021-22">FY 2021-22</option>
+                    </select>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={handleExportReturns}
+                    className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
                     <Download className="h-4 w-4" />
                     Export
                   </button>
@@ -199,13 +280,30 @@ const Form27Q: React.FC = () => {
                         </td>
                         <td className="p-4 border-b">
                           <span className="text-gray-700">{return_.dueDate}</span>
-                        </td>
-                        <td className="p-4 border-b">
+                        </td>                        <td className="p-4 border-b">
                           <div className="flex gap-2">
-                            <button className="text-purple-600 hover:text-purple-800 text-sm">View</button>
-                            <button className="text-blue-600 hover:text-blue-800 text-sm">Download</button>
+                            <button 
+                              type="button"
+                              onClick={() => handleViewReturn(return_.id)}
+                              className="text-purple-600 hover:text-purple-800 text-sm"
+                            >
+                              View
+                            </button>
+                            <button 
+                              type="button"
+                              onClick={() => handleDownloadReturn(return_.id)}
+                              className="text-blue-600 hover:text-blue-800 text-sm"
+                            >
+                              Download
+                            </button>
                             {return_.status === 'draft' && (
-                              <button className="text-orange-600 hover:text-orange-800 text-sm">Edit</button>
+                              <button 
+                                type="button"
+                                onClick={() => handleEditReturn(return_.id)}
+                                className="text-orange-600 hover:text-orange-800 text-sm"
+                              >
+                                Edit
+                              </button>
                             )}
                           </div>
                         </td>
@@ -225,14 +323,13 @@ const Form27Q: React.FC = () => {
                 <p className="text-sm text-purple-700">
                   Generate quarterly TCS return for tax collected at source on sale of goods, services, and other transactions.
                 </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              </div>              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="financialYear" className="block text-sm font-medium text-gray-700 mb-2">
                     Financial Year *
                   </label>
                   <select
+                    id="financialYear"
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -244,10 +341,11 @@ const Form27Q: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="quarter" className="block text-sm font-medium text-gray-700 mb-2">
                     Quarter *
                   </label>
                   <select
+                    id="quarter"
                     value={selectedQuarter}
                     onChange={(e) => setSelectedQuarter(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
@@ -298,13 +396,19 @@ const Form27Q: React.FC = () => {
                     <div className="text-lg font-bold text-blue-900">₹1,00,000</div>
                   </div>
                 </div>
-              </div>
-
-              <div className="flex gap-3">
-                <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+              </div>              <div className="flex gap-3">
+                <button 
+                  type="button"
+                  onClick={handleGenerateReturn}
+                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
                   Generate Return
                 </button>
-                <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <button 
+                  type="button"
+                  onClick={handlePreviewReturn}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
                   Preview
                 </button>
               </div>
@@ -319,9 +423,7 @@ const Form27Q: React.FC = () => {
                 <p className="text-sm text-yellow-700">
                   Upload the acknowledgment file received after filing Form 27Q with the Income Tax Department.
                 </p>
-              </div>
-
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+              </div>              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                 <Upload className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   Upload Acknowledgment File
@@ -329,17 +431,32 @@ const Form27Q: React.FC = () => {
                 <p className="text-sm text-gray-600 mb-4">
                   Supports .txt, .pdf files up to 5MB
                 </p>
-                <button className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-                  Choose File
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="relative">
+                  <input
+                    type="file"
+                    id="fileUpload"
+                    accept=".txt,.pdf"
+                    onChange={handleFileUpload}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  <label
+                    htmlFor="fileUpload"
+                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors cursor-pointer"
+                  >
+                    Choose File
+                  </label>
+                </div>
+              </div>              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="uploadQuarter" className="block text-sm font-medium text-gray-700 mb-2">
                     Quarter
                   </label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                  <select
+                    id="uploadQuarter"
+                    value={uploadQuarter}
+                    onChange={(e) => setUploadQuarter(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
                     <option value="Q1">Q1 (Apr-Jun)</option>
                     <option value="Q2">Q2 (Jul-Sep)</option>
                     <option value="Q3">Q3 (Oct-Dec)</option>
@@ -348,19 +465,26 @@ const Form27Q: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="uploadYear" className="block text-sm font-medium text-gray-700 mb-2">
                     Financial Year
                   </label>
-                  <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                  <select
+                    id="uploadYear"
+                    value={uploadYear}
+                    onChange={(e) => setUploadYear(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
                     <option value="2023-24">2023-24</option>
                     <option value="2022-23">2022-23</option>
                     <option value="2021-22">2021-22</option>
                   </select>
                 </div>
-              </div>
-
-              <div className="flex justify-end">
-                <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+              </div>              <div className="flex justify-end">
+                <button 
+                  type="button"
+                  onClick={handleUploadReturn}
+                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
                   Upload Return
                 </button>
               </div>

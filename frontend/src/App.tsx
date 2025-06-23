@@ -40,7 +40,7 @@ import DebitNoteVoucher from './components/vouchers/debitnote/DebitNoteVoucher';
 import DeliveryNoteVoucher from './components/vouchers/deliverynote/DeliveryNoteVoucher';
 import JournalVoucher from './components/vouchers/journal/JournalVoucher';
 import SalesVoucher1 from './components/vouchers/sales/SalesVoucher1';
-import PurchaseVoucher from './components/vouchers/purches/PurcheseVoucher';
+import PurchaseVoucher1 from './components/vouchers/purches/PurcheseVoucher1';
 import StockJournalVoucher1 from './components/vouchers/stockjournal/StockJournalVoucher1';
 import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
 
@@ -190,7 +190,7 @@ function App() {
             <Route path="vouchers/debit-note/create" element={<DebitNoteVoucher />} />
             <Route path="vouchers/delivery-note/create" element={<DeliveryNoteVoucher />} />
             <Route path="vouchers/journal/create" element={<JournalVoucher />} />
-            <Route path="vouchers/purchase/create" element={<PurchaseVoucher />} />
+            <Route path="vouchers/purchase/create" element={<PurchaseVoucher1 />} />
             <Route path="vouchers/stock-journal/create" element={<StockJournalVoucher1 />} />
             <Route path="vouchers/sales/create" element={<SalesVoucher1 />} />
             

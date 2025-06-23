@@ -143,7 +143,9 @@ const DatabaseSettings = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Database Type</label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <select 
+              title='Select Database Type'
+               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 <option value="postgresql">PostgreSQL</option>
                 <option value="mysql">MySQL</option>
                 <option value="sqlite">SQLite</option>
@@ -155,6 +157,7 @@ const DatabaseSettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Host</label>
                 <input
+                title='Database Host'
                   type="text"
                   value={settings.host}
                   onChange={(e) => setSettings({...settings, host: e.target.value})}
@@ -165,6 +168,7 @@ const DatabaseSettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Port</label>
                 <input
+                title='Enter Database Port'
                   type="number"
                   value={settings.port}
                   onChange={(e) => setSettings({...settings, port: e.target.value})}
@@ -176,6 +180,7 @@ const DatabaseSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Database Name</label>
               <input
+              title='Enter Database Name'
                 type="text"
                 value={settings.database}
                 onChange={(e) => setSettings({...settings, database: e.target.value})}
@@ -187,6 +192,7 @@ const DatabaseSettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
                 <input
+                title='Enter Database Username'
                   type="text"
                   value={settings.username}
                   onChange={(e) => setSettings({...settings, username: e.target.value})}
@@ -197,6 +203,7 @@ const DatabaseSettings = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
                 <input
+                title='Enter Database Password'
                   type="password"
                   value={settings.password}
                   onChange={(e) => setSettings({...settings, password: e.target.value})}
@@ -230,6 +237,7 @@ const DatabaseSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Connection Timeout (seconds)</label>
               <input
+                title='Enter Connection Timeout in Seconds'
                 type="number"
                 value={settings.connectionTimeout}
                 onChange={(e) => setSettings({...settings, connectionTimeout: parseInt(e.target.value)})}
@@ -240,6 +248,7 @@ const DatabaseSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Max Connections</label>
               <input
+              title='Enter Maximum Connections'
                 type="number"
                 value={settings.maxConnections}
                 onChange={(e) => setSettings({...settings, maxConnections: parseInt(e.target.value)})}
@@ -250,6 +259,7 @@ const DatabaseSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Performance Mode</label>
               <select
+              title='Select Performance Mode'
                 value={settings.performanceMode}
                 onChange={(e) => setSettings({...settings, performanceMode: e.target.value})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -263,6 +273,7 @@ const DatabaseSettings = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Backup Retention (days)</label>
               <input
+              title='Enter Backup Retention Period in Days'
                 type="number"
                 value={settings.backupRetention}
                 onChange={(e) => setSettings({...settings, backupRetention: parseInt(e.target.value)})}
