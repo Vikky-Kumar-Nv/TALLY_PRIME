@@ -1,55 +1,238 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import type { VoucherEntry, StockItem, Ledger, Godown } from '../../../types';
-import { Save, Plus, Trash2, ArrowLeft } from 'lucide-react';
+import type { VoucherEntry, Ledger, Godown } from '../../../types';
+import { Save, Plus, Trash2, ArrowLeft, Printer } from 'lucide-react';
 
-const SalesVoucher: React.FC = () => {
-  const { theme, stockItems, ledgers, godowns = [], updateStockItem, addVoucher } = useAppContext();
+const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godowns = [], vouchers = [], companyInfo, updateStockItem, addVoucher } = useAppContext();
   const navigate = useNavigate();
+  const printRef = useRef<HTMLDivElement>(null);  // Safe fallbacks for context data
+  const safeStockItems = stockItems || [
+    { id: '1', name: 'Laptop HP Pavilion', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 50, rate: 45000 },
+    { id: '2', name: 'Mobile Phone Samsung', hsnCode: '8517', unit: 'Piece', gstRate: 5, openingBalance: 100, rate: 25000 },
+    { id: '3', name: 'Printer Canon', hsnCode: '8443', unit: 'Piece', gstRate: 18, openingBalance: 30, rate: 15000 },
+    { id: '4', name: 'Office Chair', hsnCode: '9401', unit: 'Piece', gstRate: 18, openingBalance: 75, rate: 8000 },
+    { id: '5', name: 'LED Monitor', hsnCode: '8528', unit: 'Piece', gstRate: 18, openingBalance: 40, rate: 12000 },
+    { id: '6', name: 'Desktop Computer Dell', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 25, rate: 35000 },
+    { id: '7', name: 'Wireless Mouse Logitech', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 200, rate: 1500 },
+    { id: '8', name: 'Keyboard Mechanical', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 150, rate: 3500 },
+    { id: '9', name: 'Smartphone iPhone', hsnCode: '8517', unit: 'Piece', gstRate: 18, openingBalance: 60, rate: 80000 },
+    { id: '10', name: 'Tablet iPad', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 35, rate: 45000 },
+    { id: '11', name: 'Webcam HD Logitech', hsnCode: '8525', unit: 'Piece', gstRate: 18, openingBalance: 80, rate: 4500 },
+    { id: '12', name: 'Headphones Sony', hsnCode: '8518', unit: 'Piece', gstRate: 18, openingBalance: 120, rate: 6000 },
+    { id: '13', name: 'External Hard Drive 1TB', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 90, rate: 5500 },
+    { id: '14', name: 'Router WiFi TP-Link', hsnCode: '8517', unit: 'Piece', gstRate: 18, openingBalance: 70, rate: 3200 },
+    { id: '15', name: 'UPS 1000VA APC', hsnCode: '8504', unit: 'Piece', gstRate: 18, openingBalance: 45, rate: 8500 }
+  ];  const safeLedgers = ledgers || [
+    { id: '1', name: 'ABC Electronics Pvt Ltd', type: 'sundry-debtors', address: '123 Business Street, Mumbai', gstNumber: '27ABCDE1234F1Z5', state: 'Maharashtra' },
+    { id: '2', name: 'XYZ Trading Co', type: 'sundry-debtors', address: '456 Market Road, Delhi', gstNumber: '07XYZAB5678G2H9', state: 'Delhi' },
+    { id: '3', name: 'Cash', type: 'cash', address: '', gstNumber: '', state: '' },
+    { id: '4', name: 'PQR Industries', type: 'sundry-debtors', address: '789 Industrial Area, Pune', gstNumber: '27PQRST9012I3J4', state: 'Maharashtra' },
+    { id: '5', name: 'LMN Enterprises', type: 'current-assets', address: '321 Commercial Zone, Bangalore', gstNumber: '29LMNOP6789K4L5', state: 'Karnataka' },
+    { id: '6', name: 'Tech Solutions India Ltd', type: 'sundry-debtors', address: '88 IT Park, Hyderabad', gstNumber: '36TECH8901M6N7', state: 'Telangana' },
+    { id: '7', name: 'Global Systems Corp', type: 'sundry-debtors', address: '45 Cyber City, Gurgaon', gstNumber: '06GLOBA2345P8Q9', state: 'Haryana' },
+    { id: '8', name: 'Prime Distributors', type: 'sundry-debtors', address: '12 Trade Center, Chennai', gstNumber: '33PRIME6789R0S1', state: 'Tamil Nadu' },
+    { id: '9', name: 'Retail Partners Ltd', type: 'sundry-debtors', address: '67 Mall Road, Kolkata', gstNumber: '19RETAIL3456T2U3', state: 'West Bengal' },
+    { id: '10', name: 'Digital Hub Solutions', type: 'sundry-debtors', address: '23 Tech Tower, Kochi', gstNumber: '32DIGITAL789V4W5', state: 'Kerala' },
+    { id: '11', name: 'Smart Devices Inc', type: 'sundry-debtors', address: '56 Innovation Park, Jaipur', gstNumber: '08SMART0123X6Y7', state: 'Rajasthan' },
+    { id: '12', name: 'Future Tech Enterprises', type: 'sundry-debtors', address: '91 Science City, Ahmedabad', gstNumber: '24FUTURE456Z8A9', state: 'Gujarat' },
+    { id: '13', name: 'Metro Electronics', type: 'sundry-debtors', address: '34 Electronics Market, Lucknow', gstNumber: '09METRO789B0C1', state: 'Uttar Pradesh' },
+    { id: '14', name: 'Omega Systems Pvt Ltd', type: 'sundry-debtors', address: '78 Business Bay, Indore', gstNumber: '23OMEGA012D3E4', state: 'Madhya Pradesh' },
+    { id: '15', name: 'Alpha Technologies', type: 'current-assets', address: '45 Tech Valley, Bhubaneswar', gstNumber: '21ALPHA345F5G6', state: 'Odisha' }  ];
+  const safeCompanyInfo = companyInfo || {
+    name: 'Your Company Name',
+    address: 'Your Company Address',
+    gstNumber: 'N/A',
+    phoneNumber: 'N/A',
+    state: 'Default State',
+    panNumber: 'N/A'
+  };
+
+  // Generate voucher number (e.g., ABCDEF0001)
+  const generateVoucherNumber = () => {
+    const salesVouchers = vouchers.filter(v => v.type === 'sales');
+    const lastNumber = salesVouchers.length > 0
+      ? parseInt(salesVouchers[salesVouchers.length - 1].number.replace('XYZ', '')) || 0
+      : 0;
+    return `XYZ${(lastNumber + 1).toString().padStart(4, '0')}`;
+  };
 
   const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>({
     date: new Date().toISOString().split('T')[0],
     type: 'sales',
-    number: '',
+    number: generateVoucherNumber(),
     narration: '',
     referenceNo: '',
     partyId: '',
     mode: 'item-invoice',
     dispatchDetails: { docNo: '', through: '', destination: '' },
     entries: [
-      { id: 'e1', itemId: '', quantity: 0, rate: 0, amount: 0, type: 'debit', gstRate: 0, godownId: '', discount: 0 }
+      { id: 'e1', itemId: '', quantity: 0, rate: 0, amount: 0, type: 'debit', cgstRate: 0, sgstRate: 0, igstRate: 0, godownId: '', discount: 0 }
     ]
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showConfig, setShowConfig] = useState(false);
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      switch (e.key.toLowerCase()) {
+        case 'f9':
+          e.preventDefault();
+          handleSubmit(e as any);
+          break;
+        case 'f12':
+          e.preventDefault();
+          setShowConfig(true);
+          break;
+        case 'escape':
+          e.preventDefault();
+          navigate('/vouchers');
+          break;
+      }
+    };
 
-  if (!stockItems || !ledgers) {
-    console.warn('Stock items or ledgers are undefined in AppContext');
-    return (
-      <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
-        <h1 className="text-2xl font-bold mb-4">Sales Voucher</h1>
-        <p className="text-red-500">Error: Stock items or ledgers are not available. Please configure them in the application.</p>
-      </div>
-    );
-  }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);  // Alternative print function
+  const handlePrintAlternative = () => {
+    console.log('Alternative print method started...');
+    
+    const selectedItems = formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select');
+    
+    if (selectedItems.length === 0) {
+      alert('Please select at least one item before printing the invoice.');
+      return;
+    }
+    if (!formData.partyId) {
+      alert('Please select a party before printing the invoice.');
+      return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Please allow popups for this site to enable printing');
+      return;
+    }
+
+    const printContent = printRef.current?.innerHTML || '';
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Sales Voucher ${formData.number}</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 10mm;
+            }
+            body { 
+              font-size: 12pt; 
+              font-family: Arial, sans-serif;
+              margin: 0;
+              padding: 0;
+              background: white;
+            }
+            table { 
+              width: 100%; 
+              border-collapse: collapse; 
+              page-break-inside: avoid;
+            }
+            th, td { 
+              border: 1px solid #000; 
+              padding: 8px; 
+              font-size: 10pt;
+            }
+            .no-print { display: none; }
+          </style>
+        </head>
+        <body>
+          ${printContent}
+        </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    
+    // Wait a bit for content to load then print
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+  // Printing
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Sales_Voucher_${formData.number}`,
+    onBeforeGetContent: () => {
+      console.log('Preparing content for print...');
+      return Promise.resolve();
+    },
+    onBeforePrint: () => {
+      console.log('Starting print process...');
+      const selectedItems = formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select');
+      console.log('Selected items for print:', selectedItems.length);
+      
+      console.log('Print data:', { 
+        party: formData.partyId ? getPartyName(formData.partyId) : 'No Party', 
+        items: selectedItems.length,
+        totals: calculateTotals()
+      });
+      
+      return Promise.resolve();
+    },
+    onAfterPrint: () => {
+      console.log('Print completed successfully');
+    },    onPrintError: (errorLocation, error) => {
+      console.error('Print error at:', errorLocation, error);
+      alert('Print failed. Please try your browser\'s print function (Ctrl+P).');
+    },
+    pageStyle: `
+      @page {
+        size: A4;
+        margin: 10mm;
+      }
+      @media print {
+        body { 
+          font-size: 12pt; 
+          font-family: Arial, sans-serif;
+          -webkit-print-color-adjust: exact;
+          color-adjust: exact;
+        }
+        table { 
+          width: 100%; 
+          border-collapse: collapse; 
+          page-break-inside: avoid;
+        }
+        th, td { 
+          border: 1px solid #000; 
+          padding: 8px; 
+          font-size: 10pt;
+        }
+        .no-print { display: none; }
+      }
+    `
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     if (name.startsWith('dispatchDetails.')) {
-      const field = name.split('.')[1];
+      const field = name.split('.')[1] as keyof typeof formData.dispatchDetails;
       setFormData(prev => ({
         ...prev,
         dispatchDetails: { 
-          docNo: field === 'docNo' ? value : prev.dispatchDetails?.docNo || '',
-          through: field === 'through' ? value : prev.dispatchDetails?.through || '',
-          destination: field === 'destination' ? value : prev.dispatchDetails?.destination || ''
+          docNo: prev.dispatchDetails?.docNo || '',
+          through: prev.dispatchDetails?.through || '',
+          destination: prev.dispatchDetails?.destination || '',
+          [field]: value 
         }
       }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
       if (name === 'mode') {
-        // Reset entries when mode changes
         setFormData(prev => ({
           ...prev,
           entries: [
@@ -61,7 +244,9 @@ const SalesVoucher: React.FC = () => {
               rate: 0,
               amount: 0,
               type: value === 'item-invoice' ? 'debit' : 'debit',
-              gstRate: 0,
+              cgstRate: 0,
+              sgstRate: 0,
+              igstRate: 0,
               godownId: '',
               discount: 0
             }
@@ -71,28 +256,35 @@ const SalesVoucher: React.FC = () => {
     }
     setErrors(prev => ({ ...prev, [name]: '' }));
   };
-
   const handleEntryChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const updatedEntries = [...formData.entries];
     const entry = updatedEntries[index];
-
-    if (formData.mode === 'item-invoice') {
+    const partyLedger = safeLedgers.find(l => l.id === formData.partyId);
+    const isIntrastate = partyLedger?.state && safeCompanyInfo.state ? partyLedger.state === safeCompanyInfo.state : true;    if (formData.mode === 'item-invoice') {
       if (name === 'itemId') {
-        const selectedItem = stockItems.find(item => item.id === value);
+        const itemDetails = getItemDetails(value);
+        const gstRate = itemDetails.gstRate;
+        const cgstRate = isIntrastate ? gstRate / 2 : 0;
+        const sgstRate = isIntrastate ? gstRate / 2 : 0;
+        const igstRate = isIntrastate ? 0 : gstRate;
         updatedEntries[index] = {
           ...entry,
           itemId: value,
           ledgerId: undefined,
-          gstRate: selectedItem?.gstRate ?? 0,
-          amount: ((entry.quantity ?? 0) * (entry.rate ?? 0) * (1 + (selectedItem?.gstRate ?? 0) / 100)) - (entry.discount ?? 0)
+          rate: itemDetails.rate, // Auto-fill the rate from item details
+          cgstRate,
+          sgstRate,
+          igstRate,
+          amount: ((entry.quantity ?? 0) * itemDetails.rate * (1 + gstRate / 100)) - (entry.discount ?? 0)
         };
       } else if (name === 'quantity' || name === 'rate' || name === 'discount') {
         const quantity = name === 'quantity' ? parseFloat(value) || 0 : (entry.quantity ?? 0);
         const rate = name === 'rate' ? parseFloat(value) || 0 : (entry.rate ?? 0);
         const discount = name === 'discount' ? parseFloat(value) || 0 : (entry.discount ?? 0);
         const baseAmount = quantity * rate;
-        const gstAmount = baseAmount * (entry.gstRate ?? 0) / 100;
+        const gstRate = (entry.cgstRate ?? 0) + (entry.sgstRate ?? 0) + (entry.igstRate ?? 0);
+        const gstAmount = baseAmount * gstRate / 100;
         updatedEntries[index] = {
           ...entry,
           [name]: parseFloat(value) || 0,
@@ -112,7 +304,9 @@ const SalesVoucher: React.FC = () => {
           itemId: undefined,
           quantity: undefined,
           rate: undefined,
-          gstRate: undefined,
+          cgstRate: undefined,
+          sgstRate: undefined,
+          igstRate: undefined,
           godownId: undefined,
           discount: undefined
         };
@@ -146,7 +340,9 @@ const SalesVoucher: React.FC = () => {
           rate: 0,
           amount: 0,
           type: formData.mode === 'item-invoice' ? 'debit' : 'debit',
-          gstRate: 0,
+          cgstRate: 0,
+          sgstRate: 0,
+          igstRate: 0,
           godownId: '',
           discount: 0
         }
@@ -160,20 +356,20 @@ const SalesVoucher: React.FC = () => {
     updatedEntries.splice(index, 1);
     setFormData(prev => ({ ...prev, entries: updatedEntries }));
   };
-
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
     if (!formData.date) newErrors.date = 'Date is required';
     if (!formData.partyId) newErrors.partyId = 'Party is required';
+    if (!formData.number) newErrors.number = 'Voucher number is required';
 
     if (formData.mode === 'item-invoice') {
       formData.entries.forEach((entry, index) => {
         if (!entry.itemId) newErrors[`entry${index}.itemId`] = 'Item is required';
         if ((entry.quantity ?? 0) <= 0) newErrors[`entry${index}.quantity`] = 'Quantity must be greater than 0';
-        if (godowns?.length > 0 && !entry.godownId) newErrors[`entry${index}.godownId`] = 'Godown is required';
+        if (godowns.length > 0 && !entry.godownId) newErrors[`entry${index}.godownId`] = 'Godown is required';
 
         if (entry.itemId) {
-          const stockItem = stockItems.find(item => item.id === entry.itemId);
+          const stockItem = safeStockItems.find(item => item.id === entry.itemId);
           if (stockItem && (entry.quantity ?? 0) > stockItem.openingBalance) {
             newErrors[`entry${index}.quantity`] = `Quantity exceeds available stock (${stockItem.openingBalance})`;
           }
@@ -182,15 +378,15 @@ const SalesVoucher: React.FC = () => {
     } else {
       formData.entries.forEach((entry, index) => {
         if (!entry.ledgerId) newErrors[`entry${index}.ledgerId`] = 'Ledger is required';
-        if (entry.amount <= 0) newErrors[`entry${index}.amount`] = 'Amount must be greater than 0';
+        if ((entry.amount ?? 0) <= 0) newErrors[`entry${index}.amount`] = 'Amount must be greater than 0';
       });
 
       const debitTotal = formData.entries
         .filter(e => e.type === 'debit')
-        .reduce((sum, e) => sum + e.amount, 0);
+        .reduce((sum, e) => sum + (e.amount ?? 0), 0);
       const creditTotal = formData.entries
         .filter(e => e.type === 'credit')
-        .reduce((sum, e) => sum + e.amount, 0);
+        .reduce((sum, e) => sum + (e.amount ?? 0), 0);
       if (Math.abs(debitTotal - creditTotal) > 0.01) {
         newErrors.entries = 'Debit and credit amounts must balance';
       }
@@ -207,36 +403,22 @@ const SalesVoucher: React.FC = () => {
   const calculateTotals = () => {
     if (formData.mode === 'item-invoice') {
       const subtotal = formData.entries.reduce((sum, e) => sum + ((e.quantity ?? 0) * (e.rate ?? 0)), 0);
-      const gstTotal = formData.entries.reduce((sum, e) => sum + ((e.quantity ?? 0) * (e.rate ?? 0) * (e.gstRate ?? 0) / 100), 0);
+      const cgstTotal = formData.entries.reduce((sum, e) => sum + ((e.quantity ?? 0) * (e.rate ?? 0) * (e.cgstRate ?? 0) / 100), 0);
+      const sgstTotal = formData.entries.reduce((sum, e) => sum + ((e.quantity ?? 0) * (e.rate ?? 0) * (e.sgstRate ?? 0) / 100), 0);
+      const igstTotal = formData.entries.reduce((sum, e) => sum + ((e.quantity ?? 0) * (e.rate ?? 0) * (e.igstRate ?? 0) / 100), 0);
       const discountTotal = formData.entries.reduce((sum, e) => sum + (e.discount ?? 0), 0);
-      const total = subtotal + gstTotal - discountTotal;
-      return { 
-        subtotal, 
-        gstTotal, 
-        discountTotal, 
-        total,
-        debitTotal: 0,
-        creditTotal: 0
-      };
+      const total = subtotal + cgstTotal + sgstTotal + igstTotal - discountTotal;
+      return { subtotal, cgstTotal, sgstTotal, igstTotal, discountTotal, total, debitTotal: 0, creditTotal: 0 };
     } else {
       const debitTotal = formData.entries
         .filter(e => e.type === 'debit')
-        .reduce((sum, e) => sum + e.amount, 0);
+        .reduce((sum, e) => sum + (e.amount ?? 0), 0);
       const creditTotal = formData.entries
         .filter(e => e.type === 'credit')
-        .reduce((sum, e) => sum + e.amount, 0);
-      return { 
-        debitTotal, 
-        creditTotal, 
-        total: debitTotal,
-        subtotal: 0,
-        gstTotal: 0,
-        discountTotal: 0
-      };
+        .reduce((sum, e) => sum + (e.amount ?? 0), 0);
+      return { debitTotal, creditTotal, total: debitTotal, subtotal: 0, cgstTotal: 0, sgstTotal: 0, igstTotal: 0, discountTotal: 0 };
     }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  };  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
       alert('Please fix the errors before submitting');
@@ -247,30 +429,82 @@ const SalesVoucher: React.FC = () => {
       id: Math.random().toString(36).substring(2, 9),
       ...formData
     };
+    
+    console.log('=== SAVING VOUCHER ===');
+    console.log('Voucher Data:', newVoucher);    console.log('Selected Party:', formData.partyId, formData.partyId ? getPartyName(formData.partyId) : 'No Party');
+    console.log('Entries Count:', formData.entries.length);
+    console.log('Totals:', calculateTotals());
+    
     addVoucher(newVoucher);
-
+    alert(`Voucher ${newVoucher.number} saved successfully! Party: ${formData.partyId ? getPartyName(formData.partyId) : 'No Party'}`);
+    
     if (formData.mode === 'item-invoice') {
-      // Update stock quantities
+      // Update stock quantities (decrease for sales)
       formData.entries.forEach(entry => {
         if (entry.itemId && entry.quantity) {
-          const stockItem = stockItems.find(item => item.id === entry.itemId);
+          const stockItem = safeStockItems.find(item => item.id === entry.itemId);
           if (stockItem) {
-            updateStockItem(entry.itemId, { openingBalance: stockItem.openingBalance - entry.quantity });
+            updateStockItem(entry.itemId, { openingBalance: stockItem.openingBalance - (entry.quantity ?? 0) });
           }
         }
       });
-
-      // TODO: Implement ledger entry posting when AppContext supports it
-      // For now, we only update stock and create the voucher record
     }
 
     navigate('/vouchers');
   };
+  const { subtotal = 0, cgstTotal = 0, sgstTotal = 0, igstTotal = 0, discountTotal = 0, total = 0, debitTotal = 0, creditTotal = 0 } = calculateTotals();
 
-  const { subtotal, gstTotal, discountTotal, total, debitTotal, creditTotal } = calculateTotals();
+  // Helper functions for print layout
+  const getItemDetails = (itemId: string) => {
+    const itemMap: { [key: string]: { name: string; hsnCode: string; unit: string; gstRate: number; rate: number } } = {
+      '1': { name: 'Laptop HP Pavilion', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 45000 },
+      '2': { name: 'Mobile Phone Samsung', hsnCode: '8517', unit: 'Piece', gstRate: 18, rate: 25000 },
+      '3': { name: 'Printer Canon', hsnCode: '8443', unit: 'Piece', gstRate: 18, rate: 15000 },
+      '4': { name: 'Office Chair', hsnCode: '9401', unit: 'Piece', gstRate: 18, rate: 8000 },
+      '5': { name: 'LED Monitor', hsnCode: '8528', unit: 'Piece', gstRate: 18, rate: 12000 },
+      '6': { name: 'Desktop Computer Dell', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 35000 },
+      '7': { name: 'Wireless Mouse Logitech', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 1500 },
+      '8': { name: 'Keyboard Mechanical', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 3500 },
+      '9': { name: 'Smartphone iPhone', hsnCode: '8517', unit: 'Piece', gstRate: 18, rate: 80000 },
+      '10': { name: 'Tablet iPad', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 45000 },
+      '11': { name: 'Webcam HD Logitech', hsnCode: '8525', unit: 'Piece', gstRate: 18, rate: 4500 },
+      '12': { name: 'Headphones Sony', hsnCode: '8518', unit: 'Piece', gstRate: 18, rate: 6000 },
+      '13': { name: 'External Hard Drive 1TB', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 5500 },
+      '14': { name: 'Router WiFi TP-Link', hsnCode: '8517', unit: 'Piece', gstRate: 18, rate: 3200 },
+      '15': { name: 'UPS 1000VA APC', hsnCode: '8504', unit: 'Piece', gstRate: 18, rate: 8500 }
+    };
+    return itemMap[itemId] || { name: '-', hsnCode: '-', unit: '-', gstRate: 0, rate: 0 };
+  };
+
+  const getPartyName = (partyId: string) => {
+    const partyMap: { [key: string]: string } = {
+      '1': 'ABC Electronics Pvt Ltd',
+      '2': 'XYZ Trading Co',
+      '3': 'Cash',
+      '4': 'PQR Industries',
+      '5': 'LMN Enterprises',
+      '6': 'Tech Solutions India Ltd',
+      '7': 'Global Systems Corp',
+      '8': 'Prime Distributors',
+      '9': 'Retail Partners Ltd',
+      '10': 'Digital Hub Solutions',
+      '11': 'Smart Devices Inc',
+      '12': 'Future Tech Enterprises',
+      '13': 'Metro Electronics',
+      '14': 'Omega Systems Pvt Ltd',
+      '15': 'Alpha Technologies'
+    };
+    return partyMap[partyId] || 'Unknown Party';
+  };
+
+  const getPartyDetails = () => {
+    const party = safeLedgers.find(l => l.id === formData.partyId);
+    return party ? `${party.name}${party.address ? ', ' + party.address : ''}${party.gstNumber ? ', GSTIN: ' + party.gstNumber : ''}` : 'N/A';
+  };
 
   return (
-    <div className='pt-[56px] px-4'>
+    <React.Fragment>
+      <div className='pt-[56px] px-4'>
       <div className="flex items-center mb-6">
         <button
           title='Back to Vouchers'
@@ -309,27 +543,41 @@ const SalesVoucher: React.FC = () => {
                 id="number"
                 name="number"
                 value={formData.number}
-                onChange={handleChange}
-                placeholder="Auto"
-                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
+                readOnly
+                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300'} outline-none transition-colors ${errors.number ? 'border-red-500' : ''}`}
               />
+              {errors.number && <p className="text-red-500 text-xs mt-1">{errors.number}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="partyId">
                 Party Name
-              </label>
+              </label>              
               <select
+               title="Select Party"
                 id="partyId"
                 name="partyId"
                 value={formData.partyId}
                 onChange={handleChange}
                 required
-                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors.partyId ? 'border-red-500' : ''}`}
+                style={{ minHeight: '40px', fontSize: '14px' }}
+                className={`w-full p-2 rounded border cursor-pointer ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors.partyId ? 'border-red-500' : ''}`}
               >
-                <option value="">Select Party</option>
-                {ledgers.filter(l => l.type === 'sundry-debtors' || l.type === 'current-assets').map((ledger: Ledger) => (
-                  <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
-                ))}
+                <option value="" disabled>-- Select Party --</option>
+                <option value="1">ABC Electronics Pvt Ltd</option>
+                <option value="2">XYZ Trading Co</option>
+                <option value="3">Cash</option>
+                <option value="4">PQR Industries</option>
+                <option value="5">LMN Enterprises</option>
+                <option value="6">Tech Solutions India Ltd</option>
+                <option value="7">Global Systems Corp</option>
+                <option value="8">Prime Distributors</option>
+                <option value="9">Retail Partners Ltd</option>
+                <option value="10">Digital Hub Solutions</option>
+                <option value="11">Smart Devices Inc</option>
+                <option value="12">Future Tech Enterprises</option>
+                <option value="13">Metro Electronics</option>
+                <option value="14">Omega Systems Pvt Ltd</option>
+                <option value="15">Alpha Technologies</option>
               </select>
               {errors.partyId && <p className="text-red-500 text-xs mt-1">{errors.partyId}</p>}
             </div>
@@ -357,7 +605,7 @@ const SalesVoucher: React.FC = () => {
                 type="text"
                 id="dispatchDetails.docNo"
                 name="dispatchDetails.docNo"
-                value={formData.dispatchDetails?.docNo}
+                value={formData.dispatchDetails?.docNo ?? ''}
                 onChange={handleChange}
                 className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
               />
@@ -370,7 +618,7 @@ const SalesVoucher: React.FC = () => {
                 type="text"
                 id="dispatchDetails.through"
                 name="dispatchDetails.through"
-                value={formData.dispatchDetails?.through}
+                value={formData.dispatchDetails?.through ?? ''}
                 onChange={handleChange}
                 className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
               />
@@ -386,7 +634,7 @@ const SalesVoucher: React.FC = () => {
                 type="text"
                 id="dispatchDetails.destination"
                 name="dispatchDetails.destination"
-                value={formData.dispatchDetails?.destination}
+                value={formData.dispatchDetails?.destination ?? ''}
                 onChange={handleChange}
                 className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
               />
@@ -423,52 +671,60 @@ const SalesVoucher: React.FC = () => {
               </button>
             </div>
             <div className="overflow-x-auto">
-              {formData.mode === 'item-invoice' ? (
-                <table className="w-full mb-4">
+              {formData.mode === 'item-invoice' ? (                <table className="w-full mb-4">
                   <thead>
                     <tr className={`${theme === 'dark' ? 'border-b border-gray-600' : 'border-b border-gray-300'}`}>
+                      <th className="px-4 py-2 text-left">S.No</th>
                       <th className="px-4 py-2 text-left">Item</th>
                       <th className="px-4 py-2 text-left">HSN/SAC</th>
                       <th className="px-4 py-2 text-right">Quantity</th>
                       <th className="px-4 py-2 text-left">Unit</th>
                       <th className="px-4 py-2 text-right">Rate</th>
-                      <th className="px-4 py-2 text-right">GST (%)</th>
                       <th className="px-4 py-2 text-right">Discount</th>
                       <th className="px-4 py-2 text-right">Amount</th>
                       <th className="px-4 py-2 text-left">Godown</th>
                       <th className="px-4 py-2 text-center">Action</th>
                     </tr>
-                  </thead>
-                  <tbody>
+                  </thead>                  <tbody>
                     {formData.entries.map((entry, index) => {
-                      const selectedItem = stockItems.find(item => item.id === entry.itemId);
+                      const itemDetails = getItemDetails(entry.itemId || '');
                       return (
                         <tr key={entry.id} className={`${theme === 'dark' ? 'border-b border-gray-600' : 'border-b border-gray-300'}`}>
-                          <td className="px-4 py-2">
-                            <select
+                          <td className="px-4 py-2">{index + 1}</td>
+                          <td className="px-4 py-2">                            <select
                               title='Select Item'
                               name="itemId"
                               value={entry.itemId}
                               onChange={(e) => handleEntryChange(index, e)}
                               required
-                              className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors[`entry${index}.itemId`] ? 'border-red-500' : ''}`}
+                              className={`w-full p-2 rounded border cursor-pointer ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors[`entry${index}.itemId`] ? 'border-red-500' : ''}`}
                             >
-                              <option value="">Select Item</option>
-                              {stockItems.map((item: StockItem) => (
-                                <option key={item.id} value={item.id}>{item.name}</option>
-                              ))}
+                              <option value="" disabled>-- Select Item --</option>
+                              <option value="1">Laptop HP Pavilion</option>
+                              <option value="2">Mobile Phone Samsung</option>
+                              <option value="3">Printer Canon</option>
+                              <option value="4">Office Chair</option>
+                              <option value="5">LED Monitor</option>
+                              <option value="6">Desktop Computer Dell</option>
+                              <option value="7">Wireless Mouse Logitech</option>
+                              <option value="8">Keyboard Mechanical</option>
+                              <option value="9">Smartphone iPhone</option>
+                              <option value="10">Tablet iPad</option>
+                              <option value="11">Webcam HD Logitech</option>
+                              <option value="12">Headphones Sony</option>
+                              <option value="13">External Hard Drive 1TB</option>
+                              <option value="14">Router WiFi TP-Link</option>
+                              <option value="15">UPS 1000VA APC</option>
                             </select>
                             {errors[`entry${index}.itemId`] && <p className="text-red-500 text-xs mt-1">{errors[`entry${index}.itemId`]}</p>}
                           </td>
-                          <td className="px-4 py-2">
-                            {selectedItem?.hsnCode || '-'}
-                          </td>
+                          <td className="px-4 py-2">{itemDetails.hsnCode}</td>
                           <td className="px-4 py-2">
                             <input
                               title='Enter Quantity'
                               type="number"
                               name="quantity"
-                              value={entry.quantity}
+                              value={entry.quantity ?? ''}
                               onChange={(e) => handleEntryChange(index, e)}
                               required
                               min="0"
@@ -477,50 +733,43 @@ const SalesVoucher: React.FC = () => {
                             />
                             {errors[`entry${index}.quantity`] && <p className="text-red-500 text-xs mt-1">{errors[`entry${index}.quantity`]}</p>}
                           </td>
-                          <td className="px-4 py-2">
-                            {selectedItem?.unit || '-'}
-                          </td>
+                          <td className="px-4 py-2">{itemDetails.unit}</td>
                           <td className="px-4 py-2">
                             <input
                               title='Enter Rate'
                               type="number"
                               name="rate"
-                              value={entry.rate}
+                              value={entry.rate ?? ''}
                               onChange={(e) => handleEntryChange(index, e)}
                               min="0"
                               step="0.01"
                               className={`w-full p-2 rounded border text-right ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
                             />
-                          </td>
-                          <td className="px-4 py-2 text-right">
-                            {entry.gstRate || '-'}
                           </td>
                           <td className="px-4 py-2">
                             <input
                               title='Enter Discount'
                               type="number"
                               name="discount"
-                              value={entry.discount}
+                              value={entry.discount ?? ''}
                               onChange={(e) => handleEntryChange(index, e)}
                               min="0"
                               step="0.01"
-                              className={`w-full p-2 rounded border text-right ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
+                              className={`w-full p-2 rounded border text-right ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'} outline-none focus:border-blue-500 transition-colors`}
                             />
                           </td>
-                          <td className="px-4 py-2 text-right">
-                            {entry.amount.toLocaleString()}
-                          </td>
+                          <td className="px-4 py-2 text-right">{entry.amount.toLocaleString()}</td>
                           <td className="px-4 py-2">
                             <select
                               title='Select Godown'
                               name="godownId"
                               value={entry.godownId}
                               onChange={(e) => handleEntryChange(index, e)}
-                              required={godowns?.length > 0}
+                              required={godowns.length > 0}
                               className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors[`entry${index}.godownId`] ? 'border-red-500' : ''}`}
                             >
                               <option value="">Select Godown</option>
-                              {godowns?.length > 0 ? (
+                              {godowns.length > 0 ? (
                                 godowns.map((godown: Godown) => (
                                   <option key={godown.id} value={godown.id}>{godown.name}</option>
                                 ))
@@ -544,8 +793,7 @@ const SalesVoucher: React.FC = () => {
                         </tr>
                       );
                     })}
-                  </tbody>
-                  <tfoot>
+                  </tbody>                  <tfoot>
                     <tr className={`font-semibold ${theme === 'dark' ? 'border-t border-gray-600' : 'border-t border-gray-300'}`}>
                       <td className="px-4 py-2 text-right" colSpan={7}>Subtotal:</td>
                       <td className="px-4 py-2 text-right">{subtotal.toLocaleString()}</td>
@@ -553,8 +801,20 @@ const SalesVoucher: React.FC = () => {
                       <td className="px-4 py-2"></td>
                     </tr>
                     <tr className={`font-semibold ${theme === 'dark' ? 'border-t border-gray-600' : 'border-t border-gray-300'}`}>
-                      <td className="px-4 py-2 text-right" colSpan={7}>GST Total:</td>
-                      <td className="px-4 py-2 text-right">{gstTotal.toLocaleString()}</td>
+                      <td className="px-4 py-2 text-right" colSpan={7}>CGST Total:</td>
+                      <td className="px-4 py-2 text-right">{cgstTotal.toLocaleString()}</td>
+                      <td className="px-4 py-2"></td>
+                      <td className="px-4 py-2"></td>
+                    </tr>
+                    <tr className={`font-semibold ${theme === 'dark' ? 'border-t border-gray-600' : 'border-t border-gray-300'}`}>
+                      <td className="px-4 py-2 text-right" colSpan={7}>SGST Total:</td>
+                      <td className="px-4 py-2 text-right">{sgstTotal.toLocaleString()}</td>
+                      <td className="px-4 py-2"></td>
+                      <td className="px-4 py-2"></td>
+                    </tr>
+                    <tr className={`font-semibold ${theme === 'dark' ? 'border-t border-gray-600' : 'border-t border-gray-300'}`}>
+                      <td className="px-4 py-2 text-right" colSpan={7}>IGST Total:</td>
+                      <td className="px-4 py-2 text-right">{igstTotal.toLocaleString()}</td>
                       <td className="px-4 py-2"></td>
                       <td className="px-4 py-2"></td>
                     </tr>
@@ -576,6 +836,7 @@ const SalesVoucher: React.FC = () => {
                 <table className="w-full mb-4">
                   <thead>
                     <tr className={`${theme === 'dark' ? 'border-b border-gray-600' : 'border-b border-gray-300'}`}>
+                      <th className="px-4 py-2 text-left">S.No</th>
                       <th className="px-4 py-2 text-left">Ledger</th>
                       <th className="px-4 py-2 text-right">Amount</th>
                       <th className="px-4 py-2 text-left">Type</th>
@@ -585,17 +846,18 @@ const SalesVoucher: React.FC = () => {
                   <tbody>
                     {formData.entries.map((entry, index) => (
                       <tr key={entry.id} className={`${theme === 'dark' ? 'border-b border-gray-600' : 'border-b border-gray-300'}`}>
+                        <td className="px-4 py-2">{index + 1}</td>
                         <td className="px-4 py-2">
                           <select
                             title='Select Ledger'
                             name="ledgerId"
-                            value={entry.ledgerId}
+                            value={entry.ledgerId ?? ''}
                             onChange={(e) => handleEntryChange(index, e)}
                             required
                             className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors[`entry${index}.ledgerId`] ? 'border-red-500' : ''}`}
                           >
                             <option value="">Select Ledger</option>
-                            {ledgers.map((ledger: Ledger) => (
+                            {safeLedgers.map((ledger: Ledger) => (
                               <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
                             ))}
                           </select>
@@ -606,7 +868,7 @@ const SalesVoucher: React.FC = () => {
                             title='Enter Amount'
                             type="number"
                             name="amount"
-                            value={entry.amount}
+                            value={entry.amount ?? ''}
                             onChange={(e) => handleEntryChange(index, e)}
                             required
                             min="0"
@@ -640,16 +902,15 @@ const SalesVoucher: React.FC = () => {
                         </td>
                       </tr>
                     ))}
-                  </tbody>
-                  <tfoot>
+                  </tbody>                  <tfoot>
                     <tr className={`font-semibold ${theme === 'dark' ? 'border-t border-gray-600' : 'border-t border-gray-300'}`}>
-                      <td className="px-4 py-2 text-right">Debit Total:</td>
+                      <td className="px-4 py-2 text-right" colSpan={2}>Debit Total:</td>
                       <td className="px-4 py-2 text-right">{debitTotal.toLocaleString()}</td>
                       <td className="px-4 py-2"></td>
                       <td className="px-4 py-2"></td>
                     </tr>
                     <tr className={`font-semibold ${theme === 'dark' ? 'border-t border-gray-600' : 'border-t border-gray-300'}`}>
-                      <td className="px-4 py-2 text-right">Credit Total:</td>
+                      <td className="px-4 py-2 text-right" colSpan={2}>Credit Total:</td>
                       <td className="px-4 py-2 text-right">{creditTotal.toLocaleString()}</td>
                       <td className="px-4 py-2"></td>
                       <td className="px-4 py-2"></td>
@@ -673,19 +934,40 @@ const SalesVoucher: React.FC = () => {
               rows={3}
               className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
             />
-          </div>
-
-          <div className="flex justify-end space-x-4">
+          </div>          <div className="flex justify-end space-x-4">
             <button
-              title='Cancel'
+              title='Cancel (Esc)'
               type="button"
               onClick={() => navigate('/vouchers')}
               className={`px-4 py-2 rounded ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
             >
               Cancel
+            </button><button
+              title='Print'
+              type="button"
+              onClick={() => {
+                console.log('Print button clicked');
+                const selectedItems = formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select');
+                
+                if (selectedItems.length === 0) {
+                  alert('Please select at least one item before printing the invoice.');
+                  return;
+                }
+                if (!formData.partyId) {
+                  alert('Please select a party before printing the invoice.');
+                  return;
+                }
+                
+                console.log('Calling handlePrint...');
+                handlePrint();
+              }}
+              className={`flex items-center px-4 py-2 rounded ${theme === 'dark' ? 'bg-green-600 hover:bg-green-700' : 'bg-green-600 hover:bg-green-700 text-white'}`}
+            >
+              <Printer size={18} className="mr-1" />
+              Print
             </button>
             <button
-              title='Save Voucher'
+              title='Save Voucher (F9)'
               type="submit"
               className={`flex items-center px-4 py-2 rounded ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
             >
@@ -696,12 +978,228 @@ const SalesVoucher: React.FC = () => {
         </form>
       </div>
 
+      {/* Configuration Modal (F12) */}
+      {showConfig && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
+            <h2 className="text-xl font-bold mb-4">Configure Sales Voucher</h2>
+            <p className="mb-4">Configure GST settings, invoice format, etc.</p>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowConfig(false)}
+                className={`px-4 py-2 rounded ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}      {/* Print Layout */}
+      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', width: '210mm', minHeight: '297mm' }}>
+        <div ref={printRef} style={{ 
+          padding: '15mm', 
+          fontFamily: 'Arial, sans-serif', 
+          fontSize: '11pt', 
+          width: '100%', 
+          backgroundColor: 'white',
+          color: 'black',
+          lineHeight: '1.4'
+        }}>
+          {/* Header Section */}
+          <div style={{ border: '2px solid #000', marginBottom: '10px' }}>
+            {/* Top Header with TAX INVOICE */}
+            <div style={{ backgroundColor: '#f0f0f0', padding: '8px', textAlign: 'center', borderBottom: '1px solid #000' }}>
+              <h1 style={{ fontSize: '18pt', fontWeight: 'bold', margin: '0', letterSpacing: '2px' }}>TAX INVOICE</h1>
+            </div>
+            
+            {/* Invoice Details Row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 10px', borderBottom: '1px solid #000', fontSize: '10pt' }}>
+              <span><strong>INVOICE NO:</strong> {formData.number}</span>
+              <span><strong>DATE:</strong> {new Date(formData.date).toLocaleDateString('en-GB')}</span>
+            </div>
+            
+            {/* Company Details Section */}
+            <div style={{ padding: '10px', borderBottom: '1px solid #000' }}>
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
+                <div style={{ width: '40px', height: '40px', backgroundColor: '#4a90e2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '15px' }}>
+                  <span style={{ color: 'white', fontSize: '16pt', fontWeight: 'bold' }}>
+                    {safeCompanyInfo.name.charAt(0)}
+                  </span>
+                </div>
+                <div>
+                  <h2 style={{ fontSize: '16pt', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' }}>
+                    {safeCompanyInfo.name}
+                  </h2>
+                  <p style={{ margin: '2px 0', fontSize: '10pt' }}>{safeCompanyInfo.address || 'Your Business Address'}</p>
+                </div>
+              </div>
+              <div style={{ fontSize: '10pt', display: 'flex', gap: '20px' }}>
+                <span><strong>GSTIN:</strong> {safeCompanyInfo.gstNumber || 'N/A'}</span>
+                <span><strong>PAN NO:</strong> {safeCompanyInfo.panNumber || 'N/A'}</span>
+              </div>
+            </div>
+            
+            {/* Customer Details Section */}
+            <div style={{ padding: '10px' }}>
+              <div style={{ marginBottom: '5px' }}>
+                <strong style={{ fontSize: '11pt' }}>PARTY'S NAME:</strong>
+              </div>
+              <div style={{ fontSize: '10pt', lineHeight: '1.4' }}>
+                <div><strong>{formData.partyId ? getPartyName(formData.partyId) : 'No Party Selected'}</strong></div>
+                {formData.partyId && (
+                  <div>GSTIN: {safeLedgers.find(l => l.id === formData.partyId)?.gstNumber || 'N/A'}</div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Particulars Table */}
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px', border: '1px solid #000' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#f8f8f8' }}>
+                <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold' }}>Particulars (Description & Specifications)</th>
+                <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold', width: '80px' }}>HSN Code</th>
+                <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold', width: '60px', textAlign: 'center' }}>Qty</th>
+                <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold', width: '80px', textAlign: 'right' }}>Rate</th>
+                <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold', width: '100px', textAlign: 'right' }}>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {formData.entries
+                .filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select')
+                .map((entry) => {
+                  const itemDetails = getItemDetails(entry.itemId || '');
+                  const baseAmount = (entry.quantity || 0) * (entry.rate || 0);
+                  
+                  return (
+                    <tr key={entry.id}>
+                      <td style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt' }}>
+                        <strong>{itemDetails.name}</strong>
+                      </td>
+                      <td style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', textAlign: 'center' }}>
+                        {itemDetails.hsnCode}
+                      </td>
+                      <td style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', textAlign: 'center' }}>
+                        {entry.quantity?.toLocaleString() || '0'} {itemDetails.unit}
+                      </td>
+                      <td style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', textAlign: 'right' }}>
+                        ₹{entry.rate?.toLocaleString() || '0'}
+                      </td>
+                      <td style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', textAlign: 'right' }}>
+                        ₹{baseAmount.toLocaleString()}
+                      </td>
+                    </tr>
+                  );
+                })}
+              
+              {/* Add empty rows for spacing if no items */}
+              {formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length === 0 && (
+                <>
+                  <tr>
+                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt', textAlign: 'center' }} colSpan={5}>
+                      No items selected
+                    </td>
+                  </tr>
+                  {Array(3).fill(0).map((_, index) => (
+                    <tr key={`empty-${index}`}>
+                      <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
+                      <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
+                      <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
+                      <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
+                      <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
+                    </tr>
+                  ))}
+                </>
+              )}
+              
+              {/* Add empty rows for spacing when items exist */}
+              {formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length > 0 && formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length < 4 &&
+                Array(Math.max(0, 4 - formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length)).fill(0).map((_, index) => (
+                  <tr key={`empty-${index}`}>
+                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
+                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
+                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
+                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
+                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+            
+            {/* Tax Summary */}
+            <tfoot>
+              <tr>
+                <td colSpan={3} style={{ border: '1px solid #000', padding: '5px', fontSize: '9pt' }}>
+                  <strong>Terms & Conditions:</strong><br/>
+                  <span style={{ fontSize: '8pt' }}>
+                    • Goods once sold will not be taken back.<br/>
+                    • Interest @ 18% p.a. will be charged on delayed payments.<br/>
+                    • Subject to {safeCompanyInfo.address || 'Local'} Jurisdiction only.<br/>
+                    • Our responsibility ceases as soon as goods leave our premises.<br/>
+                    • Delivery charges extra as applicable.
+                  </span>
+                </td>
+                <td style={{ border: '1px solid #000', padding: '5px', fontSize: '10pt', textAlign: 'right', fontWeight: 'bold' }}>
+                  <div style={{ marginBottom: '5px' }}>Subtotal</div>
+                  <div style={{ marginBottom: '5px' }}>Add: CGST @ 9%</div>
+                  <div style={{ marginBottom: '5px' }}>Add: SGST @ 9%</div>
+                  <div style={{ marginBottom: '5px' }}>Add: IGST @ 18%</div>
+                  <div style={{ marginBottom: '5px' }}>Less: Discount</div>
+                  <div style={{ fontWeight: 'bold', fontSize: '11pt' }}>Grand Total</div>
+                </td>
+                <td style={{ border: '1px solid #000', padding: '5px', fontSize: '10pt', textAlign: 'right' }}>
+                  <div style={{ marginBottom: '5px' }}>₹{subtotal.toLocaleString()}</div>
+                  <div style={{ marginBottom: '5px' }}>₹{cgstTotal.toLocaleString()}</div>
+                  <div style={{ marginBottom: '5px' }}>₹{sgstTotal.toLocaleString()}</div>
+                  <div style={{ marginBottom: '5px' }}>₹{igstTotal.toLocaleString()}</div>
+                  <div style={{ marginBottom: '5px' }}>₹{discountTotal.toLocaleString()}</div>
+                  <div style={{ fontWeight: 'bold', fontSize: '11pt' }}>₹{total.toLocaleString()}</div>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+
+          {/* Amount in Words */}
+          <div style={{ border: '1px solid #000', padding: '10px', marginBottom: '15px' }}>
+            <strong style={{ fontSize: '11pt' }}>Total Amount (Rs. in Words):</strong>
+            <div style={{ fontSize: '10pt', marginTop: '5px', minHeight: '20px' }}>
+              Rupees {total > 0 ? total.toLocaleString() : 'Zero'} Only
+              {total > 0 && ` (₹${total.toLocaleString()})`}
+            </div>
+          </div>
+
+          {/* Footer Section */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '30px' }}>
+            <div style={{ width: '48%' }}>
+              <div style={{ fontSize: '11pt', fontWeight: 'bold', marginBottom: '5px' }}>
+                For {safeCompanyInfo.name.toUpperCase()}
+              </div>
+              <div style={{ marginTop: '50px', fontSize: '10pt' }}>
+                <div style={{ borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center' }}>
+                  Authorised Signatory
+                </div>
+              </div>
+            </div>
+            <div style={{ width: '48%', textAlign: 'right' }}>
+              <div style={{ fontSize: '11pt', fontWeight: 'bold', marginBottom: '5px' }}>
+                Customer's Signature
+              </div>
+              <div style={{ marginTop: '50px', fontSize: '10pt' }}>
+                <div style={{ borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center' }}>
+                  Receiver's Signature
+                </div>
+              </div>
+            </div>
+          </div>        </div>
+      </div>
+
       <div className={`mt-6 p-4 rounded ${theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'}`}>
         <p className="text-sm">
           <span className="font-semibold">Note:</span> Use Sales Voucher for recording sales. Press F8 to create, F9 to save, F12 to configure, Esc to cancel.
         </p>
       </div>
     </div>
+    </React.Fragment>
   );
 };
 
