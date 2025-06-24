@@ -436,31 +436,63 @@ const CompanyForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
-  try {
-    const res = await fetch("http://localhost:5000/api/company", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(company),
-    });
+  // ✅ REGEX VALIDATIONS
+  const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+  const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^[0-9]{10}$/;
+  const pinRegex = /^[0-9]{6}$/;
 
-    const data = await res.json();
-
-    if (res.ok) {
-      alert("Company created successfully!");
-      console.log("🔍 Submitting company:", company);
-
-      setCompanyInfo(company); // Optional: store in context
-      navigate("/");
-    } else {
-      alert(data.message || "Failed to create company");
-    }
-  } catch (err) {
-    console.error("Submit error:", err);
-    alert("Something went wrong!");
+  if (!panRegex.test(company.panNumber)) {
+    alert("Invalid PAN format (e.g., ABCDE1234F)");
+    return;
   }
-};
+
+  if (company.taxType === "GST" && !gstRegex.test(company.gstNumber)) {
+    alert("Invalid GST Number format (15 characters)");
+    return;
+  }
+
+  if (!emailRegex.test(company.email)) {
+    alert("Invalid email format");
+    return;
+  }
+
+  if (!phoneRegex.test(company.phoneNumber)) {
+    alert("Phone number must be exactly 10 digits");
+    return;
+  }
+
+  if (!pinRegex.test(company.pin)) {
+    alert("PIN code must be exactly 6 digits");
+    return;
+  }
+
+    try {
+      const res = await fetch("http://localhost:5000/api/company", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(company),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("Company created successfully!");
+        console.log("🔍 Submitting company:", company);
+        setCompanyInfo(company);
+        navigate("/");
+      } else {
+        alert(data.message || "Failed to create company");
+      }
+    } catch (err) {
+      console.error("Submit error:", err);
+      alert("Something went wrong!");
+    }
+  };
+
 
 
   return (
@@ -712,22 +744,32 @@ const CompanyForm: React.FC = () => {
                 {company.taxType} Number
               </label>
               {company.taxType === "GST" ? (
-  <input
-    type="text"
-    id="gstNumber"
-    name="gstNumber"
-    value={company.gstNumber}
-    onChange={handleChange}
-  />
-) : (
-  <input
-    type="text"
-    id="vatNumber"
-    name="vatNumber"
-    value={company.vatNumber}
-    onChange={handleChange}
-  />
-)}
+              <input
+                type="text"
+                id="gstNumber"
+                name="gstNumber"
+                value={company.gstNumber}
+                onChange={handleChange}
+                className={`w-full p-2 rounded border ${
+                  theme === "dark"
+                    ? "bg-gray-700 border-gray-600 text-white"
+                    : "bg-white border-gray-300 text-black"
+                } outline-none transition-colors`}
+              />
+            ) : (
+              <input
+                type="text"
+                id="vatNumber"
+                name="vatNumber"
+                value={company.vatNumber}
+                onChange={handleChange}
+                className={`w-full p-2 rounded border ${
+                  theme === "dark"
+                    ? "bg-gray-700 border-gray-600 text-white"
+                    : "bg-white border-gray-300 text-black"
+                } outline-none transition-colors`}
+              />
+            )}
 
               
             </div>
