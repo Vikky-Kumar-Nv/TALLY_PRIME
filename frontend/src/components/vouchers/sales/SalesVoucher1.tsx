@@ -95,82 +95,11 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [navigate]);  // Alternative print function
-  const handlePrintAlternative = () => {
-    console.log('Alternative print method started...');
-    
-    const selectedItems = formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select');
-    
-    if (selectedItems.length === 0) {
-      alert('Please select at least one item before printing the invoice.');
-      return;
-    }
-    if (!formData.partyId) {
-      alert('Please select a party before printing the invoice.');
-      return;
-    }
-
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      alert('Please allow popups for this site to enable printing');
-      return;
-    }
-
-    const printContent = printRef.current?.innerHTML || '';
-    
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Sales Voucher ${formData.number}</title>
-          <style>
-            @page {
-              size: A4;
-              margin: 10mm;
-            }
-            body { 
-              font-size: 12pt; 
-              font-family: Arial, sans-serif;
-              margin: 0;
-              padding: 0;
-              background: white;
-            }
-            table { 
-              width: 100%; 
-              border-collapse: collapse; 
-              page-break-inside: avoid;
-            }
-            th, td { 
-              border: 1px solid #000; 
-              padding: 8px; 
-              font-size: 10pt;
-            }
-            .no-print { display: none; }
-          </style>
-        </head>
-        <body>
-          ${printContent}
-        </body>
-      </html>
-    `);
-    
-    printWindow.document.close();
-    
-    // Wait a bit for content to load then print
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
-  };
+    return () => document.removeEventListener('keydown', handleKeyDown);  }, [navigate]);
   // Printing
   const handlePrint = useReactToPrint({
     contentRef: printRef,
     documentTitle: `Sales_Voucher_${formData.number}`,
-    onBeforeGetContent: () => {
-      console.log('Preparing content for print...');
-      return Promise.resolve();
-    },
     onBeforePrint: () => {
       console.log('Starting print process...');
       const selectedItems = formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select');
@@ -186,7 +115,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
     },
     onAfterPrint: () => {
       console.log('Print completed successfully');
-    },    onPrintError: (errorLocation, error) => {
+    },onPrintError: (errorLocation, error) => {
       console.error('Print error at:', errorLocation, error);
       alert('Print failed. Please try your browser\'s print function (Ctrl+P).');
     },
@@ -492,14 +421,8 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
       '12': 'Future Tech Enterprises',
       '13': 'Metro Electronics',
       '14': 'Omega Systems Pvt Ltd',
-      '15': 'Alpha Technologies'
-    };
+      '15': 'Alpha Technologies'    };
     return partyMap[partyId] || 'Unknown Party';
-  };
-
-  const getPartyDetails = () => {
-    const party = safeLedgers.find(l => l.id === formData.partyId);
-    return party ? `${party.name}${party.address ? ', ' + party.address : ''}${party.gstNumber ? ', GSTIN: ' + party.gstNumber : ''}` : 'N/A';
   };
 
   return (
@@ -1011,11 +934,22 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
             <div style={{ backgroundColor: '#f0f0f0', padding: '8px', textAlign: 'center', borderBottom: '1px solid #000' }}>
               <h1 style={{ fontSize: '18pt', fontWeight: 'bold', margin: '0', letterSpacing: '2px' }}>TAX INVOICE</h1>
             </div>
-            
-            {/* Invoice Details Row */}
+              {/* Invoice Details Row */}
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 10px', borderBottom: '1px solid #000', fontSize: '10pt' }}>
               <span><strong>INVOICE NO:</strong> {formData.number}</span>
               <span><strong>DATE:</strong> {new Date(formData.date).toLocaleDateString('en-GB')}</span>
+            </div>
+            
+            {/* Reference and Dispatch Details Row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 10px', borderBottom: '1px solid #000', fontSize: '10pt' }}>
+              <div style={{ display: 'flex', gap: '20px' }}>
+                {formData.referenceNo && <span><strong>REF NO:</strong> {formData.referenceNo}</span>}
+                {formData.dispatchDetails?.docNo && <span><strong>DISPATCH DOC NO:</strong> {formData.dispatchDetails.docNo}</span>}
+              </div>
+              <div style={{ display: 'flex', gap: '20px' }}>
+                {formData.dispatchDetails?.through && <span><strong>DISPATCH THROUGH:</strong> {formData.dispatchDetails.through}</span>}
+                {formData.dispatchDetails?.destination && <span><strong>DESTINATION:</strong> {formData.dispatchDetails.destination}</span>}
+              </div>
             </div>
             
             {/* Company Details Section */}
@@ -1038,8 +972,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                 <span><strong>PAN NO:</strong> {safeCompanyInfo.panNumber || 'N/A'}</span>
               </div>
             </div>
-            
-            {/* Customer Details Section */}
+              {/* Customer Details Section */}
             <div style={{ padding: '10px' }}>
               <div style={{ marginBottom: '5px' }}>
                 <strong style={{ fontSize: '11pt' }}>PARTY'S NAME:</strong>
@@ -1047,13 +980,15 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
               <div style={{ fontSize: '10pt', lineHeight: '1.4' }}>
                 <div><strong>{formData.partyId ? getPartyName(formData.partyId) : 'No Party Selected'}</strong></div>
                 {formData.partyId && (
-                  <div>GSTIN: {safeLedgers.find(l => l.id === formData.partyId)?.gstNumber || 'N/A'}</div>
+                  <>
+                    <div>GSTIN: {safeLedgers.find(l => l.id === formData.partyId)?.gstNumber || 'N/A'}</div>
+                    <div>Address: {safeLedgers.find(l => l.id === formData.partyId)?.address || 'N/A'}</div>
+                    <div>State: {safeLedgers.find(l => l.id === formData.partyId)?.state || 'N/A'}</div>
+                  </>
                 )}
               </div>
             </div>
-          </div>
-
-          {/* Particulars Table */}
+          </div>          {/* Particulars Table */}
           <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px', border: '1px solid #000' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8f8f8' }}>
@@ -1061,6 +996,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                 <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold', width: '80px' }}>HSN Code</th>
                 <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold', width: '60px', textAlign: 'center' }}>Qty</th>
                 <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold', width: '80px', textAlign: 'right' }}>Rate</th>
+                <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold', width: '60px', textAlign: 'center' }}>GST %</th>
                 <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold', width: '100px', textAlign: 'right' }}>Amount</th>
               </tr>
             </thead>
@@ -1070,6 +1006,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                 .map((entry) => {
                   const itemDetails = getItemDetails(entry.itemId || '');
                   const baseAmount = (entry.quantity || 0) * (entry.rate || 0);
+                  const gstRate = itemDetails.gstRate || 0;
                   
                   return (
                     <tr key={entry.id}>
@@ -1085,6 +1022,9 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                       <td style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', textAlign: 'right' }}>
                         ₹{entry.rate?.toLocaleString() || '0'}
                       </td>
+                      <td style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', textAlign: 'center' }}>
+                        {gstRate}%
+                      </td>
                       <td style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', textAlign: 'right' }}>
                         ₹{baseAmount.toLocaleString()}
                       </td>
@@ -1096,12 +1036,13 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
               {formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length === 0 && (
                 <>
                   <tr>
-                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt', textAlign: 'center' }} colSpan={5}>
+                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt', textAlign: 'center' }} colSpan={6}>
                       No items selected
                     </td>
                   </tr>
                   {Array(3).fill(0).map((_, index) => (
                     <tr key={`empty-${index}`}>
+                      <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
                       <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
                       <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
                       <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
@@ -1121,15 +1062,15 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                     <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
                     <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
                     <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
+                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
                   </tr>
                 ))
               }
             </tbody>
-            
-            {/* Tax Summary */}
+              {/* Tax Summary */}
             <tfoot>
               <tr>
-                <td colSpan={3} style={{ border: '1px solid #000', padding: '5px', fontSize: '9pt' }}>
+                <td colSpan={4} style={{ border: '1px solid #000', padding: '5px', fontSize: '9pt' }}>
                   <strong>Terms & Conditions:</strong><br/>
                   <span style={{ fontSize: '8pt' }}>
                     • Goods once sold will not be taken back.<br/>
@@ -1141,18 +1082,18 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                 </td>
                 <td style={{ border: '1px solid #000', padding: '5px', fontSize: '10pt', textAlign: 'right', fontWeight: 'bold' }}>
                   <div style={{ marginBottom: '5px' }}>Subtotal</div>
-                  <div style={{ marginBottom: '5px' }}>Add: CGST @ 9%</div>
-                  <div style={{ marginBottom: '5px' }}>Add: SGST @ 9%</div>
-                  <div style={{ marginBottom: '5px' }}>Add: IGST @ 18%</div>
-                  <div style={{ marginBottom: '5px' }}>Less: Discount</div>
+                  {cgstTotal > 0 && <div style={{ marginBottom: '5px' }}>Add: CGST</div>}
+                  {sgstTotal > 0 && <div style={{ marginBottom: '5px' }}>Add: SGST</div>}
+                  {igstTotal > 0 && <div style={{ marginBottom: '5px' }}>Add: IGST</div>}
+                  {discountTotal > 0 && <div style={{ marginBottom: '5px' }}>Less: Discount</div>}
                   <div style={{ fontWeight: 'bold', fontSize: '11pt' }}>Grand Total</div>
                 </td>
                 <td style={{ border: '1px solid #000', padding: '5px', fontSize: '10pt', textAlign: 'right' }}>
                   <div style={{ marginBottom: '5px' }}>₹{subtotal.toLocaleString()}</div>
-                  <div style={{ marginBottom: '5px' }}>₹{cgstTotal.toLocaleString()}</div>
-                  <div style={{ marginBottom: '5px' }}>₹{sgstTotal.toLocaleString()}</div>
-                  <div style={{ marginBottom: '5px' }}>₹{igstTotal.toLocaleString()}</div>
-                  <div style={{ marginBottom: '5px' }}>₹{discountTotal.toLocaleString()}</div>
+                  {cgstTotal > 0 && <div style={{ marginBottom: '5px' }}>₹{cgstTotal.toLocaleString()}</div>}
+                  {sgstTotal > 0 && <div style={{ marginBottom: '5px' }}>₹{sgstTotal.toLocaleString()}</div>}
+                  {igstTotal > 0 && <div style={{ marginBottom: '5px' }}>₹{igstTotal.toLocaleString()}</div>}
+                  {discountTotal > 0 && <div style={{ marginBottom: '5px' }}>₹{discountTotal.toLocaleString()}</div>}
                   <div style={{ fontWeight: 'bold', fontSize: '11pt' }}>₹{total.toLocaleString()}</div>
                 </td>
               </tr>
