@@ -5,16 +5,30 @@ import type { LedgerGroup } from '../../../types';
 import { ArrowLeft, Save } from 'lucide-react';
 
 const GroupForm: React.FC = () => {
-  const { theme, ledgerGroups, addLedgerGroup } = useAppContext();
+  const { theme, addLedgerGroup } = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
+  const [ledgerGroups, setLedgerGroups] = useState<LedgerGroup[]>([]);
   
   const [formData, setFormData] = useState<Omit<LedgerGroup, 'id'>>({
     name: '',
     type: 'capital',
     parent: undefined
   });
+useEffect(() => {
+    const fetchLedgerGroups = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/ledger-groups");
+        const data = await res.json();
+        setLedgerGroups(data);
+      } catch (err) {
+        console.error("Failed to load ledger groups", err);
+      }
+    };
+
+    fetchLedgerGroups();
+  }, []);
 
   useEffect(() => {
     if (isEditMode && id) {
@@ -37,23 +51,46 @@ const GroupForm: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
     
-    if (isEditMode && id) {
-      // Update existing group (not implemented yet)
-    } else {
-      // Create new group
-      const newGroup: LedgerGroup = {
-        id: (ledgerGroups.length + 1).toString(),
-        ...formData
-      };
+  //   if (isEditMode && id) {
+  //     // Update existing group (not implemented yet)
+  //   } else {
+  //     // Create new group
+  //     const newGroup: LedgerGroup = {
+  //       id: (ledgerGroups.length + 1).toString(),
+  //       ...formData
+  //     };
       
-      addLedgerGroup(newGroup);
-    }
+  //     addLedgerGroup(newGroup);
+  //   }
     
-    navigate('/masters/group');
-  };
+  //   navigate('/masters/group');
+  // };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const res = await fetch('http://localhost:5000/api/group', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert(data.message); // You can use sweetalert2 here if preferred
+      navigate('/masters/group');
+    } else {
+      alert(data.message || 'Failed to save group');
+    }
+  } catch (err) {
+    console.error('Group create error:', err);
+    alert('Something went wrong!');
+  }
+};
 
   return (
     <div className='pt-[56px] px-4 '>
@@ -97,6 +134,25 @@ const GroupForm: React.FC = () => {
                 Group Type
               </label>
               <select
+                              id="type"
+                              name="type"
+                              value={formData.type}
+                              onChange={handleChange}
+                              required
+                              className={`w-full p-2 rounded border ${
+                                theme === 'dark' 
+                                  ? 'bg-gray-700 border-gray-600 focus:border-blue-500' 
+                                  : 'bg-white border-gray-300 focus:border-blue-500'
+                              } outline-none transition-colors`}
+                            >
+                              <option value="">Select Group</option>
+                              {ledgerGroups.map((group: LedgerGroup) => (
+                                <option key={group.id} value={group.id}>
+                                  {group.name}
+                                </option>
+                              ))}
+                            </select>
+              {/* <select
                 id="type"
                 name="type"
                 value={formData.type}
@@ -118,7 +174,7 @@ const GroupForm: React.FC = () => {
                 <option value="sales">Sales</option>
                 <option value="indirect-expenses">Indirect Expenses</option>
                 <option value="indirect-income">Indirect Income</option>
-              </select>
+              </select> */}
             </div>
             
             <div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 interface BudgetFormData {
   name: string;
@@ -44,12 +45,32 @@ const BudgetForm: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Save budget data
-    // This is a placeholder - implement actual data saving
-    navigate('/masters/budgets');
-  };
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  try {
+    const res = await fetch('http://localhost:5000/api/budgets', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await res.json();
+    console.log("Response:", res.status, data); // ✅ Debug
+
+    if (res.ok) {
+            Swal.fire('Success', data.message, 'success');
+            navigate('/masters/budgets');
+          } else {
+            Swal.fire('Error', data.message || 'Insert failed', 'error');
+          }
+  } catch (err) {
+    console.error('Submit Error:', err);
+    Swal.fire('Error', 'Something went wrong!', 'error');
+  }
+};
+
+
+
 
   return (
     <div className='pt-[56px] px-4 '>
@@ -178,16 +199,16 @@ const BudgetForm: React.FC = () => {
               Cancel
             </button>
             <button
-              type="submit"
-              className={`flex items-center px-4 py-2 rounded ${
-                theme === 'dark' 
-                  ? 'bg-blue-600 hover:bg-blue-700' 
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
-              }`}
-            >
-              <Save size={18} className="mr-1" />
-              {isEditMode ? 'Update' : 'Save'}
-            </button>
+                          type="submit"
+                          className={`flex items-center px-4 py-2 rounded ${
+                            theme === 'dark' 
+                              ? 'bg-blue-600 hover:bg-blue-700' 
+                              : 'bg-blue-600 hover:bg-blue-700 text-white'
+                          }`}
+                        >
+                          <Save size={18} className="mr-1" />
+                          {isEditMode ? 'Update' : 'Save'}
+                        </button>
           </div>
         </form>
       </div>

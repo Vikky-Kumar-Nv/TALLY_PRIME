@@ -370,6 +370,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
 import type { CompanyInfo } from "../../types";
+import Swal from "sweetalert2";
 
 const states = [
   { code: "37", name: "Andhra Pradesh" },
@@ -479,18 +480,36 @@ const CompanyForm: React.FC = () => {
 
       const data = await res.json();
 
-      if (res.ok) {
-        alert("Company created successfully!");
-        console.log("🔍 Submitting company:", company);
-        setCompanyInfo(company);
-        navigate("/");
+            if (res.ok) {
+        Swal.fire({
+          title: "Success!",
+          text: "Company created successfully!",
+          icon: "success",
+          confirmButtonColor: "#3085d6",
+          confirmButtonText: "OK",
+        }).then(() => {
+          setCompanyInfo(company);
+          navigate("/");
+        });
       } else {
-        alert(data.message || "Failed to create company");
+        Swal.fire({
+          title: "Error!",
+          text: data.message || "Failed to create company",
+          icon: "error",
+          confirmButtonColor: "#d33",
+        });
       }
+
     } catch (err) {
-      console.error("Submit error:", err);
-      alert("Something went wrong!");
-    }
+  console.error("Submit error:", err);
+  Swal.fire({
+    title: "Oops!",
+    text: "Something went wrong!",
+    icon: "error",
+    confirmButtonColor: "#d33",
+  });
+}
+
   };
 
 

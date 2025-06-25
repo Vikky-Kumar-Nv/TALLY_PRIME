@@ -7,6 +7,23 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+
+// Routes
+const ledgerGroupRoutes = require('./routes/ledgerGroups');
+app.use('/api/ledger-groups', ledgerGroupRoutes);
+// Ledger Routes
+const ledgerRoutes = require('./routes/ledger');
+app.use('/api/ledger', ledgerRoutes);
+// Routes for Ledger Groups
+const GroupRoutes = require('./routes/group');
+app.use('/api/group', GroupRoutes);
+// Routes for currency
+const currencyRoutes = require('./routes/currency');
+app.use('/api/currencies', currencyRoutes);
+
+const budgetRoutes = require('./routes/budgets');
+app.use('/api/budgets', budgetRoutes);
+
 // MySQL Connection
 const db = mysql.createConnection({
   host: 'localhost',
