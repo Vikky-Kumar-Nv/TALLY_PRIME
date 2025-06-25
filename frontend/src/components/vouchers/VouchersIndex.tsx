@@ -8,8 +8,19 @@ import {
 } from 'lucide-react';
 
 const VouchersIndex: React.FC = () => {
-  const { theme } = useAppContext();
+  const { theme, vouchers, ledgers } = useAppContext();
   const navigate = useNavigate();
+
+  // Safe fallbacks
+  const safeVouchers = vouchers || [];
+  const safeLedgers = ledgers || [];
+
+  // Helper function to get party name
+  const getPartyName = (partyId: string | undefined): string => {
+    if (!partyId) return 'No Party';
+    const party = safeLedgers.find(l => l.id === partyId);
+    return party?.name || 'Unknown Party';
+  };
 
   const voucherTypes = [
     { 
@@ -103,11 +114,50 @@ const VouchersIndex: React.FC = () => {
             </button>
           ))}
         </div>
-      </div>
-      
-      <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
+      </div>        <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
         <h2 className="text-xl font-semibold mb-4">Recent Vouchers</h2>
-        <p className="text-center py-4 opacity-70">No recent vouchers found.</p>
+        {safeVouchers && safeVouchers.length > 0 ? (
+          <div className="space-y-3">
+            {safeVouchers.slice(-5).reverse().map((voucher) => (
+              <div
+                key={voucher.id}
+                className={`p-3 rounded border ${
+                  theme === 'dark' 
+                    ? 'bg-gray-700 border-gray-600 hover:bg-gray-600' 
+                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                } cursor-pointer transition-colors`}
+                onClick={() => {
+                  console.log('Voucher details:', voucher);
+                  alert(`Voucher ${voucher.number} - ${voucher.type} - ${voucher.date}`);
+                }}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <div className="font-semibold text-sm">
+                      {voucher.number} - {voucher.type?.toUpperCase()}
+                    </div>
+                    <div className="text-xs opacity-70 mt-1">
+                      Date: {new Date(voucher.date).toLocaleDateString()}
+                    </div>
+                    <div className="text-xs opacity-70">
+                      Party: {getPartyName(voucher.partyId)}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium">
+                      {voucher.entries?.length || 0} items
+                    </div>
+                    <div className="text-xs opacity-70">
+                      {voucher.mode || 'item-invoice'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center py-4 opacity-70">No recent vouchers found. Create your first voucher!</p>
+        )}
       </div>
       
       <div className={`mt-6 p-4 rounded ${

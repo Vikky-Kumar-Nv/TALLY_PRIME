@@ -398,7 +398,6 @@
 //   date: string;
 // };
 
-
 export type CompanyInfo = {
   name: string;
   financialYear: string;
@@ -432,7 +431,10 @@ export type LedgerType =
   | 'sundry-debtors'
   | 'sundry-creditors'
   | 'cash'
-  | 'bank';
+  | 'bank'
+  | 'cgst' // Added for GST ledgers
+  | 'sgst'
+  | 'igst';
 
 export type LedgerGroup = {
   id: string;
@@ -453,6 +455,7 @@ export type Ledger = {
   gstNumber?: string;
   panNumber?: string;
   type?: LedgerType;
+  state?: string; // Added for GST state comparison
 };
 
 export type VoucherType = 
@@ -494,7 +497,9 @@ export type VoucherEntryLine = {
   type: 'debit' | 'credit' | 'source' | 'destination';
   quantity?: number;
   rate?: number;
-  gstRate?: number;
+  cgstRate?: number; // Added for CGST
+  sgstRate?: number; // Added for SGST
+  igstRate?: number; // Added for IGST
   godownId?: string;
   batchId?: string;
   discount?: number;
@@ -528,4 +533,20 @@ export type LedgerEntry = {
   type: 'debit' | 'credit';
   voucherId: string;
   date: string;
+};
+
+export type AppContextType = {
+  theme: 'light' | 'dark';
+  companyInfo?: CompanyInfo;
+  stockItems?: StockItem[];
+  ledgers?: Ledger[];
+  ledgerGroups?: LedgerGroup[];
+  godowns?: Godown[];
+  vouchers?: VoucherEntry[];
+  addStockItem: (item: Omit<StockItem, 'id'>) => void;
+  updateStockItem: (id: string, item: Partial<StockItem>) => void;
+  addLedger: (ledger: Omit<Ledger, 'id'>) => void;
+  addLedgerGroup: (group: Omit<LedgerGroup, 'id'>) => void;
+  addVoucher: (voucher: VoucherEntry) => void;
+  addLedgerEntry: (entry: LedgerEntry) => void;
 };
