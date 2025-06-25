@@ -5,6 +5,74 @@ import { useNavigate } from 'react-router-dom';
 import type { VoucherEntry, Ledger, Godown } from '../../../types';
 import { Save, Plus, Trash2, ArrowLeft, Printer } from 'lucide-react';
 
+// DRY Constants for Tailwind Classes
+const FORM_STYLES = {
+  input: (theme: string, hasError?: boolean) => 
+    `w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${hasError ? 'border-red-500' : ''}`,
+  select: (theme: string, hasError?: boolean) => 
+    `w-full p-2 rounded border cursor-pointer ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${hasError ? 'border-red-500' : ''}`,
+  tableInput: (theme: string) => 
+    `w-full p-1 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`,
+  tableSelect: (theme: string) => 
+    `w-full p-1 rounded border cursor-pointer ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`
+};
+
+const PRINT_STYLES = {
+  container: 'absolute -left-[9999px] -top-[9999px] w-[210mm] min-h-[297mm]',
+  printArea: 'font-arial text-xs leading-tight p-4 bg-white text-black',
+  invoice: {
+    border: 'border-2 border-black mb-2.5',
+    header: 'bg-gray-100 p-2 text-center border-b border-black',
+    title: 'text-lg font-bold m-0 tracking-wider',
+    infoRow: 'flex justify-between px-2.5 py-1.5 border-b border-black text-xs',
+    infoFlex: 'flex gap-5',
+    companySection: 'p-2.5 border-b border-black',
+    companyHeader: 'flex items-center mb-2',
+    companyLogo: 'w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-4',
+    companyLogoText: 'text-white text-base font-bold',
+    companyName: 'text-base font-bold m-0 uppercase',
+    companyAddress: 'my-0.5 text-xs',
+    companyInfo: 'text-xs flex gap-5',
+    partySection: 'p-2.5',
+    partyHeader: 'mb-1.5',
+    partyLabel: 'text-xs font-bold',
+    partyDetails: 'text-xs leading-relaxed'
+  },
+  table: {
+    main: 'w-full border-collapse mb-5 border border-black',
+    headerRow: 'bg-gray-50',
+    headerCell: 'border border-black p-2 text-xs font-bold',
+    headerCellCenter: 'border border-black p-2 text-xs font-bold text-center',
+    headerCellRight: 'border border-black p-2 text-xs font-bold text-right',
+    dataCell: 'border border-black p-2 text-xs',
+    dataCellCenter: 'border border-black p-2 text-xs text-center',
+    dataCellRight: 'border border-black p-2 text-xs text-right',
+    emptyCell: 'border border-black p-5 text-xs',
+    totalCell: 'border border-black p-1.5 text-xs text-right font-bold',
+    totalValues: 'border border-black p-1.5 text-xs text-right'
+  },
+  totals: {
+    amountWords: 'border border-black p-2.5 mb-4',
+    amountWordsLabel: 'text-xs font-bold',
+    amountWordsText: 'text-xs mt-1.5 min-h-5',
+    gstSummary: 'border border-black p-2.5 mb-4',
+    gstSummaryLabel: 'text-xs font-bold mb-2 block',
+    gstSummaryContent: 'text-xs',
+    gstRateHeader: 'flex justify-between mb-2 font-bold',
+    gstRateDetails: 'text-xs mb-2',
+    gstRateRow: 'flex justify-between mb-1 border-b border-dotted border-gray-300 pb-0.5',
+    gstNote: 'mt-2 text-center text-xs italic text-gray-600'
+  },
+  signatures: {
+    container: 'flex justify-between mt-8',
+    section: 'w-48per',
+    sectionRight: 'w-48per text-right',
+    label: 'text-xs font-bold mb-1.5',
+    signatureArea: 'mt-12 text-xs',
+    signatureLine: 'border-t border-black pt-1.5 text-center'
+  }
+};
+
 const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godowns = [], vouchers = [], companyInfo, updateStockItem, addVoucher } = useAppContext();
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);  // Safe fallbacks for context data
@@ -78,11 +146,13 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.altKey || e.ctrlKey || e.metaKey) return;
-      switch (e.key.toLowerCase()) {
-        case 'f9':
+      switch (e.key.toLowerCase()) {        case 'f9': {
           e.preventDefault();
-          handleSubmit(e as any);
+          // We'll bypass the form validation by calling a simplified handler
+          const form = document.querySelector('form');
+          if (form) form.requestSubmit();
           break;
+        }
         case 'f12':
           e.preventDefault();
           setShowConfig(true);
@@ -94,8 +164,8 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);  }, [navigate]);
+    document.addEventListener('keydown', handleKeyDown);    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [navigate]);
   // Printing
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -347,7 +417,9 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
         .reduce((sum, e) => sum + (e.amount ?? 0), 0);
       return { debitTotal, creditTotal, total: debitTotal, subtotal: 0, cgstTotal: 0, sgstTotal: 0, igstTotal: 0, discountTotal: 0 };
     }
-  };  const handleSubmit = (e: React.FormEvent) => {
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
       alert('Please fix the errors before submitting');
@@ -377,9 +449,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
           }
         }
       });
-    }
-
-    navigate('/vouchers');
+    }    navigate('/vouchers');
   };
   const { subtotal = 0, cgstTotal = 0, sgstTotal = 0, igstTotal = 0, discountTotal = 0, total = 0, debitTotal = 0, creditTotal = 0 } = calculateTotals();
 
@@ -425,6 +495,38 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
     return partyMap[partyId] || 'Unknown Party';
   };
 
+  // Function to get GST rate breakdown and count for invoice
+  const getGstRateInfo = () => {
+    const selectedItems = formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select');
+    const gstRates = new Set<number>();
+    const gstBreakdown: { [key: number]: { count: number; totalAmount: number; gstAmount: number; items: string[] } } = {};
+    
+    selectedItems.forEach(entry => {
+      const itemDetails = getItemDetails(entry.itemId || '');
+      const gstRate = itemDetails.gstRate || 0;
+      const baseAmount = (entry.quantity || 0) * (entry.rate || 0);
+      const gstAmount = baseAmount * gstRate / 100;
+      
+      gstRates.add(gstRate);
+      
+      if (!gstBreakdown[gstRate]) {
+        gstBreakdown[gstRate] = { count: 0, totalAmount: 0, gstAmount: 0, items: [] };
+      }
+      
+      gstBreakdown[gstRate].count += 1;
+      gstBreakdown[gstRate].totalAmount += baseAmount;
+      gstBreakdown[gstRate].gstAmount += gstAmount;
+      gstBreakdown[gstRate].items.push(itemDetails.name);
+    });
+    
+    return {
+      uniqueGstRatesCount: gstRates.size,
+      gstRatesUsed: Array.from(gstRates).sort((a, b) => a - b),
+      totalItems: selectedItems.length,
+      breakdown: gstBreakdown
+    };
+  };
+
   return (
     <React.Fragment>
       <div className='pt-[56px] px-4'>
@@ -445,45 +547,41 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="date">
                 Date
-              </label>
-              <input
+              </label>              <input
                 type="date"
                 id="date"
                 name="date"
                 value={formData.date}
                 onChange={handleChange}
                 required
-                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors.date ? 'border-red-500' : ''}`}
+                className={FORM_STYLES.input(theme, !!errors.date)}
               />
               {errors.date && <p className="text-red-500 text-xs mt-1">{errors.date}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="number">
                 Voucher No.
-              </label>
-              <input
+              </label>              <input
                 type="text"
                 id="number"
                 name="number"
                 value={formData.number}
                 readOnly
-                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300'} outline-none transition-colors ${errors.number ? 'border-red-500' : ''}`}
+                className={`${FORM_STYLES.input(theme, !!errors.number)} ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}
               />
               {errors.number && <p className="text-red-500 text-xs mt-1">{errors.number}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="partyId">
                 Party Name
-              </label>              
-              <select
+              </label>                <select
                title="Select Party"
                 id="partyId"
                 name="partyId"
                 value={formData.partyId}
                 onChange={handleChange}
                 required
-                style={{ minHeight: '40px', fontSize: '14px' }}
-                className={`w-full p-2 rounded border cursor-pointer ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors.partyId ? 'border-red-500' : ''}`}
+                className={`min-h-10 text-14 ${FORM_STYLES.select(theme, !!errors.partyId)}`}
               >
                 <option value="" disabled>-- Select Party --</option>
                 <option value="1">ABC Electronics Pvt Ltd</option>
@@ -510,40 +608,37 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="referenceNo">
                 Reference No.
-              </label>
-              <input
+              </label>              <input
                 type="text"
                 id="referenceNo"
                 name="referenceNo"
                 value={formData.referenceNo}
                 onChange={handleChange}
-                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
+                className={FORM_STYLES.input(theme)}
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="dispatchDetails.docNo">
                 Dispatch Doc No.
-              </label>
-              <input
+              </label>              <input
                 type="text"
                 id="dispatchDetails.docNo"
                 name="dispatchDetails.docNo"
                 value={formData.dispatchDetails?.docNo ?? ''}
                 onChange={handleChange}
-                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
+                className={FORM_STYLES.input(theme)}
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="dispatchDetails.through">
                 Dispatch Through
-              </label>
-              <input
+              </label>              <input
                 type="text"
                 id="dispatchDetails.through"
                 name="dispatchDetails.through"
                 value={formData.dispatchDetails?.through ?? ''}
                 onChange={handleChange}
-                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
+                className={FORM_STYLES.input(theme)}
               />
             </div>
           </div>
@@ -552,26 +647,24 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="dispatchDetails.destination">
                 Destination
-              </label>
-              <input
+              </label>              <input
                 type="text"
                 id="dispatchDetails.destination"
                 name="dispatchDetails.destination"
                 value={formData.dispatchDetails?.destination ?? ''}
                 onChange={handleChange}
-                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
+                className={FORM_STYLES.input(theme)}
               />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="mode">
                 Voucher Mode
-              </label>
-              <select
+              </label>              <select
                 id="mode"
                 name="mode"
                 value={formData.mode}
                 onChange={handleChange}
-                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
+                className={FORM_STYLES.select(theme)}
               >
                 <option value="item-invoice">Item Invoice</option>
                 <option value="accounting-invoice">Accounting Invoice</option>
@@ -620,7 +713,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                               value={entry.itemId}
                               onChange={(e) => handleEntryChange(index, e)}
                               required
-                              className={`w-full p-2 rounded border cursor-pointer ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors[`entry${index}.itemId`] ? 'border-red-500' : ''}`}
+                              className={FORM_STYLES.tableSelect(theme)}
                             >
                               <option value="" disabled>-- Select Item --</option>
                               <option value="1">Laptop HP Pavilion</option>
@@ -652,7 +745,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                               required
                               min="0"
                               step="0.01"
-                              className={`w-full p-2 rounded border text-right ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors[`entry${index}.quantity`] ? 'border-red-500' : ''}`}
+                              className={`${FORM_STYLES.tableInput(theme)} text-right ${errors[`entry${index}.quantity`] ? 'border-red-500' : ''}`}
                             />
                             {errors[`entry${index}.quantity`] && <p className="text-red-500 text-xs mt-1">{errors[`entry${index}.quantity`]}</p>}
                           </td>
@@ -666,7 +759,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                               onChange={(e) => handleEntryChange(index, e)}
                               min="0"
                               step="0.01"
-                              className={`w-full p-2 rounded border text-right ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
+                              className={`${FORM_STYLES.tableInput(theme)} text-right`}
                             />
                           </td>
                           <td className="px-4 py-2">
@@ -678,7 +771,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                               onChange={(e) => handleEntryChange(index, e)}
                               min="0"
                               step="0.01"
-                              className={`w-full p-2 rounded border text-right ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'} outline-none focus:border-blue-500 transition-colors`}
+                              className={`${FORM_STYLES.tableInput(theme)} text-right`}
                             />
                           </td>
                           <td className="px-4 py-2 text-right">{entry.amount.toLocaleString()}</td>
@@ -689,7 +782,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                               value={entry.godownId}
                               onChange={(e) => handleEntryChange(index, e)}
                               required={godowns.length > 0}
-                              className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors[`entry${index}.godownId`] ? 'border-red-500' : ''}`}
+                              className={`${FORM_STYLES.tableSelect(theme)} ${errors[`entry${index}.godownId`] ? 'border-red-500' : ''}`}
                             >
                               <option value="">Select Godown</option>
                               {godowns.length > 0 ? (
@@ -777,7 +870,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                             value={entry.ledgerId ?? ''}
                             onChange={(e) => handleEntryChange(index, e)}
                             required
-                            className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors[`entry${index}.ledgerId`] ? 'border-red-500' : ''}`}
+                            className={`${FORM_STYLES.tableSelect(theme)} ${errors[`entry${index}.ledgerId`] ? 'border-red-500' : ''}`}
                           >
                             <option value="">Select Ledger</option>
                             {safeLedgers.map((ledger: Ledger) => (
@@ -796,7 +889,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                             required
                             min="0"
                             step="0.01"
-                            className={`w-full p-2 rounded border text-right ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors[`entry${index}.amount`] ? 'border-red-500' : ''}`}
+                            className={`${FORM_STYLES.tableInput(theme)} text-right ${errors[`entry${index}.amount`] ? 'border-red-500' : ''}`}
                           />
                           {errors[`entry${index}.amount`] && <p className="text-red-500 text-xs mt-1">{errors[`entry${index}.amount`]}</p>}
                         </td>
@@ -806,7 +899,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                             name="type"
                             value={entry.type}
                             onChange={(e) => handleEntryChange(index, e)}
-                            className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
+                            className={FORM_STYLES.tableInput(theme)}
                           >
                             <option value="debit">Debit</option>
                             <option value="credit">Credit</option>
@@ -855,7 +948,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
               value={formData.narration}
               onChange={handleChange}
               rows={3}
-              className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`}
+              className={FORM_STYLES.input(theme)}
             />
           </div>          <div className="flex justify-end space-x-4">
             <button
@@ -918,66 +1011,58 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
           </div>
         </div>
       )}      {/* Print Layout */}
-      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', width: '210mm', minHeight: '297mm' }}>
-        <div ref={printRef} style={{ 
-          padding: '15mm', 
-          fontFamily: 'Arial, sans-serif', 
-          fontSize: '11pt', 
-          width: '100%', 
-          backgroundColor: 'white',
-          color: 'black',
-          lineHeight: '1.4'
-        }}>
+      <div className={PRINT_STYLES.container}>
+        <div ref={printRef} className={PRINT_STYLES.printArea}>
           {/* Header Section */}
-          <div style={{ border: '2px solid #000', marginBottom: '10px' }}>
+          <div className={PRINT_STYLES.invoice.border}>
             {/* Top Header with TAX INVOICE */}
-            <div style={{ backgroundColor: '#f0f0f0', padding: '8px', textAlign: 'center', borderBottom: '1px solid #000' }}>
-              <h1 style={{ fontSize: '18pt', fontWeight: 'bold', margin: '0', letterSpacing: '2px' }}>TAX INVOICE</h1>
+            <div className={PRINT_STYLES.invoice.header}>
+              <h1 className={PRINT_STYLES.invoice.title}>TAX INVOICE</h1>
             </div>
               {/* Invoice Details Row */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 10px', borderBottom: '1px solid #000', fontSize: '10pt' }}>
+            <div className={PRINT_STYLES.invoice.infoRow}>
               <span><strong>INVOICE NO:</strong> {formData.number}</span>
               <span><strong>DATE:</strong> {new Date(formData.date).toLocaleDateString('en-GB')}</span>
             </div>
             
             {/* Reference and Dispatch Details Row */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 10px', borderBottom: '1px solid #000', fontSize: '10pt' }}>
-              <div style={{ display: 'flex', gap: '20px' }}>
+            <div className={PRINT_STYLES.invoice.infoRow}>
+              <div className={PRINT_STYLES.invoice.infoFlex}>
                 {formData.referenceNo && <span><strong>REF NO:</strong> {formData.referenceNo}</span>}
                 {formData.dispatchDetails?.docNo && <span><strong>DISPATCH DOC NO:</strong> {formData.dispatchDetails.docNo}</span>}
               </div>
-              <div style={{ display: 'flex', gap: '20px' }}>
+              <div className={PRINT_STYLES.invoice.infoFlex}>
                 {formData.dispatchDetails?.through && <span><strong>DISPATCH THROUGH:</strong> {formData.dispatchDetails.through}</span>}
                 {formData.dispatchDetails?.destination && <span><strong>DESTINATION:</strong> {formData.dispatchDetails.destination}</span>}
               </div>
             </div>
             
             {/* Company Details Section */}
-            <div style={{ padding: '10px', borderBottom: '1px solid #000' }}>
-              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px' }}>
-                <div style={{ width: '40px', height: '40px', backgroundColor: '#4a90e2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '15px' }}>
-                  <span style={{ color: 'white', fontSize: '16pt', fontWeight: 'bold' }}>
+            <div className={PRINT_STYLES.invoice.companySection}>
+              <div className={PRINT_STYLES.invoice.companyHeader}>
+                <div className={PRINT_STYLES.invoice.companyLogo}>
+                  <span className={PRINT_STYLES.invoice.companyLogoText}>
                     {safeCompanyInfo.name.charAt(0)}
                   </span>
                 </div>
                 <div>
-                  <h2 style={{ fontSize: '16pt', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' }}>
+                  <h2 className={PRINT_STYLES.invoice.companyName}>
                     {safeCompanyInfo.name}
                   </h2>
-                  <p style={{ margin: '2px 0', fontSize: '10pt' }}>{safeCompanyInfo.address || 'Your Business Address'}</p>
+                  <p className={PRINT_STYLES.invoice.companyAddress}>{safeCompanyInfo.address || 'Your Business Address'}</p>
                 </div>
               </div>
-              <div style={{ fontSize: '10pt', display: 'flex', gap: '20px' }}>
+              <div className={PRINT_STYLES.invoice.companyInfo}>
                 <span><strong>GSTIN:</strong> {safeCompanyInfo.gstNumber || 'N/A'}</span>
                 <span><strong>PAN NO:</strong> {safeCompanyInfo.panNumber || 'N/A'}</span>
               </div>
             </div>
               {/* Customer Details Section */}
-            <div style={{ padding: '10px' }}>
-              <div style={{ marginBottom: '5px' }}>
-                <strong style={{ fontSize: '11pt' }}>PARTY'S NAME:</strong>
+            <div className={PRINT_STYLES.invoice.partySection}>
+              <div className={PRINT_STYLES.invoice.partyHeader}>
+                <strong className={PRINT_STYLES.invoice.partyLabel}>PARTY'S NAME:</strong>
               </div>
-              <div style={{ fontSize: '10pt', lineHeight: '1.4' }}>
+              <div className={PRINT_STYLES.invoice.partyDetails}>
                 <div><strong>{formData.partyId ? getPartyName(formData.partyId) : 'No Party Selected'}</strong></div>
                 {formData.partyId && (
                   <>
@@ -989,43 +1074,45 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
               </div>
             </div>
           </div>          {/* Particulars Table */}
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px', border: '1px solid #000' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#f8f8f8' }}>
-                <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold' }}>Particulars (Description & Specifications)</th>
-                <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold', width: '80px' }}>HSN Code</th>
-                <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold', width: '60px', textAlign: 'center' }}>Qty</th>
-                <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold', width: '80px', textAlign: 'right' }}>Rate</th>
-                <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold', width: '60px', textAlign: 'center' }}>GST %</th>
-                <th style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', fontWeight: 'bold', width: '100px', textAlign: 'right' }}>Amount</th>
+          <table className={PRINT_STYLES.table.main}>            <thead>
+              <tr className={PRINT_STYLES.table.headerRow}>
+                <th className={`${PRINT_STYLES.table.headerCellCenter} w-12`}>Sr No</th>
+                <th className={PRINT_STYLES.table.headerCell}>Particulars (Description & Specifications)</th>
+                <th className={`${PRINT_STYLES.table.headerCell} w-20`}>HSN Code</th>
+                <th className={`${PRINT_STYLES.table.headerCellCenter} w-15`}>Qty</th>
+                <th className={`${PRINT_STYLES.table.headerCellRight} w-20`}>Rate</th>
+                <th className={`${PRINT_STYLES.table.headerCellCenter} w-15`}>GST %</th>
+                <th className={`${PRINT_STYLES.table.headerCellRight} w-25`}>Amount</th>
               </tr>
-            </thead>
-            <tbody>
+            </thead>            <tbody>
               {formData.entries
                 .filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select')
-                .map((entry) => {
+                .map((entry, index) => {
                   const itemDetails = getItemDetails(entry.itemId || '');
                   const baseAmount = (entry.quantity || 0) * (entry.rate || 0);
                   const gstRate = itemDetails.gstRate || 0;
                   
                   return (
                     <tr key={entry.id}>
-                      <td style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt' }}>
+                      <td className={PRINT_STYLES.table.dataCellCenter}>
+                        {index + 1}
+                      </td>
+                      <td className={PRINT_STYLES.table.dataCell}>
                         <strong>{itemDetails.name}</strong>
                       </td>
-                      <td style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', textAlign: 'center' }}>
+                      <td className={PRINT_STYLES.table.dataCellCenter}>
                         {itemDetails.hsnCode}
                       </td>
-                      <td style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', textAlign: 'center' }}>
+                      <td className={PRINT_STYLES.table.dataCellCenter}>
                         {entry.quantity?.toLocaleString() || '0'} {itemDetails.unit}
                       </td>
-                      <td style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', textAlign: 'right' }}>
+                      <td className={PRINT_STYLES.table.dataCellRight}>
                         ₹{entry.rate?.toLocaleString() || '0'}
                       </td>
-                      <td style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', textAlign: 'center' }}>
+                      <td className={PRINT_STYLES.table.dataCellCenter}>
                         {gstRate}%
                       </td>
-                      <td style={{ border: '1px solid #000', padding: '8px', fontSize: '10pt', textAlign: 'right' }}>
+                      <td className={PRINT_STYLES.table.dataCellRight}>
                         ₹{baseAmount.toLocaleString()}
                       </td>
                     </tr>
@@ -1034,20 +1121,20 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
               
               {/* Add empty rows for spacing if no items */}
               {formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length === 0 && (
-                <>
-                  <tr>
-                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt', textAlign: 'center' }} colSpan={6}>
+                <>                  <tr>
+                    <td className={`${PRINT_STYLES.table.emptyCell} text-center`} colSpan={7}>
                       No items selected
                     </td>
                   </tr>
                   {Array(3).fill(0).map((_, index) => (
                     <tr key={`empty-${index}`}>
-                      <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
-                      <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
-                      <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
-                      <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
-                      <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
-                      <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
+                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
+                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
+                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
+                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
+                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
+                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
+                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
                     </tr>
                   ))}
                 </>
@@ -1055,24 +1142,22 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
               
               {/* Add empty rows for spacing when items exist */}
               {formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length > 0 && formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length < 4 &&
-                Array(Math.max(0, 4 - formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length)).fill(0).map((_, index) => (
-                  <tr key={`empty-${index}`}>
-                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
-                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
-                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
-                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
-                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
-                    <td style={{ border: '1px solid #000', padding: '20px', fontSize: '10pt' }}>&nbsp;</td>
+                Array(Math.max(0, 4 - formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length)).fill(0).map((_, index) => (                  <tr key={`empty-${index}`}>
+                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
+                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
+                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
+                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
+                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
+                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
+                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
                   </tr>
                 ))
               }
-            </tbody>
-              {/* Tax Summary */}
-            <tfoot>
-              <tr>
-                <td colSpan={4} style={{ border: '1px solid #000', padding: '5px', fontSize: '9pt' }}>
+            </tbody>              {/* Tax Summary */}
+            <tfoot>              <tr>
+                <td colSpan={5} className="border border-black p-1_5 text-9pt">
                   <strong>Terms & Conditions:</strong><br/>
-                  <span style={{ fontSize: '8pt' }}>
+                  <span className="text-8pt">
                     • Goods once sold will not be taken back.<br/>
                     • Interest @ 18% p.a. will be charged on delayed payments.<br/>
                     • Subject to {safeCompanyInfo.address || 'Local'} Jurisdiction only.<br/>
@@ -1080,53 +1165,79 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                     • Delivery charges extra as applicable.
                   </span>
                 </td>
-                <td style={{ border: '1px solid #000', padding: '5px', fontSize: '10pt', textAlign: 'right', fontWeight: 'bold' }}>
-                  <div style={{ marginBottom: '5px' }}>Subtotal</div>
-                  {cgstTotal > 0 && <div style={{ marginBottom: '5px' }}>Add: CGST</div>}
-                  {sgstTotal > 0 && <div style={{ marginBottom: '5px' }}>Add: SGST</div>}
-                  {igstTotal > 0 && <div style={{ marginBottom: '5px' }}>Add: IGST</div>}
-                  {discountTotal > 0 && <div style={{ marginBottom: '5px' }}>Less: Discount</div>}
-                  <div style={{ fontWeight: 'bold', fontSize: '11pt' }}>Grand Total</div>
+                <td className={PRINT_STYLES.table.totalCell}>
+                  <div className="mb-1_5">Subtotal</div>
+                  {cgstTotal > 0 && <div className="mb-1_5">Add: CGST</div>}
+                  {sgstTotal > 0 && <div className="mb-1_5">Add: SGST</div>}
+                  {igstTotal > 0 && <div className="mb-1_5">Add: IGST</div>}
+                  {discountTotal > 0 && <div className="mb-1_5">Less: Discount</div>}
+                  <div className="font-bold text-11pt">Grand Total</div>
                 </td>
-                <td style={{ border: '1px solid #000', padding: '5px', fontSize: '10pt', textAlign: 'right' }}>
-                  <div style={{ marginBottom: '5px' }}>₹{subtotal.toLocaleString()}</div>
-                  {cgstTotal > 0 && <div style={{ marginBottom: '5px' }}>₹{cgstTotal.toLocaleString()}</div>}
-                  {sgstTotal > 0 && <div style={{ marginBottom: '5px' }}>₹{sgstTotal.toLocaleString()}</div>}
-                  {igstTotal > 0 && <div style={{ marginBottom: '5px' }}>₹{igstTotal.toLocaleString()}</div>}
-                  {discountTotal > 0 && <div style={{ marginBottom: '5px' }}>₹{discountTotal.toLocaleString()}</div>}
-                  <div style={{ fontWeight: 'bold', fontSize: '11pt' }}>₹{total.toLocaleString()}</div>
+                <td className={PRINT_STYLES.table.totalValues}>
+                  <div className="mb-1_5">₹{subtotal.toLocaleString()}</div>
+                  {cgstTotal > 0 && <div className="mb-1_5">₹{cgstTotal.toLocaleString()}</div>}
+                  {sgstTotal > 0 && <div className="mb-1_5">₹{sgstTotal.toLocaleString()}</div>}
+                  {igstTotal > 0 && <div className="mb-1_5">₹{igstTotal.toLocaleString()}</div>}
+                  {discountTotal > 0 && <div className="mb-1_5">₹{discountTotal.toLocaleString()}</div>}
+                  <div className="font-bold text-11pt">₹{total.toLocaleString()}</div>
                 </td>
               </tr>
             </tfoot>
-          </table>
-
-          {/* Amount in Words */}
-          <div style={{ border: '1px solid #000', padding: '10px', marginBottom: '15px' }}>
-            <strong style={{ fontSize: '11pt' }}>Total Amount (Rs. in Words):</strong>
-            <div style={{ fontSize: '10pt', marginTop: '5px', minHeight: '20px' }}>
+          </table>          {/* Amount in Words */}
+          <div className={PRINT_STYLES.totals.amountWords}>
+            <strong className={PRINT_STYLES.totals.amountWordsLabel}>Total Amount (Rs. in Words):</strong>
+            <div className={PRINT_STYLES.totals.amountWordsText}>
               Rupees {total > 0 ? total.toLocaleString() : 'Zero'} Only
               {total > 0 && ` (₹${total.toLocaleString()})`}
             </div>
-          </div>
-
-          {/* Footer Section */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '30px' }}>
-            <div style={{ width: '48%' }}>
-              <div style={{ fontSize: '11pt', fontWeight: 'bold', marginBottom: '5px' }}>
+          </div>          {/* GST Calculation Summary */}
+          {formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length > 0 && (
+            <div className={PRINT_STYLES.totals.gstSummary}>
+              <strong className={PRINT_STYLES.totals.gstSummaryLabel}>GST Calculation Summary:</strong>
+              <div className={PRINT_STYLES.totals.gstSummaryContent}>
+                {(() => {
+                  const gstInfo = getGstRateInfo();
+                  return (
+                    <div>
+                      <div className={PRINT_STYLES.totals.gstRateHeader}>
+                        <span>Total Items: {gstInfo.totalItems}</span>
+                        <span>GST Rates Applied: {gstInfo.uniqueGstRatesCount}</span>
+                      </div>
+                      <div className={PRINT_STYLES.totals.gstRateDetails}>
+                        <strong>GST Rates Used:</strong> {gstInfo.gstRatesUsed.join('%, ')}%
+                      </div>
+                      {Object.entries(gstInfo.breakdown).map(([rate, data]) => (
+                        <div key={rate} className={PRINT_STYLES.totals.gstRateRow}>
+                          <span>GST {rate}%: {data.count} item{data.count > 1 ? 's' : ''}</span>
+                          <span>₹{data.gstAmount.toLocaleString()} GST</span>
+                        </div>
+                      ))}
+                      <div className={PRINT_STYLES.totals.gstNote}>
+                        This invoice includes {gstInfo.uniqueGstRatesCount} different GST rate{gstInfo.uniqueGstRatesCount > 1 ? 's' : ''} as per item specifications
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          )}          {/* Footer Section */}
+          <div className={PRINT_STYLES.signatures.container}>
+            <div className={PRINT_STYLES.signatures.section}>
+              <div className={PRINT_STYLES.signatures.label}>
                 For {safeCompanyInfo.name.toUpperCase()}
               </div>
-              <div style={{ marginTop: '50px', fontSize: '10pt' }}>
-                <div style={{ borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center' }}>
+              <div className={PRINT_STYLES.signatures.signatureArea}>
+                <div className={PRINT_STYLES.signatures.signatureLine}>
                   Authorised Signatory
                 </div>
               </div>
             </div>
-            <div style={{ width: '48%', textAlign: 'right' }}>
-              <div style={{ fontSize: '11pt', fontWeight: 'bold', marginBottom: '5px' }}>
+            <div className={PRINT_STYLES.signatures.sectionRight}>
+              <div className={PRINT_STYLES.signatures.label}>
                 Customer's Signature
               </div>
-              <div style={{ marginTop: '50px', fontSize: '10pt' }}>
-                <div style={{ borderTop: '1px solid #000', paddingTop: '5px', textAlign: 'center' }}>
+              <div className={PRINT_STYLES.signatures.signatureArea}>
+                <div className={PRINT_STYLES.signatures.signatureLine}>
                   Receiver's Signature
                 </div>
               </div>

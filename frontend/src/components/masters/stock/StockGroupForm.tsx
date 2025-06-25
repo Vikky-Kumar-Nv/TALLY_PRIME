@@ -10,7 +10,7 @@ const StockGroupForm = () => {
     <div className='pt-[56px] p-4 '>
       <div className="flex  items-center mb-6">
          <button
-          onClick={() => navigate('/masters/ledger')}
+          onClick={() => navigate('/masters/stock-group')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}

@@ -479,6 +479,8 @@ export type VoucherEntry = {
   entries: VoucherEntryLine[];
   mode?: 'item-invoice' | 'accounting-invoice' | 'as-voucher' | 'transfer' | 'adjustment';
   referenceNo?: string;
+  supplierInvoiceDate?: string; // Added for supplier invoice date
+  purchaseLedgerId?: string; // Added for purchase ledger
   partyId?: string;
   dispatchDetails?: {
     docNo: string;

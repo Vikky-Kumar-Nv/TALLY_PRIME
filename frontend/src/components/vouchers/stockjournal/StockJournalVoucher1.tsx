@@ -11,13 +11,12 @@ const StockJournalVoucher: React.FC = () => {
   const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>({
     date: new Date().toISOString().split('T')[0],
     type: 'stock-journal',
-    number: '',
-    narration: '',
+    number: '',    narration: '',
     referenceNo: '',
     mode: 'transfer',
     entries: [
-      { id: 's1', itemId: '', quantity: 0, rate: 0, amount: 0, type: 'source', gstRate: 0, godownId: '' },
-      { id: 'd1', itemId: '', quantity: 0, rate: 0, amount: 0, type: 'destination', gstRate: 0, godownId: '' }
+      { id: 's1', itemId: '', quantity: 0, rate: 0, amount: 0, type: 'source', cgstRate: 0, sgstRate: 0, igstRate: 0, godownId: '' },
+      { id: 'd1', itemId: '', quantity: 0, rate: 0, amount: 0, type: 'destination', cgstRate: 0, sgstRate: 0, igstRate: 0, godownId: '' }
     ]
   });
 
@@ -42,14 +41,15 @@ const StockJournalVoucher: React.FC = () => {
   const handleEntryChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const updatedEntries = [...formData.entries];
-    const entry = updatedEntries[index];
-
-    if (name === 'itemId') {
+    const entry = updatedEntries[index];    if (name === 'itemId') {
       const selectedItem = stockItems.find(item => item.id === value);
+      const gstRate = selectedItem?.gstRate ?? 0;
       updatedEntries[index] = {
         ...entry,
         itemId: value,
-        gstRate: selectedItem?.gstRate ?? 0,
+        cgstRate: gstRate / 2,
+        sgstRate: gstRate / 2,
+        igstRate: 0,
         amount: (entry.quantity ?? 0) * (entry.rate ?? 0)
       };
     } else if (name === 'quantity' || name === 'rate') {
