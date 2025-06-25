@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 interface CurrencyFormData {
   code: string;
@@ -17,6 +18,27 @@ const CurrencyForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
   
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('http://localhost:5000/api/currencies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        Swal.fire('Success', data.message, 'success');
+        navigate('/masters/currency');
+      } else {
+        Swal.fire('Error', data.message || 'Insert failed', 'error');
+      }
+    } catch (err) {
+      console.error('Submit Error:', err);
+      Swal.fire('Error', 'Something went wrong!', 'error');
+    }
+  };
   const [formData, setFormData] = useState<CurrencyFormData>({
     code: '',
     symbol: '',
@@ -57,11 +79,11 @@ const CurrencyForm: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission
-    navigate('/masters/currency');
-  };
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   // Handle form submission
+  //   navigate('/masters/currency');
+  // };
 
   return (
     <div className='pt-[56px] px-4 '>

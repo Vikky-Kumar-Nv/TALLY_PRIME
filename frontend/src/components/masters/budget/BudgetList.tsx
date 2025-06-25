@@ -1,18 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
 
+interface Budget {
+  id: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+  status: 'draft' | 'active';
+}
+
 const BudgetList: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
+  const [budgets, setBudgets] = useState<Budget[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Placeholder data - replace with actual budget data from context
-  const budgets = [
-    { id: '1', name: 'Annual Budget 2024', startDate: '2024-04-01', endDate: '2025-03-31', status: 'active' },
-    { id: '2', name: 'Q1 Sales Budget', startDate: '2024-04-01', endDate: '2024-06-30', status: 'draft' }
-  ];
+  useEffect(() => {
+    fetch('http://localhost:5000/api/budgets')
+      .then(res => res.json())
+      .then(data => setBudgets(data))
+      .catch(err => console.error('Failed to fetch budgets:', err));
+  }, []);
 
   const filteredBudgets = budgets.filter(budget =>
     budget.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -23,7 +33,7 @@ const BudgetList: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Budget List</h1>
         <button
-        title='Create New Budget'
+          title='Create New Budget'
           onClick={() => navigate('/masters/budget/create')}
           className={`flex items-center px-4 py-2 rounded ${
             theme === 'dark' 
@@ -35,7 +45,7 @@ const BudgetList: React.FC = () => {
           Create Budget
         </button>
       </div>
-      
+
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
         <div className="flex items-center mb-4">
           <div className={`flex items-center w-full max-w-md px-3 py-2 rounded-md ${
@@ -53,7 +63,7 @@ const BudgetList: React.FC = () => {
             />
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -76,8 +86,8 @@ const BudgetList: React.FC = () => {
                   } hover:bg-opacity-10 hover:bg-blue-500`}
                 >
                   <td className="px-4 py-3">{budget.name}</td>
-                  <td className="px-4 py-3">{budget.startDate}</td>
-                  <td className="px-4 py-3">{budget.endDate}</td>
+                  <td className="px-4 py-3">{budget.start_date}</td>
+                  <td className="px-4 py-3">{budget.end_date}</td>
                   <td className="px-4 py-3 text-center">
                     <span className={`px-2 py-1 rounded text-xs ${
                       budget.status === 'active'
@@ -99,7 +109,7 @@ const BudgetList: React.FC = () => {
                         <Edit size={16} />
                       </button>
                       <button
-                      title='Delete Budget'
+                        title='Delete Budget'
                         className={`p-1 rounded ${
                           theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                         }`}
@@ -113,14 +123,14 @@ const BudgetList: React.FC = () => {
             </tbody>
           </table>
         </div>
-        
+
         {filteredBudgets.length === 0 && (
           <div className="text-center py-8">
             <p className="opacity-70">No budgets found matching your search.</p>
           </div>
         )}
       </div>
-      
+
       <div className={`mt-6 p-4 rounded ${
         theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'
       }`}>

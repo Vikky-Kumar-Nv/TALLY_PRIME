@@ -1,21 +1,32 @@
-import React, { useState } from 'react';
-import { useAppContext } from '../../../context/AppContext';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Ledger } from '../../../types';
 import { Edit, Trash2, Plus, Search } from 'lucide-react';
+import { useAppContext } from '../../../context/AppContext';
+import type { Ledger } from '../../../types';
 
 const LedgerList: React.FC = () => {
-  const { theme, ledgers, ledgerGroups } = useAppContext();
+  const { theme } = useAppContext();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [ledgers, setLedgers] = useState<Ledger[]>([]);
 
-  const getGroupName = (groupId: string) => {
-    return ledgerGroups.find(group => group.id === groupId)?.name || '';
-  };
+  useEffect(() => {
+    const fetchLedgers = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/ledger");
+        const data = await res.json();
+        setLedgers(data);
+      } catch (err) {
+        console.error("Failed to load ledgers", err);
+      }
+    };
+
+    fetchLedgers();
+  }, []);
 
   const filteredLedgers = ledgers.filter(ledger => 
     ledger.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    getGroupName(ledger.groupId).toLowerCase().includes(searchTerm.toLowerCase())
+    ledger.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -67,43 +78,30 @@ const LedgerList: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredLedgers.map((ledger: Ledger) => (
-                <tr 
-                  key={ledger.id}
-                  className={`${
-                    theme === 'dark' ? 'border-b border-gray-700' : 'border-b border-gray-200'
-                  } hover:bg-opacity-10 hover:bg-blue-500`}
-                >
+              {filteredLedgers.map((ledger: any) => (
+                <tr key={ledger.id} className={`hover:bg-opacity-10 hover:bg-blue-500 ${theme === 'dark' ? 'border-b border-gray-700' : 'border-b border-gray-200'}`}>
                   <td className="px-4 py-3">{ledger.name}</td>
-                  <td className="px-4 py-3">{getGroupName(ledger.groupId)}</td>
-                  <td className="px-4 py-3 text-right font-mono">{ledger.openingBalance.toLocaleString()}</td>
+                  <td className="px-4 py-3">{ledger.groupName}</td>
+                  <td className="px-4 py-3 text-right font-mono">{ledger.openingBalance}</td>                  
                   <td className="px-4 py-3 text-center">
                     <span className={`px-2 py-1 rounded text-xs ${
                       ledger.balanceType === 'debit'
                         ? theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800'
                         : theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'
                     }`}>
-                      {ledger.balanceType.toUpperCase()}
+                    {ledger.balanceType?.toUpperCase() || 'N/A'}
                     </span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-center space-x-2">
                       <button
                         onClick={() => navigate(`/masters/ledger/edit/${ledger.id}`)}
-                        className={`p-1 rounded ${
-                          theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-                        }`}
-                        title="Edit Ledger"
-                        aria-label="Edit Ledger"
+                        className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
                       >
                         <Edit size={16} />
                       </button>
                       <button
-                        title="Delete Ledger"
-                        aria-label="Delete Ledger"
-                        className={`p-1 rounded ${
-                          theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-                        }`}
+                        className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
                       >
                         <Trash2 size={16} />
                       </button>

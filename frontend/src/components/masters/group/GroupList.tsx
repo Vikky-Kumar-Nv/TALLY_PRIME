@@ -1,18 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect} from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import type { LedgerGroup } from '../../../types';
 import { Edit, Trash2, Plus, Search } from 'lucide-react';
 
 const GroupList: React.FC = () => {
-  const { theme, ledgerGroups } = useAppContext();
+  const { theme } = useAppContext();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [groups, setGroups] = useState<LedgerGroup[]>([]);
 
-  const filteredGroups = ledgerGroups.filter(group =>
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/ledger-groups');
+        const data = await res.json();
+        setGroups(data);
+      } catch (err) {
+        console.error('Failed to fetch groups:', err);
+      }
+    };
+
+    fetchGroups();
+  }, []);
+
+  const filteredGroups = groups.filter(group =>
     group.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
   return (
     <div className='pt-[56px] px-4 '>
       <div className="flex justify-between items-center mb-6">
@@ -72,7 +86,7 @@ const GroupList: React.FC = () => {
                   <td className="px-4 py-3">{group.name}</td>
                   <td className="px-4 py-3">{group.type}</td>
                   <td className="px-4 py-3">
-                    {group.parent ? ledgerGroups.find(g => g.id === group.parent)?.name : '-'}
+                    {group.parent ? filteredGroups.find(g => g.id === group.parent)?.name : '-'}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-center space-x-2">

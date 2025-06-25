@@ -4,9 +4,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import type { Ledger } from '../../../types';
 import type { LedgerGroup } from '../../../types';
 import { ArrowLeft, Save } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const LedgerForm: React.FC = () => {
-  const { theme, ledgerGroups, ledgers, addLedger } = useAppContext();
+const { theme, ledgers } = useAppContext();
+const [ledgerGroups, setLedgerGroups] = useState<LedgerGroup[]>([]);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
@@ -22,6 +24,20 @@ const LedgerForm: React.FC = () => {
     gstNumber: '',
     panNumber: ''
   });
+
+  useEffect(() => {
+    const fetchLedgerGroups = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/ledger-groups");
+        const data = await res.json();
+        setLedgerGroups(data);
+      } catch (err) {
+        console.error("Failed to load ledger groups", err);
+      }
+    };
+
+    fetchLedgerGroups();
+  }, []);
 
   useEffect(() => {
     if (isEditMode && id) {
@@ -51,24 +67,47 @@ const LedgerForm: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
     
-    if (isEditMode && id) {
-      // Update existing ledger (not implemented yet)
-      // Would update the ledger with the id
-    } else {
-      // Create new ledger
-      const newLedger: Ledger = {
-        id: (ledgers.length + 1).toString(),
-        ...formData
-      };
+  //   if (isEditMode && id) {
+  //     // Update existing ledger (not implemented yet)
+  //     // Would update the ledger with the id
+  //   } else {
+  //     // Create new ledger
+  //     const newLedger: Ledger = {
+  //       id: (ledgers.length + 1).toString(),
+  //       ...formData
+  //     };
       
-      addLedger(newLedger);
-    }
+  //     addLedger(newLedger);
+  //   }
     
-    navigate('/masters/ledger');
-  };
+  //   navigate('/masters/ledger');
+  // };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const res = await fetch("http://localhost:5000/api/ledger", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      Swal.fire("Success", data.message, "success"); // Use sweetalert2
+      navigate("/masters/ledger");
+    } else {
+      Swal.fire("Error", data.message || "Failed to create ledger", "error");
+    }
+  } catch (err) {
+    console.error("Submit error:", err);
+    Swal.fire("Error", "Something went wrong!", "error");
+  }
+};
 
   return (
     <div className='pt-[56px] px-4 '>
@@ -130,6 +169,7 @@ const LedgerForm: React.FC = () => {
                   </option>
                 ))}
               </select>
+
             </div>
             
             <div>
