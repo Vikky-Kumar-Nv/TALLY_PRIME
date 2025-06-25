@@ -45,7 +45,11 @@ const StockItemForm = () => {
             <input
               type="text"
               id="name"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              className={`w-full p-2 rounded border ${
+                  theme === 'dark' 
+                    ? 'bg-gray-700 border-gray-600 focus:border-blue-500' 
+                    : 'bg-white border-gray-300 focus:border-blue-500'
+                } outline-none transition-colors`}
             />
           </div>
 

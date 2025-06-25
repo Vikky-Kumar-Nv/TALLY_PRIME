@@ -5,7 +5,7 @@ import type { LedgerGroup } from '../../../types';
 import { ArrowLeft, Save } from 'lucide-react';
 
 const GroupForm: React.FC = () => {
-  const { theme, addLedgerGroup } = useAppContext();
+  const { theme } = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
