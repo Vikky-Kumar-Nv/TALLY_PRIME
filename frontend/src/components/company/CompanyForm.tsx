@@ -684,6 +684,7 @@ const CompanyForm: React.FC = () => {
             />
 
             <InputField
+            placeholder="e.g., 2024-25"
               id="booksBeginningYear"
               name="booksBeginningYear"
               label="Books Beginning From"
@@ -697,6 +698,7 @@ const CompanyForm: React.FC = () => {
 
             <div className="md:col-span-2">
               <InputField
+              placeholder="Enter your address"
                 id="address"
                 name="address"
                 label="Address"
@@ -754,6 +756,7 @@ const CompanyForm: React.FC = () => {
 
             <InputField
               id="email"
+              placeholder="Enter your email"
               name="email"
               label="Email"
               type="email"
