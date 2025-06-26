@@ -664,6 +664,7 @@ const CompanyForm: React.FC = () => {
               id="name"
               name="name"
               label="Company Name"
+              placeholder="Enter your company name"
               value={company.name}
               onChange={handleChange}
               required
