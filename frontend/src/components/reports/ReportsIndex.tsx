@@ -32,14 +32,14 @@ const ReportsIndex: React.FC = () => {
         { icon: <BarChart2 size={20} />, name: 'Godown Summary', path: '/reports/godown-summary' }
       ]
     },
-    {
-      title: 'GST Reports',
-      items: [
-        { icon: <FileText size={20} />, name: 'GSTR-1', path: '/reports/gstr-1' },
-        { icon: <FileText size={20} />, name: 'GSTR-3B', path: '/reports/gstr-3b' },
-        { icon: <BarChart2 size={20} />, name: 'GST Analysis', path: '/reports/gst-analysis' }
-      ]
-    }
+    // {
+    //   title: 'GST Reports',
+    //   items: [
+    //     { icon: <FileText size={20} />, name: 'GSTR-1', path: '/reports/gstr-1' },
+    //     { icon: <FileText size={20} />, name: 'GSTR-3B', path: '/reports/gstr-3b' },
+    //     { icon: <BarChart2 size={20} />, name: 'GST Analysis', path: '/reports/gst-analysis' }
+    //   ]
+    // }
   ];
 
   return (

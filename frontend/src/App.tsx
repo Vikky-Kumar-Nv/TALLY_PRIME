@@ -214,13 +214,14 @@ function App() {
             <Route path="reports/movement-analysis" element={<MovementAnalysis />} />
             <Route path="reports/ageing-analysis" element={<AgeingAnalysis />} />
             <Route path="reports/godown-summary" element={<GodownSummary />} />
-            <Route path="reports/gstr-1" element={<GSTR1 />} />
-            <Route path="reports/gstr-3b" element={<GSTR3B />} />
-            <Route path="reports/gst-analysis" element={<GSTAnalysis />} />
+            
 
 
             {/* GST Module Routes */}
-           
+            
+            <Route path="gst/gstr-1" element={<GSTR1 />} />
+            <Route path="gst/gstr-3b" element={<GSTR3B />} />
+            <Route path="gst/gst-analysis" element={<GSTAnalysis />} />
             <Route path="gst" element={<GSTModule />} />
              <Route path="gst/calculator" element={<GSTCalculator />} />
             <Route path="gst/hsn-codes" element={<HSNCodes />} />

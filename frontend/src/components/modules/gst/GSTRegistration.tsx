@@ -275,7 +275,7 @@ const GSTRegistration: React.FC = () => {
 
   return (
     <div className="pt-[56px] px-4">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
           <div className="flex items-center mb-4">
             <button
                 title='Back to Reports'
