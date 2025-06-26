@@ -390,6 +390,7 @@ const Dashboard: React.FC = () => {
             Create Company
           </button>
         </div>
+        
       ) : (
         <>
           <div

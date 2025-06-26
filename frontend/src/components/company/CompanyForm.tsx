@@ -371,6 +371,19 @@ import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../../context/AppContext";
 import type { CompanyInfo } from "../../types";
 import Swal from "sweetalert2";
+import { 
+  Building, 
+  Calendar, 
+  MapPin, 
+  Phone, 
+  Mail, 
+  CreditCard, 
+  FileText, 
+  Globe, 
+  Hash,
+  Save,
+  X
+} from "lucide-react";
 
 const states = [
   { code: "37", name: "Andhra Pradesh" },
@@ -406,6 +419,107 @@ const states = [
   { code: "38", name: "Ladakh" },
 ];
 
+// Reusable Input Field Component
+interface InputFieldProps {
+  id: string;
+  name: string;
+  label: string;
+  type?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  required?: boolean;
+  placeholder?: string;
+  icon?: React.ReactNode;
+  theme: string;
+  title?: string;
+}
+
+const InputField: React.FC<InputFieldProps> = ({
+  id,
+  name,
+  label,
+  type = "text",
+  value,
+  onChange,
+  required = false,
+  placeholder,
+  icon,
+  theme,
+  title
+}) => (
+  <div>
+    <label className="block text-sm font-medium mb-1" htmlFor={id}>
+      {icon && <span className="inline-flex items-center mr-1">{icon}</span>}
+      {label}
+    </label>
+    <input
+      type={type}
+      id={id}
+      name={name}
+      value={value}
+      onChange={onChange}
+      required={required}
+      placeholder={placeholder}
+      title={title}
+      className={`w-full p-2 rounded border ${
+        theme === "dark"
+          ? "bg-gray-700 border-gray-600 focus:border-blue-500 text-white"
+          : "bg-white border-gray-300 focus:border-blue-500"
+      } outline-none transition-colors`}
+    />
+  </div>
+);
+
+// Reusable Select Field Component
+interface SelectFieldProps {
+  id: string;
+  name: string;
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  required?: boolean;
+  options: { value: string; label: string }[];
+  icon?: React.ReactNode;
+  theme: string;
+}
+
+const SelectField: React.FC<SelectFieldProps> = ({
+  id,
+  name,
+  label,
+  value,
+  onChange,
+  required = false,
+  options,
+  icon,
+  theme
+}) => (
+  <div>
+    <label className="block text-sm font-medium mb-1" htmlFor={id}>
+      {icon && <span className="inline-flex items-center mr-1">{icon}</span>}
+      {label}
+    </label>
+    <select
+      id={id}
+      name={name}
+      value={value}
+      onChange={onChange}
+      required={required}
+      className={`w-full p-2 rounded border ${
+        theme === "dark"
+          ? "bg-gray-700 border-gray-600 text-white"
+          : "bg-white border-gray-300 text-black"
+      } outline-none transition-colors`}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  </div>
+);
+
 const CompanyForm: React.FC = () => {
   const { theme, setCompanyInfo } = useAppContext();
   const navigate = useNavigate();
@@ -434,38 +548,59 @@ const CompanyForm: React.FC = () => {
     setCompany((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Prepare options for select fields
+  const stateOptions = [
+    { value: "", label: "Select State" },
+    ...states.map(({ code, name }) => ({
+      value: `${name}(${code})`,
+      label: `${name} (${code})`
+    }))
+  ];
+
+  const taxTypeOptions = [
+    { value: "GST", label: "GST" },
+    { value: "VAT", label: "VAT" }
+  ];
+
+  const validateForm = () => {
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+    const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[0-9]{10}$/;
+    const pinRegex = /^[0-9]{6}$/;
+
+    if (!panRegex.test(company.panNumber)) {
+      alert("Invalid PAN format (e.g., ABCDE1234F)");
+      return false;
+    }
+
+    if (company.taxType === "GST" && !gstRegex.test(company.gstNumber)) {
+      alert("Invalid GST Number format (15 characters)");
+      return false;
+    }
+
+    if (!emailRegex.test(company.email)) {
+      alert("Invalid email format");
+      return false;
+    }
+
+    if (!phoneRegex.test(company.phoneNumber)) {
+      alert("Phone number must be exactly 10 digits");
+      return false;
+    }
+
+    if (!pinRegex.test(company.pin)) {
+      alert("PIN code must be exactly 6 digits");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
-  // ✅ REGEX VALIDATIONS
-  const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-  const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const phoneRegex = /^[0-9]{10}$/;
-  const pinRegex = /^[0-9]{6}$/;
-
-  if (!panRegex.test(company.panNumber)) {
-    alert("Invalid PAN format (e.g., ABCDE1234F)");
-    return;
-  }
-
-  if (company.taxType === "GST" && !gstRegex.test(company.gstNumber)) {
-    alert("Invalid GST Number format (15 characters)");
-    return;
-  }
-
-  if (!emailRegex.test(company.email)) {
-    alert("Invalid email format");
-    return;
-  }
-
-  if (!phoneRegex.test(company.phoneNumber)) {
-    alert("Phone number must be exactly 10 digits");
-    return;
-  }
-
-  if (!pinRegex.test(company.pin)) {
-    alert("PIN code must be exactly 6 digits");
+  if (!validateForm()) {
     return;
   }
 
@@ -521,277 +656,154 @@ const CompanyForm: React.FC = () => {
           theme === "dark" ? "bg-gray-800" : "bg-white shadow-md"
         }`}
       >
-        <h2 className="text-2xl font-bold mb-6">Company Information</h2>
+        <h2 className={`text-2xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Company Information</h2>
 
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="name">
-                Company Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={company.name}
-                onChange={handleChange}
-                required
-                className={`w-full p-2 rounded border ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 focus:border-blue-500"
-                    : "bg-white border-gray-300 focus:border-blue-500"
-                } outline-none transition-colors`}
-              />
-            </div>
+            <InputField
+              id="name"
+              name="name"
+              label="Company Name"
+              value={company.name}
+              onChange={handleChange}
+              required
+              icon={<Building size={16} />}
+              theme={theme}
+            />
 
-            <div>
-              <label
-                className="block text-sm font-medium mb-1"
-                htmlFor="financialYear"
-              >
-                Financial Year
-              </label>
-              <input
-                type="text"
-                id="financialYear"
-                name="financialYear"
-                value={company.financialYear}
-                onChange={handleChange}
-                required
-                className={`w-full p-2 rounded border ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 focus:border-blue-500"
-                    : "bg-white border-gray-300 focus:border-blue-500"
-                } outline-none transition-colors`}
-              />
-            </div>
+            <InputField
+              id="financialYear"
+              name="financialYear"
+              label="Financial Year"
+              value={company.financialYear}
+              onChange={handleChange}
+              required
+              icon={<Calendar size={16} />}
+              theme={theme}
+              placeholder="e.g., 2024-25"
+            />
 
-            <div>
-              <label
-                className="block text-sm font-medium mb-1"
-                htmlFor="booksBeginningYear"
-              >
-                Books Beginning From
-              </label>
-              <input
-                title="Enter the beginning financial year"
-                type="text"
-                id="booksBeginningYear"
-                name="booksBeginningYear"
-                value={company.booksBeginningYear}
-                onChange={handleChange}
-                required
-                className={`w-full p-2 rounded border ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 focus:border-blue-500"
-                    : "bg-white border-gray-300 focus:border-blue-500"
-                } outline-none transition-colors`}
-              />
-            </div>
+            <InputField
+              id="booksBeginningYear"
+              name="booksBeginningYear"
+              label="Books Beginning From"
+              value={company.booksBeginningYear}
+              onChange={handleChange}
+              required
+              icon={<Calendar size={16} />}
+              theme={theme}
+              title="Enter the beginning financial year"
+            />
 
             <div className="md:col-span-2">
-              <label
-                className="block text-sm font-medium mb-1"
-                htmlFor="address"
-              >
-                Address
-              </label>
-              <input
-                type="text"
+              <InputField
                 id="address"
                 name="address"
+                label="Address"
                 value={company.address}
                 onChange={handleChange}
-                className={`w-full p-2 rounded border ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 focus:border-blue-500"
-                    : "bg-white border-gray-300 focus:border-blue-500"
-                } outline-none transition-colors`}
+                icon={<MapPin size={16} />}
+                theme={theme}
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="pin">
-                PIN Code
-              </label>
-              <input
-                type="text"
-                id="pin"
-                name="pin"
-                value={company.pin}
-                onChange={handleChange}
-                className={`w-full p-2 rounded border ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 focus:border-blue-500"
-                    : "bg-white border-gray-300 focus:border-blue-500"
-                } outline-none transition-colors`}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="state">
-                State
-              </label>
-              <select
-                id="state"
-                name="state"
-                value={company.state}
-                onChange={handleChange}
-                required
-                className={`w-full p-2 rounded border ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-white"
-                    : "bg-white border-gray-300 text-black"
-                } outline-none transition-colors`}
-              >
-                <option value="">Select State</option>
-                {states.map(({ code, name }) => (
-                  <option key={code} value={`${name}(${code})`}>
-                    {name} ({code})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label
-                className="block text-sm font-medium mb-1"
-                htmlFor="country"
-              >
-                Country
-              </label>
-              <input
-                type="text"
-                id="country"
-                name="country"
-                value={company.country}
-                onChange={handleChange}
-                required
-                className={`w-full p-2 rounded border ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 focus:border-blue-500"
-                    : "bg-white border-gray-300 focus:border-blue-500"
-                } outline-none transition-colors`}
-              />
-            </div>
+            <InputField
+              id="pin"
+              name="pin"
+              label="PIN Code"
+              value={company.pin}
+              onChange={handleChange}
+              icon={<Hash size={16} />}
+              theme={theme}
+              placeholder="6-digit PIN code"
+            />
+
+            <SelectField
+              id="state"
+              name="state"
+              label="State"
+              value={company.state || ""}
+              onChange={handleChange}
+              required
+              options={stateOptions}
+              icon={<MapPin size={16} />}
+              theme={theme}
+            />
+            <InputField
+              id="country"
+              name="country"
+              label="Country"
+              value={company.country || ""}
+              onChange={handleChange}
+              required
+              icon={<Globe size={16} />}
+              theme={theme}
+            />
+
+            <InputField
+              id="phoneNumber"
+              name="phoneNumber"
+              label="Phone Number"
+              type="tel"
+              value={company.phoneNumber}
+              onChange={handleChange}
+              icon={<Phone size={16} />}
+              theme={theme}
+              placeholder="10-digit mobile number"
+            />
+
+            <InputField
+              id="email"
+              name="email"
+              label="Email"
+              type="email"
+              value={company.email}
+              onChange={handleChange}
+              icon={<Mail size={16} />}
+              theme={theme}
+            />
+
+            <InputField
+              id="panNumber"
+              name="panNumber"
+              label="PAN Number"
+              value={company.panNumber}
+              onChange={handleChange}
+              icon={<CreditCard size={16} />}
+              theme={theme}
+              placeholder="e.g., ABCDE1234F"
+            />
+
+            <SelectField
+              id="taxType"
+              name="taxType"
+              label="Tax Type"
+              value={company.taxType || "GST"}
+              onChange={handleChange}
+              options={taxTypeOptions}
+              icon={<FileText size={16} />}
+              theme={theme}
+            />
 
             <div>
-              <label
-                className="block text-sm font-medium mb-1"
-                htmlFor="phoneNumber"
-              >
-                Phone Number
-              </label>
-              <input
-                type="text"
-                id="phoneNumber"
-                name="phoneNumber"
-                value={company.phoneNumber}
-                onChange={handleChange}
-                className={`w-full p-2 rounded border ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 focus:border-blue-500"
-                    : "bg-white border-gray-300 focus:border-blue-500"
-                } outline-none transition-colors`}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1" htmlFor="email">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={company.email}
-                onChange={handleChange}
-                className={`w-full p-2 rounded border ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 focus:border-blue-500"
-                    : "bg-white border-gray-300 focus:border-blue-500"
-                } outline-none transition-colors`}
-              />
-            </div>
-
-            <div>
-              <label
-                className="block text-sm font-medium mb-1"
-                htmlFor="panNumber"
-              >
-                PAN Number
-              </label>
-              <input
-                type="text"
-                id="panNumber"
-                name="panNumber"
-                value={company.panNumber}
-                onChange={handleChange}
-                className={`w-full p-2 rounded border ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 focus:border-blue-500"
-                    : "bg-white border-gray-300 focus:border-blue-500"
-                } outline-none transition-colors`}
-              />
-            </div>
-            <div>
-              <label
-                className="block text-sm font-medium mb-1"
-                htmlFor="taxType"
-              >
-                Tax Type
-              </label>
-              <select
-                id="taxType"
-                name="taxType"
-                value={company.taxType}
-                onChange={handleChange}
-                className={`w-full p-2 rounded border ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-white"
-                    : "bg-white border-gray-300 text-black"
-                } outline-none transition-colors`}
-              >
-                <option value="GST">GST</option>
-                <option value="VAT">VAT</option>
-              </select>
-            </div>
-
-            <div>
-              <label
-                className="block text-sm font-medium mb-1"
-                htmlFor="gstNumber"
-              >
+              <label className="block text-sm font-medium mb-1" htmlFor="taxNumber">
+                <FileText size={16} className="inline mr-1" />
                 {company.taxType} Number
               </label>
-              {company.taxType === "GST" ? (
               <input
                 type="text"
-                id="gstNumber"
-                name="gstNumber"
-                value={company.gstNumber}
+                id="taxNumber"
+                name={company.taxType === "GST" ? "gstNumber" : "vatNumber"}
+                value={company.taxType === "GST" ? company.gstNumber : company.vatNumber}
                 onChange={handleChange}
+                placeholder={`Enter ${company.taxType} number`}
+                title={`Enter the ${company.taxType} Number`}
                 className={`w-full p-2 rounded border ${
                   theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-white"
-                    : "bg-white border-gray-300 text-black"
+                    ? "bg-gray-700 border-gray-600 text-white focus:border-blue-500"
+                    : "bg-white border-gray-300 text-black focus:border-blue-500"
                 } outline-none transition-colors`}
               />
-            ) : (
-              <input
-              title="Enter the VAT Number"
-                type="text"
-                id="vatNumber"
-                name="vatNumber"
-                value={company.vatNumber}
-                onChange={handleChange}
-                className={`w-full p-2 rounded border ${
-                  theme === "dark"
-                    ? "bg-gray-700 border-gray-600 text-white"
-                    : "bg-white border-gray-300 text-black"
-                } outline-none transition-colors`}
-              />
-            )}
-
-              
             </div>
           </div>
 
@@ -799,22 +811,24 @@ const CompanyForm: React.FC = () => {
             <button
               type="button"
               onClick={() => navigate("/")}
-              className={`px-4 py-2 rounded ${
+              className={`flex items-center gap-2 px-4 py-2 rounded ${
                 theme === "dark"
                   ? "bg-gray-700 hover:bg-gray-600"
                   : "bg-gray-200 hover:bg-gray-300"
-              }`}
+              } transition-colors`}
             >
+              <X size={16} />
               Cancel
             </button>
             <button
               type="submit"
-              className={`px-4 py-2 rounded ${
+              className={`flex items-center gap-2 px-4 py-2 rounded ${
                 theme === "dark"
-                  ? "bg-blue-600 hover:bg-blue-700"
+                  ? "bg-blue-600 hover:bg-blue-700 text-white"
                   : "bg-blue-600 hover:bg-blue-700 text-white"
-              }`}
+              } transition-colors`}
             >
+              <Save size={16} />
               Save
             </button>
           </div>
