@@ -559,6 +559,23 @@
 
 
 
+// export type CompanyInfo = {
+//   name: string;
+//   financialYear: string;
+//   booksBeginningYear: string;
+//   address: string;
+//   pin: string;
+//   phoneNumber: string;
+//   email: string;
+//   panNumber: string;
+//   gstNumber: string;
+//   vatNumber: string;
+//   state?: string;
+//   country?: string;
+//   taxType?: 'GST' | 'VAT';
+//   employeeId?: number;
+//   turnover?: number; 
+// };
 export type CompanyInfo = {
   name: string;
   financialYear: string;
@@ -568,13 +585,24 @@ export type CompanyInfo = {
   phoneNumber: string;
   email: string;
   panNumber: string;
-  gstNumber: string;
+  gstNumber: string; 
   vatNumber: string;
   state?: string;
   country?: string;
   taxType?: 'GST' | 'VAT';
   employeeId?: number;
-  turnover?: number; 
+  turnover?: number;
+  registrationType?: string; 
+  assesseeOfOtherTerritory?: boolean; 
+  periodicityOfGstr1?: string; 
+  gstApplicableFrom?: string; 
+  eWayBillApplicable?: boolean;
+  eWayBillThresholdLimit?: string;
+  eWayBillIntrastate?: boolean;
+  provideLutBond?: boolean;
+  lutBondNumber?: string;
+  lutBondValidity?: string;
+  taxLiabilityOnAdvanceReceipts?: boolean;
 };
 
 export type LedgerType = 
