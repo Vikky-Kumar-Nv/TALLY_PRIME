@@ -34,6 +34,9 @@ const LedgerList: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Ledger List</h1>
         <button
+        title="Create Ledger"
+          aria-label="Create Ledger"
+          type='button'
           onClick={() => navigate('/masters/ledger/create')}
           className={`flex items-center px-4 py-2 rounded ${
             theme === 'dark' 
@@ -95,12 +98,16 @@ const LedgerList: React.FC = () => {
                   <td className="px-4 py-3">
                     <div className="flex justify-center space-x-2">
                       <button
+                      title='Edit Ledger'
+                      type='button'
                         onClick={() => navigate(`/masters/ledger/edit/${ledger.id}`)}
                         className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
                       >
                         <Edit size={16} />
                       </button>
                       <button
+                      
+                      title='Delete Ledger'
                         className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
                       >
                         <Trash2 size={16} />

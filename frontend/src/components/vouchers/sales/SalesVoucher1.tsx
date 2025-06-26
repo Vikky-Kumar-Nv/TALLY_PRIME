@@ -77,6 +77,8 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);  // Safe fallbacks for context data
   const safeStockItems = stockItems || [
+    { id: '1', name: 'Laptop HP Pavilion', hsnCode: '8471', unit: 'Piece', gstRate: 28, openingBalance: 50, rate: 45000 },
+
     { id: '1', name: 'Laptop HP Pavilion', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 50, rate: 45000 },
     { id: '2', name: 'Mobile Phone Samsung', hsnCode: '8517', unit: 'Piece', gstRate: 5, openingBalance: 100, rate: 25000 },
     { id: '3', name: 'Printer Canon', hsnCode: '8443', unit: 'Piece', gstRate: 18, openingBalance: 30, rate: 15000 },

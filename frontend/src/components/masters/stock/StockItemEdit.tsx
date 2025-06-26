@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Save, X, ArrowLeft, Plus } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 import type { StockItem, GodownAllocation, Godown, UnitOfMeasurement, StockGroup, GstClassification } from '../../../types';
@@ -182,9 +182,10 @@ const GodownAllocationField: React.FC<GodownAllocationFieldProps> = ({ allocatio
   );
 };
 
-const StockItemForm = () => {
-  const { theme, stockGroups = [], gstClassifications = [], units = [], godowns = [], companyInfo, addStockItem } = useAppContext();
+const StockItemEdit = () => {
+  const { theme, stockGroups = [], gstClassifications = [], units = [], godowns = [], companyInfo, stockItems = [], updateStockItem } = useAppContext();
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
 
   interface FormData {
     name: string;
@@ -213,31 +214,39 @@ const StockItemForm = () => {
     [key: string]: string;
   }
 
+  const existingItem = stockItems.find((item: StockItem) => item.id === id);
+
   const [formData, setFormData] = useState<FormData>({
-    name: '',
-    stockGroupId: '',
-    unit: '',
-    openingBalance: 0,
-    openingValue: 0,
-    hsnSacOption: 'as-per-company',
-    hsnCode: '',
-    gstRateOption: 'as-per-company',
-    gstRate: '',
+    name: existingItem?.name || '',
+    stockGroupId: existingItem?.stockGroupId || '',
+    unit: existingItem?.unit || '',
+    openingBalance: existingItem?.openingBalance || 0,
+    openingValue: existingItem?.openingValue || 0,
+    hsnSacOption: existingItem?.hsnCode ? 'specify-details' : existingItem?.gstRate ? 'use-classification' : 'as-per-company',
+    hsnCode: existingItem?.hsnCode || '',
+    gstRateOption: existingItem?.gstRate ? 'specify-details' : existingItem?.gstRate ? 'use-classification' : 'as-per-company',
+    gstRate: existingItem?.gstRate ? String(existingItem.gstRate) : '',
     gstClassification: '',
-    taxType: 'Taxable',
-    standardPurchaseRate: 0,
-    standardSaleRate: 0,
-    enableBatchTracking: false,
-    batchName: '',
-    batchExpiryDate: '',
-    batchManufacturingDate: '',
-    allowNegativeStock: true,
-    maintainInPieces: false,
-    secondaryUnit: ''
+    taxType: existingItem?.taxType || 'Taxable',
+    standardPurchaseRate: existingItem?.standardPurchaseRate || 0,
+    standardSaleRate: existingItem?.standardSaleRate || 0,
+    enableBatchTracking: existingItem?.enableBatchTracking || false,
+    batchName: existingItem?.batchDetails?.[0]?.name || '',
+    batchExpiryDate: existingItem?.batchDetails?.[0]?.expiryDate || '',
+    batchManufacturingDate: existingItem?.batchDetails?.[0]?.manufacturingDate || '',
+    allowNegativeStock: existingItem?.allowNegativeStock || true,
+    maintainInPieces: existingItem?.maintainInPieces || false,
+    secondaryUnit: existingItem?.secondaryUnit || ''
   });
 
-  const [godownAllocations, setGodownAllocations] = useState<GodownAllocation[]>([]);
+  const [godownAllocations, setGodownAllocations] = useState<GodownAllocation[]>(existingItem?.godownAllocations || []);
   const [errors, setErrors] = useState<Errors>({});
+
+  useEffect(() => {
+    if (!existingItem) {
+      navigate('/masters/stock-item');
+    }
+  }, [existingItem, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -309,7 +318,7 @@ const StockItemForm = () => {
     }
 
     const stockItem: StockItem = {
-      id: Math.random().toString(36).substring(2, 9),
+      id: id!,
       name: formData.name,
       stockGroupId: formData.stockGroupId,
       unit: formData.unit,
@@ -330,7 +339,7 @@ const StockItemForm = () => {
       standardSaleRate: Number(formData.standardSaleRate),
       enableBatchTracking: formData.enableBatchTracking,
       batchDetails: formData.enableBatchTracking ? [{
-        id: Math.random().toString(36).substring(2, 9),
+        id: existingItem?.batchDetails?.[0]?.id || Math.random().toString(36).substring(2, 9),
         name: formData.batchName,
         expiryDate: formData.batchExpiryDate || undefined,
         manufacturingDate: formData.batchManufacturingDate || undefined
@@ -340,7 +349,7 @@ const StockItemForm = () => {
       maintainInPieces: formData.maintainInPieces,
       secondaryUnit: formData.maintainInPieces ? formData.secondaryUnit : undefined
     };
-    addStockItem(stockItem);
+    updateStockItem(id!, stockItem);
     navigate('/masters/stock-item');
   };
 
@@ -395,7 +404,7 @@ const StockItemForm = () => {
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold">New Stock Item</h1>
+        <h1 className="text-2xl font-bold">Edit Stock Item</h1>
       </div>
 
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
@@ -636,31 +645,23 @@ const StockItemForm = () => {
           <button
             type="button"
             onClick={() => navigate('/masters/stock-item')}
-            className={`px-4 py-2 rounded ${
-              theme === 'dark' 
-                ? 'bg-gray-700 hover:bg-gray-600' 
-                : 'bg-gray-200 hover:bg-gray-300'
-            }`}
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            <X className="w-4 h-4 inline mr-1" />
+            <X className="w-4 h-4" />
             Cancel
           </button>
           <button
             type="submit"
-            className={`flex items-center px-4 py-2 rounded ${
-              theme === 'dark' 
-                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                : 'bg-blue-600 hover:bg-blue-700 text-white'
-            }`}
+            className="flex items-center gap-2 px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
           >
-            <Save className="w-4 h-4 mr-1" />
+            <Save className="w-4 h-4" />
             Save
           </button>
         </div>
-        </form>
-      </div>
+      </form>
+    </div>
     </div>
   );
 };
 
-export default StockItemForm;
+export default StockItemEdit;

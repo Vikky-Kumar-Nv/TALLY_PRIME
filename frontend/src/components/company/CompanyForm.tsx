@@ -777,6 +777,7 @@ const CompanyForm: React.FC = () => {
               />
             ) : (
               <input
+              title="Enter the VAT Number"
                 type="text"
                 id="vatNumber"
                 name="vatNumber"

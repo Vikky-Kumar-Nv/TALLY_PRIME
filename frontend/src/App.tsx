@@ -21,12 +21,15 @@ import StockCategoryList from './components/masters/stock/StockCategoryList';
 import StockCategoryForm from './components/masters/stock/StockCategoryForm';
 import StockItemList from './components/masters/stock/StockItemList';
 import StockItemForm from './components/masters/stock/StockItemForm';
+import StockItemEdit from './components/masters/stock/StockItemEdit'; 
 import StockGroupList from './components/masters/stock/StockGroupList';
 import StockGroupForm from './components/masters/stock/StockGroupForm';
 import UnitList from './components/masters/unit/UnitList';
 import UnitForm from './components/masters/unit/UnitForm';
 import GodownList from './components/masters/godown/GodownList';
 import GodownForm from './components/masters/godown/GodownForm';
+
+
 
 
 
@@ -125,6 +128,7 @@ import AccessControl from './components/config/AccessControl';
 
 
 
+
 function App() {
   // Add keyboard shortcut listener for Alt+F1 for company selection
   useEffect(() => {
@@ -171,15 +175,17 @@ function App() {
             <Route path="masters/stock-item" element={<StockItemList />} />
             <Route path="masters/stock-item/create" element={<StockItemForm />} />
             <Route path="masters/stock-item/edit/:id" element={<StockItemForm />} />
+            <Route path="masters/stock-item/edit-stock/:id" element={<StockItemEdit />} />
             <Route path="masters/stock-group" element={<StockGroupList />} />
             <Route path="masters/stock-group/create" element={<StockGroupForm />} />
             <Route path="masters/stock-group/edit/:id" element={<StockGroupForm />} />
             <Route path="masters/units" element={<UnitList />} />
             <Route path="masters/unit/create" element={<UnitForm />} />
-            <Route path="masters/unit/edit/:id" element={<UnitForm />} />
-            <Route path="masters/godowns" element={<GodownList />} />
+            <Route path="masters/unit/edit/:id" element={<UnitForm />} />            <Route path="masters/godowns" element={<GodownList />} />
             <Route path="masters/godown/create" element={<GodownForm />} />
             <Route path="masters/godown/edit/:id" element={<GodownForm />} />
+            
+            
             
             {/* Vouchers Routes */}
             <Route path="vouchers" element={<VouchersIndex />} />
@@ -284,6 +290,7 @@ function App() {
             <Route path='config/permissions' element={<Permissions />} />
             <Route path='config/roles' element={<RoleManagement />} />
             <Route path='config/access' element={<AccessControl />} />
+           
 
 
 
