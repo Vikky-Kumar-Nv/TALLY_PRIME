@@ -330,7 +330,7 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { CompanyInfo, Ledger, LedgerGroup, VoucherEntry, StockItem, UnitOfMeasurement, Godown, StockGroup, GstClassification } from '../types';
-// import { defaultLedgerGroups, defaultLedgers } from '../data/defaultData';
+import { defaultLedgerGroups, defaultLedgers } from '../data/defaultData';
 
 type ThemeMode = 'light' | 'dark';
 

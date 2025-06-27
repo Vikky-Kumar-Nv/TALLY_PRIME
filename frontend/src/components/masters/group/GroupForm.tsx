@@ -480,11 +480,11 @@ const GroupForm: React.FC = () => {
                 } outline-none transition-colors`}
                   >
                     <option value="">Select Classification</option>
-                    {gstClassifications.map((classification) => (
-                      <option key={classification.id} value={classification.id}>
-                        {classification.name} - {classification.hsnCode}
-                      </option>
-                    ))}
+                    {allocationOptions.map((option) => (
+                   <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
                   </select>
                   {errors.hsnSacClassificationId && <p className="text-red-500 text-xs mt-1">{errors.hsnSacClassificationId}</p>}
                 </div>
@@ -563,11 +563,11 @@ const GroupForm: React.FC = () => {
                 } outline-none transition-colors`}
                   >
                     <option value="">Select Classification</option>
-                    {gstClassifications.map((classification) => (
-                      <option key={classification.id} value={classification.id}>
-                        {classification.name} - {classification.gstRate}%
-                      </option>
-                    ))}
+                    {allocationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
                   </select>
                   {errors.gstClassificationId && <p className="text-red-500 text-xs mt-1">{errors.gstClassificationId}</p>}
                 </div>

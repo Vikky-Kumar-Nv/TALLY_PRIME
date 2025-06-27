@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { X } from 'lucide-react';
-// import { keyboardShortcuts } from '../../data/defaultData';
+import { keyboardShortcuts } from '../../data/defaultData';
 
 interface ShortcutsHelpProps {
   onClose: () => void;
