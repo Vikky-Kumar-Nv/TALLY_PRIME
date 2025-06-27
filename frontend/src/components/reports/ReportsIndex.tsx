@@ -29,7 +29,9 @@ const ReportsIndex: React.FC = () => {
         { icon: <BookOpen size={20} />, name: 'Stock Summary', path: '/reports/stock-summary' },
         { icon: <Activity size={20} />, name: 'Movement Analysis', path: '/reports/movement-analysis' },
         { icon: <Calendar size={20} />, name: 'Ageing Analysis', path: '/reports/ageing-analysis' },
-        { icon: <BarChart2 size={20} />, name: 'Godown Summary', path: '/reports/godown-summary' }
+        { icon: <BarChart2 size={20} />, name: 'Godown Summary', path: '/reports/godown-summary' },
+         { icon: <BarChart2 size={20} />, name: 'Bills Receivable', path: '/reports/bill-receivable' },
+         { icon: <BarChart2 size={20} />, name: 'Bills Payable', path: '/reports/bill-receivable' }
       ]
     },
     // {
@@ -40,7 +42,24 @@ const ReportsIndex: React.FC = () => {
     //     { icon: <BarChart2 size={20} />, name: 'GST Analysis', path: '/reports/gst-analysis' }
     //   ]
     // }
+
+
+    {
+      title: 'Accounting Reports',
+      items: [
+        { icon: <BookOpen size={20} />, name: 'Day Book', path: '/reports/day-book' },
+        { icon: <FileText size={20} />, name: 'Ledger', path: '/reports/ledger' },
+        { icon: <BarChart2 size={20} />, name: 'Trial Balance', path: '/reports/trial-balance' },
+        { icon: <TrendingUp size={20} />, name: 'Trading Account', path: '/reports/trading-account' },
+        { icon: <TrendingUp size={20} />, name: 'Profit & Loss', path: '/reports/profit-loss' },
+        { icon: <DollarSign size={20} />, name: 'Balance Sheet', path: '/reports/balance-sheet' },
+        { icon: <PieChart size={20} />, name: 'Cash/Funds Flow', path: '/reports/cash-flow' }
+      ]
+    }
+    
   ];
+
+  
 
   return (
     <div className='pt-[56px] px-4 '>
