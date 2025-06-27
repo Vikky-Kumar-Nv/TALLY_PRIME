@@ -576,6 +576,8 @@
 //   employeeId?: number;
 //   turnover?: number; 
 // };
+
+
 export type CompanyInfo = {
   name: string;
   financialYear: string;
@@ -624,11 +626,30 @@ export type LedgerType =
   | 'sgst'
   | 'igst';
 
+ export type GroupNature = 'Assets' | 'Liabilities' | 'Income' | 'Expenses';
+
 export type LedgerGroup = {
   id: string;
   name: string;
+  alias?: string;
   parent?: string;
   type: LedgerType;
+  affectsGrossProfit?: boolean;
+  behavesLikeSubLedger: boolean;
+  nettBalancesForReporting: boolean;
+  usedForCalculation: boolean;
+  allocationMethod?: 'Appropriate by Qty' | 'Appropriate by Value' | 'No Appropriation';
+  gstDetails?: {
+    setAlterHSNSAC: boolean;
+    hsnSacClassificationId?: string;
+    hsnCode?: string;
+    setAlterGST: boolean;
+    gstClassificationId?: string;
+    typeOfSupply?: 'Goods' | 'Services';
+    taxability?: 'Taxable' | 'Exempt' | 'Nil-rated';
+    integratedTaxRate?: number;
+    cess?: number;
+  };
 };
 
 export type Ledger = {
@@ -646,6 +667,7 @@ export type Ledger = {
   state?: string;
 };
 
+
 export type StockGroup = {
   id: string;
   name: string;
@@ -653,11 +675,13 @@ export type StockGroup = {
   gstRate?: number;
 };
 
+
 export type GstClassification = {
   id: string;
   name: string;
   hsnCode: string;
   gstRate: number;
+  cess?: number;
 };
 
 export type VoucherType = 
