@@ -1,103 +1,85 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { useAppContext } from '../../../context/AppContext';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import type { VoucherEntry } from '../../../types';
-import type { Ledger } from '../../../types';
+import { useAppContext } from '../../../context/AppContext';
 import { Save, Plus, Trash2, ArrowLeft, Printer, Settings } from 'lucide-react';
+import type { VoucherEntry, Ledger } from '../../../types';
 
 const PaymentVoucher: React.FC = () => {
-  const { theme, ledgers, addVoucher, vouchers, updateVoucher, companyInfo } = useAppContext();
+  const { theme, ledgers, vouchers, addVoucher, updateVoucher, companyInfo } = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const isEditMode = Boolean(id);
-  
-  // Configuration state
+  const isEditMode = !!id;
+
+  const initialFormData: Omit<VoucherEntry, 'id'> = {
+    date: new Date().toISOString().split('T')[0],
+    type: 'payment',
+    number: '',
+    narration: '',
+    entries: [
+      { id: '1', ledgerId: '', amount: 0, type: 'debit', narration: '' },
+      { id: '2', ledgerId: '', amount: 0, type: 'credit', narration: '' },
+    ],
+    mode: 'double-entry',
+    referenceNo: '',
+    supplierInvoiceDate: '',
+  };
+
+  const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>(
+    isEditMode ? vouchers.find(v => v.id === id) || initialFormData : initialFormData
+  );
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showConfigPanel, setShowConfigPanel] = useState(false);
   const [config, setConfig] = useState({
     autoNumbering: true,
-    showReference: false,
+    showReference: true,
     showBankDetails: true,
     showCostCentre: false,
     showEntryNarration: false,
   });
 
-  // UI state
-  const [showConfigPanel, setShowConfigPanel] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // Mock data for cost centres (you can replace with real data)
-  const costCentres = React.useMemo(() => [
-    { id: '1', name: 'Main Branch' },
-    { id: '2', name: 'Sales Department' },
-    { id: '3', name: 'Admin Department' },
+  // Mock cost centres
+  const costCentres = useMemo(() => [
+    { id: 'CC1', name: 'Washing Department' },
+    { id: 'CC2', name: 'Polishing Department' },
   ], []);
 
-  // Get the voucher to edit if in edit mode
-  const voucherToEdit = React.useMemo(() => {
-    if (isEditMode && id) {
-      return vouchers.find(v => v.id === id);
+  // Auto-generate voucher number
+  useEffect(() => {
+    if (config.autoNumbering && !isEditMode) {
+      const lastVoucher = vouchers
+        .filter(v => v.type === 'payment')
+        .sort((a, b) => parseInt(b.number || '0') - parseInt(a.number || '0'))[0];
+      const newNumber = lastVoucher ? (parseInt(lastVoucher.number || '0') + 1).toString() : '1';
+      setFormData(prev => ({ ...prev, number: newNumber }));
     }
-    return null;
-  }, [isEditMode, id, vouchers]);
+  }, [config.autoNumbering, vouchers, isEditMode]);
 
-  // Generate auto voucher number
-  const generateVoucherNumber = React.useCallback(() => {
-    if (!config.autoNumbering) return '';
-    const lastVoucher = vouchers
-      .filter(v => v.type === 'payment')
-      .sort((a, b) => parseInt(b.number || '0') - parseInt(a.number || '0'))[0];
-    return lastVoucher ? String(parseInt(lastVoucher.number || '0') + 1) : '1';
-  }, [vouchers, config.autoNumbering]);
-  // Initial form data
-  const initialFormData = React.useMemo(() => ({
-    date: new Date().toISOString().split('T')[0],
-    type: 'payment' as const,
-    number: isEditMode ? voucherToEdit?.number || '' : generateVoucherNumber(),
-    narration: '',
-    mode: 'single-entry' as 'single-entry' | 'double-entry',
-    entries: [
-      { id: '1', ledgerId: '', amount: 0, type: 'debit' as const },
-      { id: '2', ledgerId: '', amount: 0, type: 'credit' as const }
-    ]
-  }), [isEditMode, voucherToEdit, generateVoucherNumber]);
-  
-  const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>(
-    isEditMode && voucherToEdit ? { ...voucherToEdit } : initialFormData
-  );
-
-  // Validation function
   const validateForm = useCallback(() => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.date) {
-      newErrors.date = 'Date is required';
+    const newErrors: { [key: string]: string } = {};
+    if (!formData.date) newErrors.date = 'Date is required';
+    if (!formData.number) newErrors.number = 'Voucher number is required';
+    if (formData.mode === 'single-entry' && formData.entries.length !== 2) {
+      newErrors.entries = 'Single entry mode requires exactly one debit and one credit';
     }
-    
-    if (!formData.number) {
-      newErrors.number = 'Voucher number is required';
+    if (formData.mode === 'single-entry' && formData.entries[0].type !== 'debit') {
+      newErrors.entries = 'First entry must be debit in single entry mode';
     }
-    
-    // Validate entries
+    if (formData.mode === 'single-entry' && formData.entries[1].type !== 'credit') {
+      newErrors.entries = 'Second entry must be credit in single entry mode';
+    }
     formData.entries.forEach((entry, index) => {
-      if (!entry.ledgerId) {
-        newErrors[`ledgerId${index}`] = 'Please select a ledger';
-      }
-      if (entry.amount <= 0) {
-        newErrors[`amount${index}`] = 'Amount must be greater than 0';
-      }
+      if (!entry.ledgerId) newErrors[`ledgerId${index}`] = `Ledger is required for entry ${index + 1}`;
+      if (entry.amount <= 0) newErrors[`amount${index}`] = `Amount must be greater than 0 for entry ${index + 1}`;
     });
-    
-    // Check if voucher is balanced
     const totalDebit = formData.entries
       .filter(entry => entry.type === 'debit')
       .reduce((sum, entry) => sum + entry.amount, 0);
     const totalCredit = formData.entries
       .filter(entry => entry.type === 'credit')
       .reduce((sum, entry) => sum + entry.amount, 0);
-      
-    if (totalDebit !== totalCredit) {
+    if (formData.mode === 'double-entry' && totalDebit !== totalCredit) {
       newErrors.balance = 'Total debit must equal total credit';
     }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }, [formData]);
@@ -316,17 +298,40 @@ const PaymentVoucher: React.FC = () => {
               </label>
               <input
                 type="text"
-                id="number"
                 name="number"
                 value={formData.number}
                 onChange={handleChange}
-                placeholder="Auto"
-                className={`w-full p-2 rounded border ${
-                  theme === 'dark' 
-                    ? 'bg-gray-700 border-gray-600 focus:border-blue-500' 
-                    : 'bg-white border-gray-300 focus:border-blue-500'
-                } outline-none transition-colors`}
+                placeholder={config.autoNumbering ? 'Auto' : 'Enter voucher number'}
+                readOnly={config.autoNumbering}
+                required
+                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500 ${config.autoNumbering ? 'opacity-50' : ''}`}
               />
+              {errors.number && <p className="text-red-500 text-sm mt-1">{errors.number}</p>}
+            </div>
+            <div>
+              <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Mode
+              </label>
+              <select
+                name="mode"
+                value={formData.mode}
+                title="Select voucher mode"
+                onChange={e => {
+                  const mode = e.target.value as 'double-entry' | 'single-entry';
+                  setFormData(prev => ({
+                    ...prev,
+                    mode,
+                    entries: mode === 'single-entry' ? [
+                      { id: '1', ledgerId: '', amount: 0, type: 'debit', narration: '' },
+                      { id: '2', ledgerId: '', amount: 0, type: 'credit', narration: '' },
+                    ] : prev.entries,
+                  }));
+                }}
+                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
+              >
+                <option value="double-entry">Double Entry</option>
+                <option value="single-entry">Single Entry</option>
+              </select>
             </div>
             {config.showReference && (
               <>
