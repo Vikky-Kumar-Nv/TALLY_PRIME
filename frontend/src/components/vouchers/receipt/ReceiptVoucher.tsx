@@ -342,6 +342,7 @@ const ReceiptVoucher: React.FC = () => {
                 onChange={handleChange}
                 readOnly={config.autoNumbering}
                 required
+                title="Voucher Number"
                 className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500 ${config.autoNumbering ? 'opacity-50' : ''}`}
                 placeholder={config.autoNumbering ? 'Auto' : 'Enter voucher number'}
               />
@@ -484,6 +485,7 @@ const ReceiptVoucher: React.FC = () => {
                       name="bankName"
                       value={formData.entries[0].bankName || ''}
                       onChange={e => handleEntryChange(0, e)}
+                      title="Bank Name"
                       className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
                       placeholder="Enter bank name"
                     />
@@ -497,6 +499,7 @@ const ReceiptVoucher: React.FC = () => {
                       name="chequeNumber"
                       value={formData.entries[0].chequeNumber || ''}
                       onChange={e => handleEntryChange(0, e)}
+                      title="Cheque Number or Transaction ID"
                       className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
                       placeholder="Enter cheque number or transaction ID"
                     />
@@ -513,6 +516,7 @@ const ReceiptVoucher: React.FC = () => {
                 <button
                   type="button"
                   onClick={addEntry}
+                  title="Add New Entry Line"
                   className={`flex items-center text-sm px-2 py-1 rounded ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
                 >
                   <Plus size={16} className="mr-1" /> Add Line
@@ -600,6 +604,7 @@ const ReceiptVoucher: React.FC = () => {
                               name="narration"
                               value={entry.narration || ''}
                               onChange={e => handleEntryChange(index, e)}
+                              title="Entry Narration"
                               className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
                               placeholder="Entry narration"
                             />
