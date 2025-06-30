@@ -885,6 +885,20 @@ export type StockGroup = {
   hsnCode?: string;
   gstRate?: number;
   parent?: string; // Added for hierarchical groups
+  shouldQuantitiesBeAdded?: boolean;
+  hsnSacDetails?: {
+    setAlterHSNSAC: boolean;
+    hsnSacClassificationId: string;
+    hsnCode: string;
+    description: string;
+  };
+  gstDetails?: {
+    setAlterGST: boolean;
+    gstClassificationId: string;
+    taxability: string;
+    integratedTaxRate: number;
+    cess: number;
+  };
 };
 
 export type GstClassification = {
