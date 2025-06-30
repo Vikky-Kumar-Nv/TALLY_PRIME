@@ -299,44 +299,6 @@
 //   unit: string;
 //   openingBalance: number;
 //   openingValue: number;
-//   gstRate?: number;
-//   hsnCode?: string;
-// };
-
-// export type UnitOfMeasurement = {
-//   id: string;
-//   name: string;
-//   symbol: string;
-// };
-
-// export type Godown = {
-//   id: string;
-//   name: string;
-// };
-
-
-
-// export type CompanyInfo = {
-//   name: string;
-//   financialYear: string;
-//   booksBeginningYear: string;
-//   address: string;
-//   pin: string;
-//   phoneNumber: string;
-//   email: string;
-//   panNumber: string;
-//   gstNumber: string;
-//   state?: string;
-//   country?: string;
-//   taxType?: 'GST' | 'VAT';
-// };
-
-// export type StockItem = {
-//   id: string;
-//   name: string;
-//   unit: string;
-//   openingBalance: number;
-//   openingValue: number;
 //   gstRate: number;
 //   hsnCode: string;
 // };
@@ -900,6 +862,15 @@ export type StockGroup = {
     cess: number;
   };
 };
+
+
+export type StockCategory = {
+  id: string;
+  name: string;
+  parent?: string;
+  description?: string;
+};
+
 
 export type GstClassification = {
   id: string;

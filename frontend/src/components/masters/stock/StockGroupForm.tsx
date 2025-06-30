@@ -6,6 +6,7 @@ import type { StockGroup, GstClassification } from '../../../types';
 
 // Extended type for form data that includes all the properties used in the UI
 type StockGroupFormData = StockGroup & {
+  parent?: string;
   shouldQuantitiesBeAdded?: boolean;
   hsnSacDetails?: {
     setAlterHSNSAC: boolean;
