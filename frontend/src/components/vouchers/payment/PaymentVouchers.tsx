@@ -1,24 +1,106 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import type { VoucherEntry } from '../../../types';
 import type { Ledger } from '../../../types';
-import { Save, Plus, Trash2, ArrowLeft } from 'lucide-react';
+import { Save, Plus, Trash2, ArrowLeft, Printer, Settings } from 'lucide-react';
 
 const PaymentVoucher: React.FC = () => {
-  const { theme, ledgers, addVoucher } = useAppContext();
+  const { theme, ledgers, addVoucher, vouchers, updateVoucher, companyInfo } = useAppContext();
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const isEditMode = Boolean(id);
   
-  const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>({
-    date: new Date().toISOString().split('T')[0],
-    type: 'payment',
-    number: '',
-    narration: '',
-    entries: [
-      { id: '1', ledgerId: '', amount: 0, type: 'debit' },
-      { id: '2', ledgerId: '', amount: 0, type: 'credit' }
-    ]
+  // Configuration state
+  const [config, setConfig] = useState({
+    autoNumbering: true,
+    showReference: false,
+    showBankDetails: true,
+    showCostCentre: false,
+    showEntryNarration: false,
   });
+
+  // UI state
+  const [showConfigPanel, setShowConfigPanel] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Mock data for cost centres (you can replace with real data)
+  const costCentres = React.useMemo(() => [
+    { id: '1', name: 'Main Branch' },
+    { id: '2', name: 'Sales Department' },
+    { id: '3', name: 'Admin Department' },
+  ], []);
+
+  // Get the voucher to edit if in edit mode
+  const voucherToEdit = React.useMemo(() => {
+    if (isEditMode && id) {
+      return vouchers.find(v => v.id === id);
+    }
+    return null;
+  }, [isEditMode, id, vouchers]);
+
+  // Generate auto voucher number
+  const generateVoucherNumber = React.useCallback(() => {
+    if (!config.autoNumbering) return '';
+    const lastVoucher = vouchers
+      .filter(v => v.type === 'payment')
+      .sort((a, b) => parseInt(b.number || '0') - parseInt(a.number || '0'))[0];
+    return lastVoucher ? String(parseInt(lastVoucher.number || '0') + 1) : '1';
+  }, [vouchers, config.autoNumbering]);
+  // Initial form data
+  const initialFormData = React.useMemo(() => ({
+    date: new Date().toISOString().split('T')[0],
+    type: 'payment' as const,
+    number: isEditMode ? voucherToEdit?.number || '' : generateVoucherNumber(),
+    narration: '',
+    mode: 'single-entry' as 'single-entry' | 'double-entry',
+    entries: [
+      { id: '1', ledgerId: '', amount: 0, type: 'debit' as const },
+      { id: '2', ledgerId: '', amount: 0, type: 'credit' as const }
+    ]
+  }), [isEditMode, voucherToEdit, generateVoucherNumber]);
+  
+  const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>(
+    isEditMode && voucherToEdit ? { ...voucherToEdit } : initialFormData
+  );
+
+  // Validation function
+  const validateForm = useCallback(() => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.date) {
+      newErrors.date = 'Date is required';
+    }
+    
+    if (!formData.number) {
+      newErrors.number = 'Voucher number is required';
+    }
+    
+    // Validate entries
+    formData.entries.forEach((entry, index) => {
+      if (!entry.ledgerId) {
+        newErrors[`ledgerId${index}`] = 'Please select a ledger';
+      }
+      if (entry.amount <= 0) {
+        newErrors[`amount${index}`] = 'Amount must be greater than 0';
+      }
+    });
+    
+    // Check if voucher is balanced
+    const totalDebit = formData.entries
+      .filter(entry => entry.type === 'debit')
+      .reduce((sum, entry) => sum + entry.amount, 0);
+    const totalCredit = formData.entries
+      .filter(entry => entry.type === 'credit')
+      .reduce((sum, entry) => sum + entry.amount, 0);
+      
+    if (totalDebit !== totalCredit) {
+      newErrors.balance = 'Total debit must equal total credit';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [formData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -170,23 +252,6 @@ const PaymentVoucher: React.FC = () => {
     .filter(entry => entry.type === 'credit')
     .reduce((sum, entry) => sum + entry.amount, 0);
   const isBalanced = totalDebit === totalCredit;
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!isBalanced) {
-      alert('Total debit must equal total credit');
-      return;
-    }
-    
-    const newVoucher: VoucherEntry = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...formData
-    };
-    
-    addVoucher(newVoucher);
-    navigate('/vouchers');
-  };
 
   return (
     <div className={`pt-[56px] px-4 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
