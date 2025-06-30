@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
-import { Plus, Edit, Trash, Printer, Download, Filter } from 'lucide-react';
+import { Plus, Edit, Trash, Printer, Download, Filter, ArrowLeft } from 'lucide-react';
 import ReportTable from '../../reports/ReportTable';
 import type { StockGroup } from '../../../types';
 
@@ -198,6 +198,13 @@ const StockGroupList: React.FC = () => {
   return (
     <div className="pt-[56px] px-4">
       <div className="flex items-center mb-6">
+        <button
+          title="Back to Masters"
+          onClick={() => navigate('/masters')}
+          className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
+        >
+          <ArrowLeft size={20} />
+        </button>
         <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
           Stock Groups
         </h1>
