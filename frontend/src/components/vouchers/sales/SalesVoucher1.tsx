@@ -4,6 +4,7 @@ import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import type { VoucherEntry, Ledger, Godown } from '../../../types';
 import { Save, Plus, Trash2, ArrowLeft, Printer } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 // DRY Constants for Tailwind Classes
 const FORM_STYLES = {
@@ -145,29 +146,7 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showConfig, setShowConfig] = useState(false);
   // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey || e.ctrlKey || e.metaKey) return;
-      switch (e.key.toLowerCase()) {        case 'f9': {
-          e.preventDefault();
-          // We'll bypass the form validation by calling a simplified handler
-          const form = document.querySelector('form');
-          if (form) form.requestSubmit();
-          break;
-        }
-        case 'f12':
-          e.preventDefault();
-          setShowConfig(true);
-          break;
-        case 'escape':
-          e.preventDefault();
-          navigate('/vouchers');
-          break;
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [navigate]);
+ 
   // Printing
   const handlePrint = useReactToPrint({
     contentRef: printRef,
@@ -421,38 +400,77 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      alert('Please fix the errors before submitting');
-      return;
-    }
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!validateForm()) {
+  //     alert('Please fix the errors before submitting');
+  //     return;
+  //   }
 
-    const newVoucher: VoucherEntry = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...formData
-    };
+  //   const newVoucher: VoucherEntry = {
+  //     id: Math.random().toString(36).substring(2, 9),
+  //     ...formData
+  //   };
     
-    console.log('=== SAVING VOUCHER ===');
-    console.log('Voucher Data:', newVoucher);    console.log('Selected Party:', formData.partyId, formData.partyId ? getPartyName(formData.partyId) : 'No Party');
-    console.log('Entries Count:', formData.entries.length);
-    console.log('Totals:', calculateTotals());
+  //   console.log('=== SAVING VOUCHER ===');
+  //   console.log('Voucher Data:', newVoucher);    console.log('Selected Party:', formData.partyId, formData.partyId ? getPartyName(formData.partyId) : 'No Party');
+  //   console.log('Entries Count:', formData.entries.length);
+  //   console.log('Totals:', calculateTotals());
     
-    addVoucher(newVoucher);
-    alert(`Voucher ${newVoucher.number} saved successfully! Party: ${formData.partyId ? getPartyName(formData.partyId) : 'No Party'}`);
+  //   addVoucher(newVoucher);
+  //   alert(`Voucher ${newVoucher.number} saved successfully! Party: ${formData.partyId ? getPartyName(formData.partyId) : 'No Party'}`);
     
-    if (formData.mode === 'item-invoice') {
-      // Update stock quantities (decrease for sales)
-      formData.entries.forEach(entry => {
-        if (entry.itemId && entry.quantity) {
-          const stockItem = safeStockItems.find(item => item.id === entry.itemId);
-          if (stockItem) {
-            updateStockItem(entry.itemId, { openingBalance: stockItem.openingBalance - (entry.quantity ?? 0) });
-          }
-        }
+  //   if (formData.mode === 'item-invoice') {
+  //     // Update stock quantities (decrease for sales)
+  //     formData.entries.forEach(entry => {
+  //       if (entry.itemId && entry.quantity) {
+  //         const stockItem = safeStockItems.find(item => item.id === entry.itemId);
+  //         if (stockItem) {
+  //           updateStockItem(entry.itemId, { openingBalance: stockItem.openingBalance - (entry.quantity ?? 0) });
+  //         }
+  //       }
+  //     });
+  //   }    navigate('/vouchers');
+  // };
+
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!validateForm()) {
+    alert('Please fix the errors before submitting');
+    return;
+  }
+
+  try {
+    const res = await fetch('http://localhost:5000/api/vouchers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await res.json();
+    console.log('Server response:', data); // debug log
+
+    if (res.ok) {
+      await Swal.fire({
+        title: 'Success',
+        text: data.message,
+        icon: 'success',
+        confirmButtonText: 'OK'
       });
-    }    navigate('/vouchers');
-  };
+      navigate('/vouchers');
+    } else {
+      Swal.fire('Error', data.message || 'Something went wrong', 'error');
+    }
+  } catch (err) {
+    console.error('Error:', err);
+    Swal.fire('Error', 'Network or server issue', 'error');
+  }
+};
+
+
+
   const { subtotal = 0, cgstTotal = 0, sgstTotal = 0, igstTotal = 0, discountTotal = 0, total = 0, debitTotal = 0, creditTotal = 0 } = calculateTotals();
 
   // Helper functions for print layout
@@ -549,7 +567,8 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="date">
                 Date
-              </label>              <input
+              </label>              
+              <input
                 type="date"
                 id="date"
                 name="date"
@@ -563,7 +582,8 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="number">
                 Voucher No.
-              </label>              <input
+              </label>              
+              <input
                 type="text"
                 id="number"
                 name="number"
@@ -576,7 +596,8 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="partyId">
                 Party Name
-              </label>                <select
+              </label>               
+               <select
                title="Select Party"
                 id="partyId"
                 name="partyId"
@@ -610,7 +631,8 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="referenceNo">
                 Reference No.
-              </label>              <input
+              </label>              
+              <input
                 type="text"
                 id="referenceNo"
                 name="referenceNo"
@@ -622,7 +644,8 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="dispatchDetails.docNo">
                 Dispatch Doc No.
-              </label>              <input
+              </label>              
+              <input
                 type="text"
                 id="dispatchDetails.docNo"
                 name="dispatchDetails.docNo"
@@ -634,7 +657,8 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="dispatchDetails.through">
                 Dispatch Through
-              </label>              <input
+              </label>              
+              <input
                 type="text"
                 id="dispatchDetails.through"
                 name="dispatchDetails.through"
@@ -649,7 +673,8 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="dispatchDetails.destination">
                 Destination
-              </label>              <input
+              </label>              
+              <input
                 type="text"
                 id="dispatchDetails.destination"
                 name="dispatchDetails.destination"
@@ -661,7 +686,8 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="mode">
                 Voucher Mode
-              </label>              <select
+              </label>              
+              <select
                 id="mode"
                 name="mode"
                 value={formData.mode}
@@ -689,7 +715,8 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
               </button>
             </div>
             <div className="overflow-x-auto">
-              {formData.mode === 'item-invoice' ? (                <table className="w-full mb-4">
+              {formData.mode === 'item-invoice' ? (                
+                <table className="w-full mb-4">
                   <thead>
                     <tr className={`${theme === 'dark' ? 'border-b border-gray-600' : 'border-b border-gray-300'}`}>
                       <th className="px-4 py-2 text-left">S.No</th>
@@ -709,7 +736,8 @@ const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godo
                       return (
                         <tr key={entry.id} className={`${theme === 'dark' ? 'border-b border-gray-600' : 'border-b border-gray-300'}`}>
                           <td className="px-4 py-2">{index + 1}</td>
-                          <td className="px-4 py-2">                            <select
+                          <td className="px-4 py-2">                            
+                            <select
                               title='Select Item'
                               name="itemId"
                               value={entry.itemId}

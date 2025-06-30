@@ -1,17 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import type { VoucherEntry, Ledger } from '../../../types';
 import { Save, Plus, Trash2, ArrowLeft } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const JournalVoucher: React.FC = () => {
-  const { theme, ledgers, addVoucher } = useAppContext();
+  const { theme} = useAppContext();
   const navigate = useNavigate();
-  
+  const [ledgers, setLedgers] = useState<Ledger[]>([]);
+
+  const generateVoucherNumber = () => {
+  const prefix = 'JV';
+  const randomNumber = Math.floor(100000 + Math.random() * 900000); // 6-digit
+  return `${prefix}${randomNumber}`;
+};
+
   const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>({
     date: new Date().toISOString().split('T')[0],
     type: 'journal',
-    number: '',
+    number: generateVoucherNumber(), // set it directly here
     narration: '',
     entries: [
       { id: '1', ledgerId: '', amount: 0, type: 'debit' },
@@ -65,22 +73,52 @@ const JournalVoucher: React.FC = () => {
     
   const isBalanced = totalDebit === totalCredit;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+      const fetchLedgers = async () => {
+        try {
+          const res = await fetch("http://localhost:5000/api/ledger");
+          const data = await res.json();
+          setLedgers(data);
+        } catch (err) {
+          console.error("Failed to load ledgers", err);
+        }
+      };
+  
+      fetchLedgers();
+    }, []);
+  
+  
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+  
     if (!isBalanced) {
-      alert('Total debit must equal total credit');
+      Swal.fire('Error', 'Total debit must equal total credit', 'error');
       return;
     }
-    
-    const newVoucher: VoucherEntry = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...formData
-    };
-    
-    addVoucher(newVoucher);
-    navigate('/vouchers');
+  
+    try {
+      const res = await fetch('http://localhost:5000/api/payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+  
+      const data = await res.json();
+  
+      if (res.ok) {
+        Swal.fire('Success', data.message, 'success').then(() => {
+          navigate('/vouchers');
+        });
+      } else {
+        Swal.fire('Error', data.message || 'Something went wrong', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire('Error', 'Network or server issue', 'error');
+    }
   };
+  
 
   return (
     <div className='pt-[56px] px-4 '>
@@ -129,7 +167,7 @@ const JournalVoucher: React.FC = () => {
                 name="number"
                 value={formData.number}
                 onChange={handleChange}
-                placeholder="Auto"
+                readOnly
                 className={`w-full p-2 rounded border ${
                   theme === 'dark' 
                     ? 'bg-gray-700 border-gray-600 focus:border-blue-500' 
@@ -193,10 +231,10 @@ const JournalVoucher: React.FC = () => {
                           } outline-none transition-colors`}
                         >
                           <option value="">Select Ledger</option>
-                          {ledgers.map((ledger: Ledger) => (
-                            <option key={ledger.id} value={ledger.id}>
-                              {ledger.name}
-                            </option>
+                                                    {ledgers.map((ledger: Ledger) => (
+                                                      <option key={ledger.id} value={ledger.id}>
+                                                        {ledger.name}
+                                                      </option>
                           ))}
                         </select>
                       </td>

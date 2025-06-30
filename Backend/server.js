@@ -23,6 +23,14 @@ app.use('/api/currencies', currencyRoutes);
 
 const budgetRoutes = require('./routes/budgets');
 app.use('/api/budgets', budgetRoutes);
+// Routes for vouchers
+const voucherRoutes = require('./routes/vouchers');
+app.use('/api/payment', voucherRoutes);
+
+// Routes for sale vouchers
+// Import and use Sales Voucher routes
+const saleVoucherRoutes = require('./routes/salevoucher');
+app.use('/api', saleVoucherRoutes);
 
 // MySQL Connection
 const db = mysql.createConnection({
