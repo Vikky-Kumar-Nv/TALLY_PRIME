@@ -28,6 +28,8 @@ import UnitList from './components/masters/unit/UnitList';
 import UnitForm from './components/masters/unit/UnitForm';
 import GodownList from './components/masters/godown/GodownList';
 import GodownForm from './components/masters/godown/GodownForm';
+import ScenarioList from './components/masters/scenario/ScenarioList';
+import ScenarioForm from './components/masters/scenario/ScenarioForm';
 
 
 
@@ -184,6 +186,12 @@ function App() {
             <Route path="masters/unit/edit/:id" element={<UnitForm />} />            <Route path="masters/godowns" element={<GodownList />} />
             <Route path="masters/godown/create" element={<GodownForm />} />
             <Route path="masters/godown/edit/:id" element={<GodownForm />} />
+            <Route path="masters/scenarios" element={<ScenarioList />} />
+            <Route path="masters/scenario/create" element={<ScenarioForm />} />
+            <Route path="masters/scenario/edit/:id" element={<ScenarioForm />} />
+            <Route path="scenarios" element={<ScenarioList />} />
+            <Route path="scenarios/create" element={<ScenarioForm />} />
+            <Route path="scenarios/edit/:id" element={<ScenarioForm />} />
             
             
             

@@ -1011,3 +1011,17 @@ export type StockTransaction = {
   godownId?: string;
   batchId?: string;
 };
+
+
+
+export type Scenario = {
+  id: string;
+  name: string;
+  includeActuals: boolean; // Yes/No for actuals
+  includedVoucherTypes: VoucherType[];
+  excludedVoucherTypes: VoucherType[];
+  fromDate: string;
+  toDate: string;
+  createdAt: string;
+  updatedAt?: string;
+};
