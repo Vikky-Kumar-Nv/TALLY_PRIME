@@ -132,40 +132,186 @@ export const defaultLedgerGroups: LedgerGroup[] = [
 ];
 
 export const defaultLedgers: Ledger[] = [
+  // Cash Accounts
   {
     id: '1',
     name: 'Cash',
     groupId: '12',
     openingBalance: 50000,
-    balanceType: 'debit'
+    balanceType: 'debit',
+    type: 'cash'
   },
   {
     id: '2',
-    name: 'Bank Account',
-    groupId: '11',
-    openingBalance: 100000,
-    balanceType: 'debit'
+    name: 'Petty Cash',
+    groupId: '12',
+    openingBalance: 5000,
+    balanceType: 'debit',
+    type: 'cash'
   },
   {
     id: '3',
-    name: 'Capital',
-    groupId: '1',
-    openingBalance: 150000,
-    balanceType: 'credit'
+    name: 'Cash Counter 1',
+    groupId: '12',
+    openingBalance: 10000,
+    balanceType: 'debit',
+    type: 'cash'
   },
   {
     id: '4',
+    name: 'Cash Counter 2',
+    groupId: '12',
+    openingBalance: 8000,
+    balanceType: 'debit',
+    type: 'cash'
+  },
+  
+  // Bank Accounts
+  {
+    id: '5',
+    name: 'State Bank of India - Current A/c',
+    groupId: '11',
+    openingBalance: 100000,
+    balanceType: 'debit',
+    type: 'bank'
+  },
+  {
+    id: '6',
+    name: 'HDFC Bank - Savings A/c',
+    groupId: '11',
+    openingBalance: 75000,
+    balanceType: 'debit',
+    type: 'bank'
+  },
+  {
+    id: '7',
+    name: 'ICICI Bank - Current A/c',
+    groupId: '11',
+    openingBalance: 120000,
+    balanceType: 'debit',
+    type: 'bank'
+  },
+  {
+    id: '8',
+    name: 'Axis Bank - Business A/c',
+    groupId: '11',
+    openingBalance: 85000,
+    balanceType: 'debit',
+    type: 'bank'
+  },
+  {
+    id: '9',
+    name: 'Punjab National Bank - Salary A/c',
+    groupId: '11',
+    openingBalance: 45000,
+    balanceType: 'debit',
+    type: 'bank'
+  },
+  
+  // Capital & Other Accounts
+  {
+    id: '10',
+    name: 'Capital',
+    groupId: '1',
+    openingBalance: 500000,
+    balanceType: 'credit',
+    type: 'capital'
+  },
+  {
+    id: '11',
     name: 'Sales Account',
     groupId: '8',
     openingBalance: 0,
-    balanceType: 'credit'
+    balanceType: 'credit',
+    type: 'sales'
   },
   {
-    id: '5',
+    id: '12',
     name: 'Purchase Account',
     groupId: '6',
     openingBalance: 0,
-    balanceType: 'debit'
+    balanceType: 'debit',
+    type: 'purchase'
+  },
+  
+  // Party Ledgers (Suppliers/Customers)
+  {
+    id: '13',
+    name: 'ABC Suppliers',
+    groupId: '14',
+    openingBalance: 25000,
+    balanceType: 'credit',
+    type: 'sundry-creditors',
+    address: '123 Business Street, Mumbai',
+    phone: '+91-9876543210',
+    gstNumber: '27ABCDE1234F1Z5'
+  },
+  {
+    id: '14',
+    name: 'XYZ Trading Co.',
+    groupId: '14',
+    openingBalance: 15000,
+    balanceType: 'credit',
+    type: 'sundry-creditors',
+    address: '456 Commerce Road, Delhi',
+    phone: '+91-9876543211',
+    gstNumber: '07XYZAB5678G1H2'
+  },
+  {
+    id: '15',
+    name: 'PQR Enterprises',
+    groupId: '13',
+    openingBalance: 30000,
+    balanceType: 'debit',
+    type: 'sundry-debtors',
+    address: '789 Trade Lane, Bangalore',
+    phone: '+91-9876543212',
+    gstNumber: '29PQRST9012I3J4'
+  },
+  {
+    id: '16',
+    name: 'MNO Services Ltd.',
+    groupId: '13',
+    openingBalance: 18000,
+    balanceType: 'debit',
+    type: 'sundry-debtors',
+    address: '321 Service Center, Chennai',
+    phone: '+91-9876543213',
+    gstNumber: '33MNOHI4567K5L6'
+  },
+  
+  // Expense Accounts
+  {
+    id: '17',
+    name: 'Office Rent',
+    groupId: '9',
+    openingBalance: 0,
+    balanceType: 'debit',
+    type: 'indirect-expenses'
+  },
+  {
+    id: '18',
+    name: 'Electricity Charges',
+    groupId: '9',
+    openingBalance: 0,
+    balanceType: 'debit',
+    type: 'indirect-expenses'
+  },
+  {
+    id: '19',
+    name: 'Telephone & Internet',
+    groupId: '9',
+    openingBalance: 0,
+    balanceType: 'debit',
+    type: 'indirect-expenses'
+  },
+  {
+    id: '20',
+    name: 'Transportation',
+    groupId: '7',
+    openingBalance: 0,
+    balanceType: 'debit',
+    type: 'direct-expenses'
   }
 ];
 

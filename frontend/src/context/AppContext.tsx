@@ -350,6 +350,7 @@ interface AppContextProps {
   addLedgerGroup: (group: LedgerGroup) => void;
   addLedger: (ledger: Ledger) => void;
   addVoucher: (voucher: VoucherEntry) => void;
+  updateVoucher: (id: string, updates: Partial<VoucherEntry>) => void;
   addStockItem: (item: StockItem) => void;
   addStockGroup: (group: StockGroup) => void;
   addGstClassification: (classification: GstClassification) => void;
@@ -405,6 +406,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setVouchers(prev => [...prev, voucher]);
   };
 
+  const updateVoucher = (id: string, updates: Partial<VoucherEntry>) => {
+    setVouchers(prev =>
+      prev.map(voucher => (voucher.id === id ? { ...voucher, ...updates } : voucher))
+    );
+  };
+
   const addStockItem = (item: StockItem) => {
     setStockItems(prev => [...prev, { ...item, id: Math.random().toString(36).substring(2, 9) }]);
   };
@@ -448,6 +455,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addLedgerGroup,
       addLedger,
       addVoucher,
+      updateVoucher,
       addStockItem,
       addStockGroup,
       addGstClassification,

@@ -899,7 +899,7 @@ export type VoucherEntry = {
   number: string;
   narration?: string;
   entries: VoucherEntryLine[];
-  mode?: 'item-invoice' | 'accounting-invoice' | 'as-voucher' | 'transfer' | 'adjustment';
+  mode?: 'item-invoice' | 'accounting-invoice' | 'as-voucher' | 'transfer' | 'adjustment' | 'double-entry' | 'single-entry';
   referenceNo?: string;
   supplierInvoiceDate?: string;
   purchaseLedgerId?: string;
@@ -927,6 +927,10 @@ export type VoucherEntryLine = {
   godownId?: string;
   batchId?: string;
   discount?: number;
+  narration?: string;
+  costCentreId?: string;
+  bankName?: string;
+  chequeNumber?: string;
 };
 
 export type StockItem = {
