@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, Plus, Search } from 'lucide-react';
+import { Edit, Trash2, Plus, Search,ArrowLeft } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 import type { Ledger } from '../../../types';
 
@@ -32,7 +32,17 @@ const LedgerList: React.FC = () => {
   return (
     <div className='pt-[56px] px-4 '>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Ledger List</h1>
+         <div className="flex items-center mb-6">
+        <button
+          title="Back to Group List"
+          onClick={() => navigate('/masters')}
+          className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>Group List</h1>
+      </div>
+        
         <button
         title="Create Ledger"
           aria-label="Create Ledger"
