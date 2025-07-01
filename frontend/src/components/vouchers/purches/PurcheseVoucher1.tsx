@@ -4,6 +4,7 @@ import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import type { VoucherEntry } from '../../../types';
 import { Save, Plus, Trash2, ArrowLeft, Printer } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 // DRY Principle - Reusable constants and styles
 const TABLE_STYLES = {
@@ -398,42 +399,42 @@ const PurchaseVoucher: React.FC = () => {
       return { debitTotal, creditTotal, total: debitTotal };
     }
   };
-  const handleSubmit = () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
     if (!validateForm()) {
       alert('Please fix the errors before submitting');
       return;
     }
-
-    const newVoucher: VoucherEntry = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...formData
-    };
-    addVoucher(newVoucher);    if (formData.mode === 'item-invoice') {
-      // Update stock quantities (increase for purchase)
-      formData.entries.forEach(entry => {
-        if (entry.itemId && entry.quantity) {
-          const stockItem = safeStockItems.find(item => item.id === entry.itemId);
-          if (stockItem) {
-            updateStockItem(entry.itemId, { openingBalance: stockItem.openingBalance + (entry.quantity ?? 0) });
-          }
-        }
+  
+    try {
+      const res = await fetch('http://localhost:5000/api/purchase-vouchers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       });
-
-      // Post accounting entries (Note: addLedgerEntry function not available in context)
-      const { subtotal = 0, gstTotal = 0, total = 0 } = calculateTotals();
-      console.log('Accounting entries would be posted:', {
-        subtotal,
-        gstTotal,
-        total,
-        partyId: formData.partyId
-      });
-    } else {
-      // Post ledger entries directly (Note: addLedgerEntry function not available in context)
-      console.log('Ledger entries would be posted:', formData.entries);
+  
+      const data = await res.json();
+      console.log('Server response:', data); // debug log
+  
+      if (res.ok) {
+        await Swal.fire({
+          title: 'Success',
+          text: data.message,
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+        navigate('/vouchers');
+      } else {
+        Swal.fire('Error', data.message || 'Something went wrong', 'error');
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      Swal.fire('Error', 'Network or server issue', 'error');
     }
-
-    navigate('/vouchers');
   };
+  
+  
 
   const { subtotal = 0, cgstTotal = 0, sgstTotal = 0, igstTotal = 0, gstTotal = 0, discountTotal = 0, total = 0, debitTotal = 0, creditTotal = 0 } = calculateTotals();
 
@@ -498,10 +499,9 @@ const PurchaseVoucher: React.FC = () => {
       </div>
 
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
-        <form onSubmit={(e) => {
-          e.preventDefault();
-          handleSubmit();
-        }}>          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <form onSubmit={handleSubmit}>
+         
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="date">
                 Date

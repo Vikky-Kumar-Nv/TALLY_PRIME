@@ -52,11 +52,11 @@ let voucherId;
 } else {
   // Default to accounting mode
   insertVoucherSql = `
-    INSERT INTO voucher_main (number, date, narration, partyId, referenceNo, total)
+    INSERT INTO voucher_main (voucher_number, date, narration)
     VALUES (?, ?, ?, ?, ?, ?)
   `;
   insertVoucherValues = [
-    number ?? null, date ?? null, narration ?? null, partyId ?? null, referenceNo ?? null, total ?? 0
+    number ?? null, date ?? null, narration ?? null  ?? 0
   ];
 }
 

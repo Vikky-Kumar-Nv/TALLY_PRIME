@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
@@ -74,12 +74,13 @@ const PRINT_STYLES = {
   }
 };
 
-const SalesVoucher: React.FC = () => {  const { theme, stockItems, ledgers, godowns = [], vouchers = [], companyInfo, updateStockItem, addVoucher } = useAppContext();
+const SalesVoucher: React.FC = () => {
+  const { theme, stockItems, ledgers, godowns = [], vouchers = [], companyInfo } = useAppContext();
   const navigate = useNavigate();
-  const printRef = useRef<HTMLDivElement>(null);  // Safe fallbacks for context data
-  const safeStockItems = stockItems || [
-    { id: '1', name: 'Laptop HP Pavilion', hsnCode: '8471', unit: 'Piece', gstRate: 28, openingBalance: 50, rate: 45000 },
+  const printRef = useRef<HTMLDivElement>(null);
 
+  // Safe fallbacks for context data
+  const safeStockItems = stockItems || [
     { id: '1', name: 'Laptop HP Pavilion', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 50, rate: 45000 },
     { id: '2', name: 'Mobile Phone Samsung', hsnCode: '8517', unit: 'Piece', gstRate: 5, openingBalance: 100, rate: 25000 },
     { id: '3', name: 'Printer Canon', hsnCode: '8443', unit: 'Piece', gstRate: 18, openingBalance: 30, rate: 15000 },
@@ -443,7 +444,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 
   try {
-    const res = await fetch('http://localhost:5000/api/vouchers', {
+    const res = await fetch('http://localhost:5000/api/sale-vouchers', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
@@ -575,6 +576,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 value={formData.date}
                 onChange={handleChange}
                 required
+                title="Sale Date"
                 className={FORM_STYLES.input(theme, !!errors.date)}
               />
               {errors.date && <p className="text-red-500 text-xs mt-1">{errors.date}</p>}
@@ -589,6 +591,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 name="number"
                 value={formData.number}
                 readOnly
+                title="Voucher Number"
                 className={`${FORM_STYLES.input(theme, !!errors.number)} ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-200'}`}
               />
               {errors.number && <p className="text-red-500 text-xs mt-1">{errors.number}</p>}
@@ -638,6 +641,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                 name="referenceNo"
                 value={formData.referenceNo}
                 onChange={handleChange}
+                title="Reference Number"
+                placeholder="Enter reference number"
                 className={FORM_STYLES.input(theme)}
               />
             </div>
@@ -651,6 +656,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                 name="dispatchDetails.docNo"
                 value={formData.dispatchDetails?.docNo ?? ''}
                 onChange={handleChange}
+                title="Dispatch Document Number"
+                placeholder="Enter dispatch document number"
                 className={FORM_STYLES.input(theme)}
               />
             </div>
@@ -664,6 +671,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                 name="dispatchDetails.through"
                 value={formData.dispatchDetails?.through ?? ''}
                 onChange={handleChange}
+                title="Dispatch Through"
+                placeholder="Enter dispatch method"
                 className={FORM_STYLES.input(theme)}
               />
             </div>
@@ -680,6 +689,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                 name="dispatchDetails.destination"
                 value={formData.dispatchDetails?.destination ?? ''}
                 onChange={handleChange}
+                title="Destination"
+                placeholder="Enter destination"
                 className={FORM_STYLES.input(theme)}
               />
             </div>
@@ -692,6 +703,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 name="mode"
                 value={formData.mode}
                 onChange={handleChange}
+                title="Voucher Mode"
                 className={FORM_STYLES.select(theme)}
               >
                 <option value="item-invoice">Item Invoice</option>
@@ -978,6 +990,8 @@ const handleSubmit = async (e: React.FormEvent) => {
               value={formData.narration}
               onChange={handleChange}
               rows={3}
+              title="Voucher Narration"
+              placeholder="Enter narration for this sales voucher"
               className={FORM_STYLES.input(theme)}
             />
           </div>          <div className="flex justify-end space-x-4">
@@ -1033,6 +1047,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             <div className="flex justify-end">
               <button
                 onClick={() => setShowConfig(false)}
+                title="Close Configuration"
                 className={`px-4 py-2 rounded ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
               >
                 Close
@@ -1172,7 +1187,8 @@ const handleSubmit = async (e: React.FormEvent) => {
               
               {/* Add empty rows for spacing when items exist */}
               {formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length > 0 && formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length < 4 &&
-                Array(Math.max(0, 4 - formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length)).fill(0).map((_, index) => (                  <tr key={`empty-${index}`}>
+                Array(Math.max(0, 4 - formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length)).fill(0).map((_, index) => (
+                  <tr key={`empty-${index}`}>
                     <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
                     <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
                     <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
@@ -1183,8 +1199,11 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </tr>
                 ))
               }
-            </tbody>              {/* Tax Summary */}
-            <tfoot>              <tr>
+            </tbody>
+
+            {/* Tax Summary */}
+            <tfoot>
+              <tr>
                 <td colSpan={5} className="border border-black p-1_5 text-9pt">
                   <strong>Terms & Conditions:</strong><br/>
                   <span className="text-8pt">
@@ -1213,14 +1232,18 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </td>
               </tr>
             </tfoot>
-          </table>          {/* Amount in Words */}
+          </table>
+
+          {/* Amount in Words */}
           <div className={PRINT_STYLES.totals.amountWords}>
             <strong className={PRINT_STYLES.totals.amountWordsLabel}>Total Amount (Rs. in Words):</strong>
             <div className={PRINT_STYLES.totals.amountWordsText}>
               Rupees {total > 0 ? total.toLocaleString() : 'Zero'} Only
               {total > 0 && ` (₹${total.toLocaleString()})`}
             </div>
-          </div>          {/* GST Calculation Summary */}
+          </div>
+
+          {/* GST Calculation Summary */}
           {formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length > 0 && (
             <div className={PRINT_STYLES.totals.gstSummary}>
               <strong className={PRINT_STYLES.totals.gstSummaryLabel}>GST Calculation Summary:</strong>
@@ -1250,7 +1273,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                 })()}
               </div>
             </div>
-          )}          {/* Footer Section */}
+          )}
+
+          {/* Footer Section */}
           <div className={PRINT_STYLES.signatures.container}>
             <div className={PRINT_STYLES.signatures.section}>
               <div className={PRINT_STYLES.signatures.label}>
@@ -1272,7 +1297,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </div>
               </div>
             </div>
-          </div>        </div>
+          </div>
+        </div>
       </div>
 
       <div className={`mt-6 p-4 rounded ${theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'}`}>

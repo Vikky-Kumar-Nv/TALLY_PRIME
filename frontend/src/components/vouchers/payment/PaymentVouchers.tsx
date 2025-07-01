@@ -1,24 +1,100 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
-import { useNavigate } from 'react-router-dom';
-import type { VoucherEntry } from '../../../types';
-import type { Ledger } from '../../../types';
-import { Save, Plus, Trash2, ArrowLeft } from 'lucide-react';
-
+import { Save, Plus, Trash2, ArrowLeft, Printer, Settings } from 'lucide-react';
+import type { VoucherEntry, Ledger } from '../../../types';
+import Swal from 'sweetalert2';
+interface Ledgers {
+  id: number;
+  name: string;
+  groupName: string;
+}
 const PaymentVoucher: React.FC = () => {
-  const { theme, ledgers, addVoucher } = useAppContext();
+  const { theme, vouchers, addVoucher, updateVoucher, companyInfo } = useAppContext();
   const navigate = useNavigate();
-  
-  const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>({
+  const { id } = useParams<{ id: string }>();
+  const isEditMode = !!id;
+  const [ledgers, setLedgers] = useState<Ledger[]>([]);
+const [cashBankLedgers, setCashBankLedgers] = useState<Ledgers[]>([]);
+
+   const generateVoucherNumber = () => {
+  const prefix = 'RV';
+  const randomNumber = Math.floor(100000 + Math.random() * 900000); // 6-digit
+  return `${prefix}${randomNumber}`;
+};
+  const initialFormData: Omit<VoucherEntry, 'id'> = {
     date: new Date().toISOString().split('T')[0],
     type: 'payment',
-    number: '',
+    number: generateVoucherNumber(),
     narration: '',
     entries: [
-      { id: '1', ledgerId: '', amount: 0, type: 'debit' },
-      { id: '2', ledgerId: '', amount: 0, type: 'credit' }
-    ]
+      { id: '1', ledgerId: '', amount: 0, type: 'debit', narration: '' },
+      { id: '2', ledgerId: '', amount: 0, type: 'credit', narration: '' },
+    ],
+    mode: 'double-entry',
+    referenceNo: '',
+    supplierInvoiceDate: '',
+  };
+
+  const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>(
+    isEditMode ? vouchers.find(v => v.id === id) || initialFormData : initialFormData
+  );
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showConfigPanel, setShowConfigPanel] = useState(false);
+  const [config, setConfig] = useState({
+    autoNumbering: true,
+    showReference: true,
+    showBankDetails: true,
+    showCostCentre: false,
+    showEntryNarration: false,
   });
+
+  // Mock cost centres
+  const costCentres = useMemo(() => [
+    { id: 'CC1', name: 'Washing Department' },
+    { id: 'CC2', name: 'Polishing Department' },
+  ], []);
+
+  // Auto-generate voucher number
+  useEffect(() => {
+    if (config.autoNumbering && !isEditMode) {
+      const lastVoucher = vouchers
+        .filter(v => v.type === 'payment')
+        .sort((a, b) => parseInt(b.number || '0') - parseInt(a.number || '0'))[0];
+      const newNumber = lastVoucher ? (parseInt(lastVoucher.number || '0') + 1).toString() : '1';
+      setFormData(prev => ({ ...prev, number: newNumber }));
+    }
+  }, [config.autoNumbering, vouchers, isEditMode]);
+
+  const validateForm = useCallback(() => {
+    const newErrors: { [key: string]: string } = {};
+    if (!formData.date) newErrors.date = 'Date is required';
+    if (!formData.number) newErrors.number = 'Voucher number is required';
+    if (formData.mode === 'single-entry' && formData.entries.length !== 2) {
+      newErrors.entries = 'Single entry mode requires exactly one debit and one credit';
+    }
+    if (formData.mode === 'single-entry' && formData.entries[0].type !== 'debit') {
+      newErrors.entries = 'First entry must be debit in single entry mode';
+    }
+    if (formData.mode === 'single-entry' && formData.entries[1].type !== 'credit') {
+      newErrors.entries = 'Second entry must be credit in single entry mode';
+    }
+    formData.entries.forEach((entry, index) => {
+      if (!entry.ledgerId) newErrors[`ledgerId${index}`] = `Ledger is required for entry ${index + 1}`;
+      if (entry.amount <= 0) newErrors[`amount${index}`] = `Amount must be greater than 0 for entry ${index + 1}`;
+    });
+    const totalDebit = formData.entries
+      .filter(entry => entry.type === 'debit')
+      .reduce((sum, entry) => sum + entry.amount, 0);
+    const totalCredit = formData.entries
+      .filter(entry => entry.type === 'credit')
+      .reduce((sum, entry) => sum + entry.amount, 0);
+    if (formData.mode === 'double-entry' && totalDebit !== totalCredit) {
+      newErrors.balance = 'Total debit must equal total credit';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }, [formData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -50,7 +126,7 @@ const PaymentVoucher: React.FC = () => {
       ...prev,
       entries: [
         ...prev.entries,
-        { id: (prev.entries.length + 1).toString(), ledgerId: '', amount: 0, type: 'credit', narration: '' },
+        { id: (prev.entries.length + 1).toString(), ledgerId: '', amount: 0, type: 'credit', narration: ''},
       ],
     }));
   };
@@ -62,23 +138,63 @@ const PaymentVoucher: React.FC = () => {
     setFormData(prev => ({ ...prev, entries: updatedEntries }));
     setErrors(prev => ({ ...prev, [`ledgerId${index}`]: '', [`amount${index}`]: '' }));
   };
-
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      const newVoucher: VoucherEntry = {
-        id: isEditMode ? id! : Math.random().toString(36).substring(2, 9),
-        ...formData,
-      };
-      if (isEditMode) {
-        updateVoucher(id!, formData);
-      } else {
-        addVoucher(newVoucher);
+  useEffect(() => {
+    fetch('http://localhost:5000/api/ledger/cash-bank')
+      .then(res => res.json())
+      .then(data => setCashBankLedgers(data))
+      .catch(err => console.error('Ledger fetch error:', err));
+  }, []);
+useEffect(() => {
+    const fetchLedgers = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/ledger");
+        const data = await res.json();
+        setLedgers(data);
+      } catch (err) {
+        console.error("Failed to load ledgers", err);
       }
-      navigate('/vouchers');
-    }
-  }, [formData, isEditMode, id, addVoucher, updateVoucher, navigate, validateForm]);
+    };
 
+    fetchLedgers();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    if (!validateForm()) {
+      Swal.fire('Validation Error', 'Please fix the errors before submitting.', 'warning');
+      return;
+    }
+  
+    try {
+      const response = await fetch('http://localhost:5000/api/vouchers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData), // your state
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: data.message,
+        }).then(() => {
+          navigate('/vouchers'); // or your route to go back
+        });
+      } else {
+        Swal.fire('Error', data.message || 'Something went wrong', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      Swal.fire('Network Error', 'Failed to connect to the server.', 'error');
+    }
+  };
+  
+  
   const handlePrint = useCallback(() => {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
@@ -171,23 +287,6 @@ const PaymentVoucher: React.FC = () => {
     .reduce((sum, entry) => sum + entry.amount, 0);
   const isBalanced = totalDebit === totalCredit;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!isBalanced) {
-      alert('Total debit must equal total credit');
-      return;
-    }
-    
-    const newVoucher: VoucherEntry = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...formData
-    };
-    
-    addVoucher(newVoucher);
-    navigate('/vouchers');
-  };
-
   return (
     <div className={`pt-[56px] px-4 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'}`}>
       <div className="flex items-center mb-6">
@@ -251,17 +350,40 @@ const PaymentVoucher: React.FC = () => {
               </label>
               <input
                 type="text"
-                id="number"
                 name="number"
                 value={formData.number}
                 onChange={handleChange}
-                placeholder="Auto"
-                className={`w-full p-2 rounded border ${
-                  theme === 'dark' 
-                    ? 'bg-gray-700 border-gray-600 focus:border-blue-500' 
-                    : 'bg-white border-gray-300 focus:border-blue-500'
-                } outline-none transition-colors`}
+                placeholder={config.autoNumbering ? 'Auto' : 'Enter voucher number'}
+                readOnly={config.autoNumbering}
+                required
+                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500 ${config.autoNumbering ? 'opacity-50' : ''}`}
               />
+              {errors.number && <p className="text-red-500 text-sm mt-1">{errors.number}</p>}
+            </div>
+            <div>
+              <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Mode
+              </label>
+              <select
+                name="mode"
+                value={formData.mode}
+                title="Select voucher mode"
+                onChange={e => {
+                  const mode = e.target.value as 'double-entry' | 'single-entry';
+                  setFormData(prev => ({
+                    ...prev,
+                    mode,
+                    entries: mode === 'single-entry' ? [
+                      { id: '1', ledgerId: '', amount: 0, type: 'debit', narration: '' },
+                      { id: '2', ledgerId: '', amount: 0, type: 'credit', narration: '' },
+                    ] : prev.entries,
+                  }));
+                }}
+                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
+              >
+                <option value="double-entry">Double Entry</option>
+                <option value="single-entry">Single Entry</option>
+              </select>
             </div>
             {config.showReference && (
               <>
@@ -326,12 +448,14 @@ const PaymentVoucher: React.FC = () => {
                   value={formData.entries[1].ledgerId}
                   onChange={e => handleEntryChange(1, e)}
                   required
-                  title="Select payment ledger"
+                  title="Select party ledger (Cash/Bank)"
                   className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
                 >
-                  <option value="">Select Payment Ledger</option>
-                  {ledgers.filter(l => l.type === 'cash' || l.type === 'bank').map((ledger: Ledger) => (
-                    <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
+                  <option value="">Select Cash/Bank Ledger</option>
+                  {cashBankLedgers.map(ledger => (
+                    <option key={ledger.id} value={ledger.id}>
+                      {ledger.name} ({ledger.groupName})
+                    </option>
                   ))}
                 </select>
                 {errors.ledgerId1 && <p className="text-red-500 text-sm mt-1">{errors.ledgerId1}</p>}

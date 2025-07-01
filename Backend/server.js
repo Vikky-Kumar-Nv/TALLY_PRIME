@@ -25,12 +25,15 @@ const budgetRoutes = require('./routes/budgets');
 app.use('/api/budgets', budgetRoutes);
 // Routes for vouchers
 const voucherRoutes = require('./routes/vouchers');
-app.use('/api/payment', voucherRoutes);
+app.use('/api/vouchers', voucherRoutes);
 
 // Routes for sale vouchers
 // Import and use Sales Voucher routes
 const saleVoucherRoutes = require('./routes/salevoucher');
-app.use('/api', saleVoucherRoutes);
+app.use('/api/sale-vouchers', saleVoucherRoutes);
+// Routes for purchase vouchers
+const purchaseVoucherRoutes = require('./routes/purchasevoucher');  
+app.use('/api/purchase-vouchers', purchaseVoucherRoutes);
 
 // MySQL Connection
 const db = mysql.createConnection({

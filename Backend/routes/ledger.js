@@ -31,6 +31,27 @@ router.get('/', async (req, res) => {
 }
 });
 
+// Get only Cash/Bank Ledgers (for Contra Voucher)
+router.get('/cash-bank', async (req, res) => {
+  try {
+    const [rows] = await db.execute(`
+      SELECT 
+        l.id, 
+        l.name, 
+        g.name AS groupName, 
+        g.type AS groupType
+      FROM ledgers l
+      INNER JOIN ledger_groups g ON l.group_id = g.id
+      WHERE g.type IN ('Cash', 'Bank')
+    `);
+
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching cash/bank ledgers:", err);
+    res.status(500).json({ message: "Failed to fetch cash/bank ledgers" });
+  }
+});
+
 // Create new ledger
 router.post('/', async (req, res) => {
   const {
