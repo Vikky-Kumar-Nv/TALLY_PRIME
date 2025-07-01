@@ -36,6 +36,7 @@ import ScenarioForm from './components/masters/scenario/ScenarioForm';
 
 
 
+
 // // Vouchers Components
 import VouchersIndex from './components/vouchers/VouchersIndex';
 import PaymentVoucher from './components/vouchers/payment/PaymentVouchers';
@@ -48,6 +49,7 @@ import SalesVoucher1 from './components/vouchers/sales/SalesVoucher1';
 import PurchaseVoucher1 from './components/vouchers/purches/PurcheseVoucher1';
 import StockJournalVoucher1 from './components/vouchers/stockjournal/StockJournalVoucher1';
 import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
+
 
 
 // // Reports Components
@@ -116,6 +118,18 @@ import UserReports from './components/audit/UserReports';
 import AccountingModule from './components/modules/AccountingModule';
 import InventoryModule from './components/modules/InventoryModule';
 
+// Home Pages
+import HomePage from './home/pages/HomePage';
+import PricingPage from './home/pages/PricingPage';
+import PurchasePage from './home/pages/PurchasePage';
+import AboutUsPage from './home/pages/AboutUsPage';
+import CareersPage from './home/pages/CareersPage';
+import ContactPage from './home/pages/ContactPage';
+import PrivacyPolicyPage from './home/pages/PrivacyPolicyPage';
+import LoginPage from './home/auth/LoginPage';
+import Register from './home/auth/Register';
+import { AuthProvider } from './home/context/AuthContext';
+
 //config module
 import ConfigModule from './components/modules/ConfigModule';
 import GeneralSettings from './components/config/GeneralSettings';
@@ -147,10 +161,24 @@ function App() {
   }, []);
 
   return (
-    <AppProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<MainLayout />}>
+    <AuthProvider>
+      <AppProvider>
+        <Router>
+          <Routes>
+            {/* Home/Marketing Routes */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/home" element={<HomePage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<Register />} />
+            <Route path="/purchase" element={<PurchasePage />} />
+            <Route path="/about" element={<AboutUsPage />} />
+            <Route path="/careers" element={<CareersPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            
+            {/* App Routes */}
+            <Route path="/app" element={<MainLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="company" element={<CompanyForm />} />
             
@@ -207,10 +235,13 @@ function App() {
             <Route path="vouchers/purchase/create" element={<PurchaseVoucher1 />} />
             <Route path="vouchers/stock-journal/create" element={<StockJournalVoucher1 />} />
             <Route path="vouchers/sales/create" element={<SalesVoucher1 />} />
+           
+
+
             
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
-            <Route path="/reports/trading-account" element={<TradingAccount />} />
+            <Route path="reports/trading-account" element={<TradingAccount />} />
             
             <Route path="reports/day-book" element={<DayBook />} />
             <Route path="reports/ledger" element={<LedgerReport />} />
@@ -238,14 +269,10 @@ function App() {
             <Route path="gst/registration" element={<GSTRegistration />} />
             <Route path="gst/import" element={<ImportData />} />
             <Route path="gst/reconciliation" element={<Reconciliation />} />
-            <Route path='/gst/export' element={<ExportReturns />} />
-            <Route path='gst/summary' element={<GSTSummary />} />
+            <Route path="gst/export" element={<ExportReturns />} />            <Route path="gst/summary" element={<GSTSummary />} />
 
-
-
-
-              //TDSModule
-               <Route path="tds" element={<TDSModule />} />
+            {/* TDS Module Routes */}
+            <Route path="tds" element={<TDSModule />} />
                <Route path='tds/form-24q' element={<Form24Q />} />
                <Route path='tds/form-26q' element={<Form26Q />} />
                <Route path='tds/form-27q' element={<Form27Q />} />
@@ -254,13 +281,10 @@ function App() {
                <Route path='tds/form-16' element={<Form16 />} />
                <Route path='tds/compliance' element={<ComplianceCheck2 />} />
                <Route path='tds/deductees' element={<DeducteeMaster />} />
-               <Route path='tds/tan' element={<TANRegistration />} />
+               <Route path="tds/tan" element={<TANRegistration />} />
 
-
-
-
-                  //Audit Module 
-                <Route path="audit" element={<AuditModule />} />
+            {/* Audit Module Routes */}
+            <Route path="audit" element={<AuditModule />} />
                 <Route path='audit/summary' element={<AuditSummary />} />
                 <Route path='audit/transaction-log' element={<TransactionLog />} />
                 <Route path='audit/user-activity'   element= {<UserActivity />} />
@@ -288,7 +312,7 @@ function App() {
             <Route path="inventory" element={<InventoryModule />} />
             <Route path="gst" element={<GSTModule />} />
             
-           //Config module
+            {/* Config Module Routes */}
             <Route path="config" element={<ConfigModule />} />
             <Route path='config/general' element={<GeneralSettings />} />
             <Route path='config/database' element={<DatabaseSettings />} />
@@ -308,6 +332,7 @@ function App() {
         </Routes>
       </Router>
     </AppProvider>
+    </AuthProvider>
   );
 }
 

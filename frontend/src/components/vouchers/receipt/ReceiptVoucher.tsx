@@ -6,6 +6,7 @@ import { Save, Plus, Trash2, ArrowLeft, Printer, Settings } from 'lucide-react';
 import type { VoucherEntry, Ledger } from '../../../types';
 
 const ReceiptVoucher: React.FC = () => {
+<<<<<<< HEAD
   const { theme, companyInfo, vouchers, addVoucher, updateVoucher } = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -44,6 +45,49 @@ const ReceiptVoucher: React.FC = () => {
     showEntryNarration: false,
   });
 
+=======
+  const { theme, companyInfo, ledgers, vouchers, addVoucher, updateVoucher } = useAppContext();
+  const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const isEditMode = !!id;
+
+  const generateVoucherNumber = () => {
+    const prefix = 'RV';
+    const lastVoucher = vouchers
+      .filter(v => v.type === 'receipt')
+      .sort((a, b) => parseInt(b.number.replace('RV', '') || '0') - parseInt(a.number.replace('RV', '') || '0'))[0];
+    const newNumber = lastVoucher ? parseInt(lastVoucher.number.replace('RV', '')) + 1 : 1;
+    return `${prefix}${newNumber.toString().padStart(6, '0')}`;
+  };
+
+  const initialFormData: Omit<VoucherEntry, 'id'> = {
+    date: new Date().toISOString().split('T')[0],
+    type: 'receipt',
+    number: isEditMode ? '' : generateVoucherNumber(),
+    narration: '',
+    entries: [
+      { id: '1', ledgerId: '', amount: 0, type: 'debit', narration: '' },
+      { id: '2', ledgerId: '', amount: 0, type: 'credit', narration: '' },
+    ],
+    mode: 'double-entry',
+    referenceNo: '',
+    supplierInvoiceDate: '',
+  };
+
+  const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>(
+    isEditMode ? vouchers.find(v => v.id === id) || initialFormData : initialFormData
+  );
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showConfigPanel, setShowConfigPanel] = useState(false);
+  const [config, setConfig] = useState({
+    autoNumbering: true,
+    showReference: true,
+    showBankDetails: true,
+    showCostCentre: false,
+    showEntryNarration: false,
+  });
+
+>>>>>>> 21fa05d357066fab23f62f3a466fde1468c2e25c
   // Mock cost centres
   const costCentres = useMemo(() => [
     { id: 'CC1', name: 'Washing Department' },
@@ -136,6 +180,7 @@ const ReceiptVoucher: React.FC = () => {
     setFormData(prev => ({ ...prev, entries: updatedEntries }));
     setErrors(prev => ({ ...prev, [`ledgerId${index}`]: '', [`amount${index}`]: '' }));
   };
+<<<<<<< HEAD
 useEffect(() => {
     const fetchLedgers = async () => {
       try {
@@ -186,6 +231,43 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 };
 
+=======
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      try {
+        const voucherData: VoucherEntry = {
+          id: isEditMode ? id! : Math.random().toString(36).substring(2, 9),
+          ...formData,
+        };
+        const res = await fetch(`http://localhost:5000/api/vouchers${isEditMode ? `/${id}` : ''}`, {
+          method: isEditMode ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(voucherData),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          if (isEditMode) {
+            updateVoucher(id!, voucherData);
+          } else {
+            addVoucher(voucherData);
+          }
+          Swal.fire('Success', data.message || 'Voucher saved successfully', 'success').then(() => {
+            navigate('/vouchers');
+          });
+        } else {
+          Swal.fire('Error', data.message || 'Something went wrong', 'error');
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire('Error', 'Network or server issue', 'error');
+      }
+    } else {
+      Swal.fire('Error', 'Please correct the errors in the form', 'error');
+    }
+  };
+>>>>>>> 21fa05d357066fab23f62f3a466fde1468c2e25c
 
   const handlePrint = useCallback(() => {
     const printWindow = window.open('', '_blank');
@@ -253,7 +335,11 @@ const handleSubmit = async (e: React.FormEvent) => {
       printWindow.print();
     }
   }, [companyInfo, formData, config, ledgers, costCentres]);
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 21fa05d357066fab23f62f3a466fde1468c2e25c
   useEffect(() => {
     const handleKeyDownWrapper = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === 's') {
