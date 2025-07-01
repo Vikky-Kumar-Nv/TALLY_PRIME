@@ -92,7 +92,36 @@ const VouchersIndex: React.FC = () => {
       path: '/vouchers/delivery-note/create',
       color: theme === 'dark' ? 'bg-cyan-900' : 'bg-cyan-50',
       iconBg: theme === 'dark' ? 'bg-cyan-800' : 'bg-cyan-100'
-    }
+    },
+     { 
+      icon: <FilePlus size={20} />, 
+      name: 'Sales Return', 
+      path: '/vouchers/sales-return/create',
+      color: theme === 'dark' ? 'bg-pink-900' : 'bg-pink-50',
+      iconBg: theme === 'dark' ? 'bg-pink-800' : 'bg-pink-100'
+    },
+     { 
+      icon: <FilePlus size={20} />, 
+      name: 'Purchase Return', 
+      path: '/vouchers/purchase-return/create',
+      color: theme === 'dark' ? 'bg-pink-900' : 'bg-green-50',
+      iconBg: theme === 'dark' ? 'bg-pink-800' : 'bg-green-100'
+    },
+    { 
+      icon: <FilePlus size={20} />, 
+      name: 'Sales Order', 
+      path: '/vouchers/sales-order/create',
+      color: theme === 'dark' ? 'bg-pink-900' : 'bg-pink-50',
+      iconBg: theme === 'dark' ? 'bg-pink-800' : 'bg-pink-100'
+    },
+    { 
+      icon: <FilePlus size={20} />, 
+      name: 'Quation', 
+      path: '/vouchers/quation/create',
+      color: theme === 'dark' ? 'bg-pink-900' : 'bg-pink-50',
+      iconBg: theme === 'dark' ? 'bg-pink-800' : 'bg-pink-100'
+    },
+     
   ];
 
   return (
@@ -103,6 +132,7 @@ const VouchersIndex: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {voucherTypes.map((voucher, index) => (
             <button
+              title='Create Voucher'
               key={index}
               onClick={() => navigate(voucher.path)}
               className={`p-4 rounded-lg flex flex-col items-center text-center transition-colors ${voucher.color}`}
