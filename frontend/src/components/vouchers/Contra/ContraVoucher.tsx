@@ -10,7 +10,7 @@ interface Ledgers {
   groupName: string;
 }
 const ContraVoucher: React.FC = () => {
-  const { theme,  companyInfo, vouchers, addVoucher, updateVoucher } = useAppContext();
+  const { theme,  companyInfo, vouchers } = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
@@ -55,40 +55,6 @@ const [cashBankLedgers, setCashBankLedgers] = useState<Ledgers[]>([]);
     { id: 'CC1', name: 'Washing Department' },
     { id: 'CC2', name: 'Polishing Department' },
   ], []);
-
-  const validateForm = useCallback(() => {
-    const newErrors: { [key: string]: string } = {};
-    if (!formData.date) newErrors.date = 'Date is required';
-    if (!formData.number) newErrors.number = 'Voucher number is required';
-    if (formData.mode === 'single-entry' && formData.entries.length !== 2) {
-      newErrors.entries = 'Single entry mode requires exactly one debit and one credit';
-    }
-    if (formData.mode === 'single-entry' && formData.entries[0].type !== 'debit') {
-      newErrors.entries = 'First entry must be debit in single entry mode';
-    }
-    if (formData.mode === 'single-entry' && formData.entries[1].type !== 'credit') {
-      newErrors.entries = 'Second entry must be credit in single entry mode';
-    }
-    formData.entries.forEach((entry, index) => {
-      if (!entry.ledgerId) newErrors[`ledgerId${index}`] = `Ledger is required for entry ${index + 1}`;
-      if (entry.amount <= 0) newErrors[`amount${index}`] = `Amount must be greater than 0 for entry ${index + 1}`;
-      const ledger = ledgers.find(l => l.id === entry.ledgerId);
-      if (ledger && ledger.type !== 'cash' && ledger.type !== 'bank') {
-        newErrors[`ledgerId${index}`] = 'Ledger must be Cash or Bank';
-      }
-    });
-    const totalDebit = formData.entries
-      .filter(entry => entry.type === 'debit')
-      .reduce((sum, entry) => sum + entry.amount, 0);
-    const totalCredit = formData.entries
-      .filter(entry => entry.type === 'credit')
-      .reduce((sum, entry) => sum + entry.amount, 0);
-    if (formData.mode === 'double-entry' && totalDebit !== totalCredit) {
-      newErrors.balance = 'Total debit must equal total credit';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [formData, ledgers]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -148,7 +114,7 @@ useEffect(() => {
   console.log("cashBankLedgers:", cashBankLedgers);
 }, [cashBankLedgers]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
   
     // if (!validateForm()) {
@@ -182,7 +148,7 @@ useEffect(() => {
       console.error('Error:', error);
       Swal.fire('Network Error', 'Failed to connect to the server.', 'error');
     }
-  };
+  }, [formData, navigate]);
   
   
   const handlePrint = useCallback(() => {

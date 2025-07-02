@@ -54,7 +54,7 @@ const getSelectClasses = (theme: string, hasError: boolean = false) => {
 };
 
 const PurchaseVoucher: React.FC = () => {
-  const { theme, stockItems, ledgers, godowns = [], vouchers = [], updateStockItem, addVoucher, companyInfo } = useAppContext();
+  const { theme, stockItems, ledgers, godowns = [], vouchers = [], companyInfo } = useAppContext();
   const navigate = useNavigate();
   const printRef = useRef<HTMLDivElement>(null);
 
