@@ -6,20 +6,17 @@ import { Save, Plus, Trash2, ArrowLeft, Printer, Settings } from 'lucide-react';
 import type { VoucherEntry, Ledger } from '../../../types';
 
 const ReceiptVoucher: React.FC = () => {
-  const { theme, companyInfo, ledgers, vouchers, addVoucher, updateVoucher } = useAppContext();
+  const { theme, companyInfo, vouchers} = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
+  const [ledgers, setLedgers] = useState<Ledger[]>([]);
 
   const generateVoucherNumber = () => {
-    const prefix = 'RV';
-    const lastVoucher = vouchers
-      .filter(v => v.type === 'receipt')
-      .sort((a, b) => parseInt(b.number.replace('RV', '') || '0') - parseInt(a.number.replace('RV', '') || '0'))[0];
-    const newNumber = lastVoucher ? parseInt(lastVoucher.number.replace('RV', '')) + 1 : 1;
-    return `${prefix}${newNumber.toString().padStart(6, '0')}`;
-  };
-
+  const prefix = 'RV';
+  const randomNumber = Math.floor(100000 + Math.random() * 900000); // 6-digit
+  return `${prefix}${randomNumber}`;
+};
   const initialFormData: Omit<VoucherEntry, 'id'> = {
     date: new Date().toISOString().split('T')[0],
     type: 'receipt',
@@ -139,41 +136,56 @@ const ReceiptVoucher: React.FC = () => {
     setFormData(prev => ({ ...prev, entries: updatedEntries }));
     setErrors(prev => ({ ...prev, [`ledgerId${index}`]: '', [`amount${index}`]: '' }));
   };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
+useEffect(() => {
+    const fetchLedgers = async () => {
       try {
-        const voucherData: VoucherEntry = {
-          id: isEditMode ? id! : Math.random().toString(36).substring(2, 9),
-          ...formData,
-        };
-        const res = await fetch(`http://localhost:5000/api/vouchers${isEditMode ? `/${id}` : ''}`, {
-          method: isEditMode ? 'PUT' : 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(voucherData),
-        });
+        const res = await fetch("http://localhost:5000/api/ledger");
         const data = await res.json();
-        if (res.ok) {
-          if (isEditMode) {
-            updateVoucher(id!, voucherData);
-          } else {
-            addVoucher(voucherData);
-          }
-          Swal.fire('Success', data.message || 'Voucher saved successfully', 'success').then(() => {
-            navigate('/app/vouchers');
-          });
-        } else {
-          Swal.fire('Error', data.message || 'Something went wrong', 'error');
-        }
+        setLedgers(data);
       } catch (err) {
-        console.error(err);
-        Swal.fire('Error', 'Network or server issue', 'error');
+        console.error("Failed to load ledgers", err);
       }
+    };
+
+    fetchLedgers();
+  }, []);
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!validateForm()) {
+    Swal.fire('Validation Error', 'Please fix the errors before submitting.', 'warning');
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:5000/api/vouchers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData), // your state
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: data.message,
+      }).then(() => {
+        navigate('/app/vouchers'); // or your route to go back
+      });
     } else {
-      Swal.fire('Error', 'Please correct the errors in the form', 'error');
+      Swal.fire('Error', data.message || 'Something went wrong', 'error');
     }
-  };
+  } catch (error) {
+    console.error('Error:', error);
+    Swal.fire('Network Error', 'Failed to connect to the server.', 'error');
+  }
+};
+
 
   const handlePrint = useCallback(() => {
     const printWindow = window.open('', '_blank');
@@ -241,7 +253,7 @@ const ReceiptVoucher: React.FC = () => {
       printWindow.print();
     }
   }, [companyInfo, formData, config, ledgers, costCentres]);
-
+    
   useEffect(() => {
     const handleKeyDownWrapper = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === 's') {
@@ -258,7 +270,7 @@ const ReceiptVoucher: React.FC = () => {
         e.preventDefault();
         setShowConfigPanel(!showConfigPanel);
       } else if (e.key === 'Escape') {
-        navigate('/app/vouchers');
+        navigate('/vouchers');
       }
     };
 
@@ -280,7 +292,7 @@ const ReceiptVoucher: React.FC = () => {
         <button
           title="Back to Vouchers"
           type="button"
-          onClick={() => navigate('/app/vouchers')}
+          onClick={() => navigate('/vouchers')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />
