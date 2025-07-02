@@ -120,14 +120,14 @@ const Register: React.FC = () => {
           <div className="relative">
             {/* Registration/Growth illustration */}
             <div className="w-80 h-80 flex items-center justify-center">
-              <img 
+              {/* <img 
                 src="/src/assets/image 1.svg" 
                 alt="Growth Illustration" 
                 className="w-full h-full object-contain"
                 onError={(e) => {
                   e.currentTarget.classList.add('hidden');
                 }}
-              />
+              /> */}
               {/* Fallback illustration if image doesn't load */}
               <div className="w-64 h-64 bg-white/20 rounded-3xl backdrop-blur-sm flex items-center justify-center">
                 <div className="text-white/80 text-center">
