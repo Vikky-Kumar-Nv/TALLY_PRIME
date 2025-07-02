@@ -6,6 +6,8 @@ interface User {
   fullName: string;
   hasSubscription: boolean;
   subscriptionPlan?: 'basic' | 'professional' | 'enterprise';
+  createdAt?: string;
+  lastLoginAt?: string;
 }
 
 interface AuthContextType {
@@ -15,6 +17,7 @@ interface AuthContextType {
   logout: () => void;
   register: (userData: RegisterData) => Promise<boolean>;
   updateSubscription: (plan: 'basic' | 'professional' | 'enterprise') => void;
+  isAuthenticated: boolean;
 }
 
 interface RegisterData {
@@ -33,9 +36,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Check if user is logged in on app start
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    try {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
+      }
+    } catch (error) {
+      console.error('Error loading user from localStorage:', error);
+      // Clear corrupted data
+      localStorage.removeItem('user');
     }
     setIsLoading(false);
   }, []);
@@ -43,59 +53,104 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock user data - in real app, this would come from API
-    const mockUser: User = {
-      id: '1',
-      email,
-      fullName: 'John Doe',
-      hasSubscription: false,
-    };
-    
-    setUser(mockUser);
-    localStorage.setItem('user', JSON.stringify(mockUser));
-    setIsLoading(false);
-    
-    return true;
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mock authentication - in real app, this would validate credentials with API
+      if (!email || !password) {
+        setIsLoading(false);
+        return false;
+      }
+      
+      // Mock user data - in real app, this would come from API response
+      const mockUser: User = {
+        id: '1',
+        email,
+        fullName: 'John Doe',
+        hasSubscription: false,
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
+      };
+      
+      setUser(mockUser);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      setIsLoading(false);
+      
+      return true;
+    } catch (error) {
+      console.error('Login error:', error);
+      setIsLoading(false);
+      return false;
+    }
   };
 
   const register = async (userData: RegisterData): Promise<boolean> => {
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock registration - in real app, this would call API
-    const newUser: User = {
-      id: Date.now().toString(),
-      email: userData.email,
-      fullName: userData.fullName,
-      hasSubscription: false,
-    };
-    
-    setUser(newUser);
-    localStorage.setItem('user', JSON.stringify(newUser));
-    setIsLoading(false);
-    
-    return true;
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Basic validation - in real app, this would be more comprehensive
+      if (!userData.email || !userData.password || !userData.fullName) {
+        setIsLoading(false);
+        return false;
+      }
+      
+      // Mock registration - in real app, this would call API
+      const newUser: User = {
+        id: Date.now().toString(),
+        email: userData.email,
+        fullName: userData.fullName,
+        hasSubscription: false,
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
+      };
+      
+      setUser(newUser);
+      localStorage.setItem('user', JSON.stringify(newUser));
+      setIsLoading(false);
+      
+      return true;
+    } catch (error) {
+      console.error('Registration error:', error);
+      setIsLoading(false);
+      return false;
+    }
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+    try {
+      setUser(null);
+      localStorage.removeItem('user');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Force clear user state even if localStorage fails
+      setUser(null);
+    }
   };
 
   const updateSubscription = (plan: 'basic' | 'professional' | 'enterprise') => {
     if (user) {
-      const updatedUser = {
-        ...user,
-        hasSubscription: true,
-        subscriptionPlan: plan,
-      };
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      try {
+        const updatedUser = {
+          ...user,
+          hasSubscription: true,
+          subscriptionPlan: plan,
+        };
+        setUser(updatedUser);
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      } catch (error) {
+        console.error('Error updating subscription:', error);
+        // Update state even if localStorage fails
+        const updatedUser = {
+          ...user,
+          hasSubscription: true,
+          subscriptionPlan: plan,
+        };
+        setUser(updatedUser);
+      }
     }
   };
 
@@ -108,6 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         register,
         updateSubscription,
+        isAuthenticated: !!user,
       }}
     >
       {children}
@@ -115,6 +171,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// Fast Refresh warning is expected for Context files that export both provider and hook
+// This is the standard React Context pattern and doesn't affect functionality
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
