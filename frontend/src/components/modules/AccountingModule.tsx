@@ -14,28 +14,28 @@ const AccountingModule: React.FC = () => {
     {
       title: 'Chart of Accounts',
       items: [
-        { icon: <BookOpen size={20} />, name: 'Ledger Accounts', path: '/masters/ledger' },
-        { icon: <FileText size={20} />, name: 'Groups', path: '/masters/group' },
-        { icon: <DollarSign size={20} />, name: 'Cost Centers', path: '/masters/cost-centers' },
-        { icon: <Calculator size={20} />, name: 'Budgets', path: '/masters/budgets' }
+        { icon: <BookOpen size={20} />, name: 'Ledger Accounts', path: '/app/masters/ledger' },
+        { icon: <FileText size={20} />, name: 'Groups', path: '/app/masters/group' },
+        { icon: <DollarSign size={20} />, name: 'Cost Centers', path: '/app/masters/cost-centers' },
+        { icon: <Calculator size={20} />, name: 'Budgets', path: '/app/masters/budgets' }
       ]
     },
     {
       title: 'Transaction Entry',
       items: [
-        { icon: <FileText size={20} />, name: 'Payment Voucher', path: '/vouchers/payment/create' },
-        { icon: <FileText size={20} />, name: 'Receipt Voucher', path: '/vouchers/receipt/create' },
-        { icon: <FileText size={20} />, name: 'Journal Voucher', path: '/vouchers/journal/create' },
-        { icon: <FileText size={20} />, name: 'Contra Voucher', path: '/vouchers/contra/create' }
+        { icon: <FileText size={20} />, name: 'Payment Voucher', path: '/app/vouchers/payment/create' },
+        { icon: <FileText size={20} />, name: 'Receipt Voucher', path: '/app/vouchers/receipt/create' },
+        { icon: <FileText size={20} />, name: 'Journal Voucher', path: '/app/vouchers/journal/create' },
+        { icon: <FileText size={20} />, name: 'Contra Voucher', path: '/app/vouchers/contra/create' }
       ]
     },
     {
       title: 'Financial Reports',
       items: [
-        { icon: <BarChart2 size={20} />, name: 'Trial Balance', path: '/reports/trial-balance' },
-        { icon: <TrendingUp size={20} />, name: 'Profit & Loss', path: '/reports/profit-loss' },
-        { icon: <PieChart size={20} />, name: 'Balance Sheet', path: '/reports/balance-sheet' },
-        { icon: <Activity size={20} />, name: 'Cash Flow', path: '/reports/cash-flow' }
+        { icon: <BarChart2 size={20} />, name: 'Trial Balance', path: '/app/reports/trial-balance' },
+        { icon: <TrendingUp size={20} />, name: 'Profit & Loss', path: '/app/reports/profit-loss' },
+        { icon: <PieChart size={20} />, name: 'Balance Sheet', path: '/app/reports/balance-sheet' },
+        { icon: <Activity size={20} />, name: 'Cash Flow', path: '/app/reports/cash-flow' }
       ]
     }
   ];

@@ -152,7 +152,7 @@ function App() {
       // Alt+F1 for company selection
       if (e.altKey && e.key === 'F1') {
         e.preventDefault();
-        window.location.href = '/company';
+        window.location.href = '/app/company';
       }
     };
 

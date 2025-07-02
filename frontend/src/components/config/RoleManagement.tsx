@@ -593,7 +593,7 @@ const RoleManagement = () => {
             <button
                 title='Back to Reports'
                 type='button'
-                onClick={() => navigate('/config')}
+                onClick={() => navigate('/app/config')}
                 className="mr-4 p-2 rounded-full hover:bg-gray-200"
                 aria-label="Back to Reports"
             >

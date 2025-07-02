@@ -59,7 +59,7 @@ const StockCategoryForm: React.FC = () => {
       } else {
         addStockCategory(categoryData);
       }
-      navigate('/masters/stock-category');
+      navigate('/app/masters/stock-category');
     }
   }, [formData, isEditMode, updateStockCategory, addStockCategory, navigate, validateForm]);
 
@@ -99,7 +99,7 @@ const StockCategoryForm: React.FC = () => {
       e.preventDefault();
       handlePrint();
     } else if (e.key === 'Escape') {
-      navigate('/masters/stock-category');
+      navigate('/app/masters/stock-category');
     }
   }, [handleSubmit, handlePrint, navigate]);
 
@@ -113,7 +113,7 @@ const StockCategoryForm: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
           title="Back to Stock Categories"
-          onClick={() => navigate('/masters')}
+          onClick={() => navigate('/app/masters')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />

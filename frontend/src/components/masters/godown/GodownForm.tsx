@@ -48,7 +48,7 @@ const GodownForm: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle form submission
-    navigate('/masters/godown');
+    navigate('/app/masters/godown');
   };
 
   return (
@@ -56,7 +56,7 @@ const GodownForm: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
         title='Back to Godown List'
-          onClick={() => navigate('/masters/godowns')}
+          onClick={() => navigate('/app/masters/godowns')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}
@@ -129,7 +129,7 @@ const GodownForm: React.FC = () => {
           <div className="flex justify-end space-x-4">
             <button
               type="button"
-              onClick={() => navigate('/masters/godown')}
+              onClick={() => navigate('/app/masters/godown')}
               className={`px-4 py-2 rounded ${
                 theme === 'dark' 
                   ? 'bg-gray-700 hover:bg-gray-600' 

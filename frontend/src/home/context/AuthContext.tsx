@@ -6,6 +6,8 @@ interface User {
   fullName: string;
   hasSubscription: boolean;
   subscriptionPlan?: 'basic' | 'professional' | 'enterprise';
+  createdAt?: string;
+  lastLoginAt?: string;
 }
 
 interface AuthContextType {
@@ -15,6 +17,7 @@ interface AuthContextType {
   logout: () => void;
   register: (userData: RegisterData) => Promise<boolean>;
   updateSubscription: (plan: 'basic' | 'professional' | 'enterprise') => void;
+  isAuthenticated: boolean;
 }
 
 interface RegisterData {
@@ -37,20 +40,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const savedUser = localStorage.getItem('user');
       if (savedUser) {
         const parsedUser = JSON.parse(savedUser);
-        // Validate the parsed user data
-        if (parsedUser && parsedUser.id && parsedUser.email) {
-          setUser(parsedUser);
-        } else {
-          // Clear invalid user data
-          localStorage.removeItem('user');
-        }
+        setUser(parsedUser);
       }
     } catch (error) {
-      console.error('Error parsing user data from localStorage:', error);
+      console.error('Error loading user from localStorage:', error);
+      // Clear corrupted data
       localStorage.removeItem('user');
-    } finally {
-      setIsLoading(false);
     }
+    setIsLoading(false);
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -60,24 +57,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Basic validation - in real app, this would call API
+      // Mock authentication - in real app, this would validate credentials with API
       if (!email || !password) {
         setIsLoading(false);
         return false;
       }
       
-      // Simple mock validation - in production, this would be server-side
-      if (password.length < 3) {
-        setIsLoading(false);
-        return false;
-      }
-      
-      // Mock user data - in real app, this would come from API
+      // Mock user data - in real app, this would come from API response
       const mockUser: User = {
         id: '1',
         email,
-        fullName: email.split('@')[0] || 'User', // Use email prefix as name
+        fullName: 'John Doe',
         hasSubscription: false,
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
       };
       
       setUser(mockUser);
@@ -99,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Basic validation
+      // Basic validation - in real app, this would be more comprehensive
       if (!userData.email || !userData.password || !userData.fullName) {
         setIsLoading(false);
         return false;
@@ -111,6 +104,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email: userData.email,
         fullName: userData.fullName,
         hasSubscription: false,
+        createdAt: new Date().toISOString(),
+        lastLoginAt: new Date().toISOString(),
       };
       
       setUser(newUser);
@@ -129,18 +124,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setUser(null);
       localStorage.removeItem('user');
-      // Clear any other auth-related data if needed
-      localStorage.removeItem('selectedPlan');
     } catch (error) {
-      console.error('Logout error:', error);
-      // Even if localStorage fails, still clear the user state
+      console.error('Error during logout:', error);
+      // Force clear user state even if localStorage fails
       setUser(null);
     }
   };
 
   const updateSubscription = (plan: 'basic' | 'professional' | 'enterprise') => {
-    try {
-      if (user) {
+    if (user) {
+      try {
         const updatedUser = {
           ...user,
           hasSubscription: true,
@@ -148,11 +141,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         setUser(updatedUser);
         localStorage.setItem('user', JSON.stringify(updatedUser));
-      } else {
-        console.warn('Cannot update subscription: No user logged in');
+      } catch (error) {
+        console.error('Error updating subscription:', error);
+        // Update state even if localStorage fails
+        const updatedUser = {
+          ...user,
+          hasSubscription: true,
+          subscriptionPlan: plan,
+        };
+        setUser(updatedUser);
       }
-    } catch (error) {
-      console.error('Error updating subscription:', error);
     }
   };
 
@@ -165,6 +163,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         register,
         updateSubscription,
+        isAuthenticated: !!user,
       }}
     >
       {children}
@@ -172,6 +171,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
+// Fast Refresh warning is expected for Context files that export both provider and hook
+// This is the standard React Context pattern and doesn't affect functionality
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

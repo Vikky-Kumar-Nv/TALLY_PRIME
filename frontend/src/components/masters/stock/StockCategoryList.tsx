@@ -69,7 +69,7 @@ const StockCategoryList: React.FC = () => {
         <div className="flex space-x-2 justify-center">
           <button
             title="Edit Stock Category"
-            onClick={() => navigate(`/masters/stock-category/edit/${row.id}`)}
+            onClick={() => navigate(`/app/masters/stock-category/edit/${row.id}`)}
             className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
           >
             <Edit size={16} />
@@ -163,7 +163,7 @@ const StockCategoryList: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
           title="Back to Masters"
-          onClick={() => navigate('/masters')}
+          onClick={() => navigate('/app/masters')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />
@@ -173,7 +173,7 @@ const StockCategoryList: React.FC = () => {
         </h1>
         <div className="ml-auto flex space-x-2">
           <Link
-            to="/masters/stock-category/create"
+            to="/app/masters/stock-category/create"
             className={`flex items-center gap-2 px-4 py-2 rounded-md ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
           >
             <Plus size={18} /> New Category

@@ -79,7 +79,7 @@ const StockJournalVoucher: React.FC = () => {
     };
     
     addVoucher(newVoucher);
-    navigate('/vouchers');
+    navigate('/app/vouchers');
   };
 
   return (
@@ -88,7 +88,7 @@ const StockJournalVoucher: React.FC = () => {
         <button
         title='Back to Vouchers'
           type="button"
-          onClick={() => navigate('/vouchers')}
+          onClick={() => navigate('/app/vouchers')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}
@@ -341,7 +341,7 @@ const StockJournalVoucher: React.FC = () => {
             <button
             title='Cancel'
               type="button"
-              onClick={() => navigate('/vouchers')}
+              onClick={() => navigate('/app/vouchers')}
               className={`px-4 py-2 rounded ${
                 theme === 'dark' 
                   ? 'bg-gray-700 hover:bg-gray-600' 

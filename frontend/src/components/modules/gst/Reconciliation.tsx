@@ -125,7 +125,7 @@ const Reconciliation: React.FC = () => {
             <button
                 title='Back to Reports'
                 type='button'
-                  onClick={() => navigate('/gst')}
+                  onClick={() => navigate('/app/gst')}
                   className="mr-4 p-2 rounded-full hover:bg-gray-200"
                 >
                   <ArrowLeft size={20} />

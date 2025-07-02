@@ -35,7 +35,7 @@ const LedgerList: React.FC = () => {
          <div className="flex items-center mb-6">
         <button
           title="Back to Group List"
-          onClick={() => navigate('/masters')}
+          onClick={() => navigate('/app/masters')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />
@@ -47,7 +47,7 @@ const LedgerList: React.FC = () => {
         title="Create Ledger"
           aria-label="Create Ledger"
           type='button'
-          onClick={() => navigate('/masters/ledger/create')}
+          onClick={() => navigate('/app/masters/ledger/create')}
           className={`flex items-center px-4 py-2 rounded ${
             theme === 'dark' 
               ? 'bg-blue-600 hover:bg-blue-700' 
@@ -91,7 +91,7 @@ const LedgerList: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredLedgers.map((ledger: any) => (
+              {filteredLedgers.map((ledger:any) => (
                 <tr key={ledger.id} className={`hover:bg-opacity-10 hover:bg-blue-500 ${theme === 'dark' ? 'border-b border-gray-700' : 'border-b border-gray-200'}`}>
                   <td className="px-4 py-3">{ledger.name}</td>
                   <td className="px-4 py-3">{ledger.groupName}</td>
@@ -110,7 +110,7 @@ const LedgerList: React.FC = () => {
                       <button
                       title='Edit Ledger'
                       type='button'
-                        onClick={() => navigate(`/masters/ledger/edit/${ledger.id}`)}
+                        onClick={() => navigate(`/app/masters/ledger/edit/${ledger.id}`)}
                         className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
                       >
                         <Edit size={16} />

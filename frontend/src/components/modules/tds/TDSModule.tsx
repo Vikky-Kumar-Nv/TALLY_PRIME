@@ -16,28 +16,28 @@ const TDSModule: React.FC = () => {
     {
       title: 'TDS Returns',
       items: [
-        { icon: <FileText size={20} />, name: 'Form 24Q', path: '/tds/form-24q' },
-        { icon: <FileText size={20} />, name: 'Form 26Q', path: '/tds/form-26q' },
-        { icon: <FileText size={20} />, name: 'Form 27Q', path: '/tds/form-27q' },
-        { icon: <BarChart2 size={20} />, name: 'TDS Summary', path: '/tds/summary' }
+        { icon: <FileText size={20} />, name: 'Form 24Q', path: '/app/tds/form-24q' },
+        { icon: <FileText size={20} />, name: 'Form 26Q', path: '/app/tds/form-26q' },
+        { icon: <FileText size={20} />, name: 'Form 27Q', path: '/app/tds/form-27q' },
+        { icon: <BarChart2 size={20} />, name: 'TDS Summary', path: '/app/tds/summary' }
       ]
     },
     {
       title: 'TDS Configuration',
       items: [
-        { icon: <Calculator size={20} />, name: 'TDS Rates', path: '/tds/rates' },
-        { icon: <Users size={20} />, name: 'Deductee Master', path: '/tds/deductees' },
-        { icon: <CheckCircle size={20} />, name: 'TAN Registration', path: '/tds/tan' },
-        { icon: <AlertTriangle size={20} />, name: 'Compliance Check', path: '/tds/compliance' }
+        { icon: <Calculator size={20} />, name: 'TDS Rates', path: '/app/tds/rates' },
+        { icon: <Users size={20} />, name: 'Deductee Master', path: '/app/tds/deductees' },
+        { icon: <CheckCircle size={20} />, name: 'TAN Registration', path: '/app/tds/tan' },
+        { icon: <AlertTriangle size={20} />, name: 'Compliance Check', path: '/app/tds/compliance' }
       ]
     },
     {
       title: 'Certificates & Reports',
       items: [
-        { icon: <FileText size={20} />, name: 'Form 16', path: '/tds/form-16' },
-        { icon: <FileText size={20} />, name: 'Form 16A', path: '/tds/form-16a' },
-        { icon: <Download size={20} />, name: 'Download Certificates', path: '/tds/certificates' },
-        { icon: <Upload size={20} />, name: 'Upload Challan', path: '/tds/challan' }
+        { icon: <FileText size={20} />, name: 'Form 16', path: '/app/tds/form-16' },
+        { icon: <FileText size={20} />, name: 'Form 16A', path: '/app/tds/form-16a' },
+        { icon: <Download size={20} />, name: 'Download Certificates', path: '/app/tds/certificates' },
+        { icon: <Upload size={20} />, name: 'Upload Challan', path: '/app/tds/challan' }
       ]
     }
   ];

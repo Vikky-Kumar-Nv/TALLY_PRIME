@@ -18,7 +18,7 @@ const DayBook: React.FC = () => {
         <button
         type='button'
           title='Back to Reports'
-          onClick={() => navigate('/reports')}
+          onClick={() => navigate('/app/reports')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}

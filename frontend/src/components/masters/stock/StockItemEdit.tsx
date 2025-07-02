@@ -244,7 +244,7 @@ const StockItemEdit = () => {
 
   useEffect(() => {
     if (!existingItem) {
-      navigate('/masters/stock-item');
+      navigate('/app/masters/stock-item');
     }
   }, [existingItem, navigate]);
 
@@ -350,7 +350,7 @@ const StockItemEdit = () => {
       secondaryUnit: formData.maintainInPieces ? formData.secondaryUnit : undefined
     };
     updateStockItem(id!, stockItem);
-    navigate('/masters/stock-item');
+    navigate('/app/masters/stock-item');
   };
 
   const hsnSacOptions = [
@@ -396,7 +396,7 @@ const StockItemEdit = () => {
     <div className="pt-[56px] px-4">
       <div className="flex items-center mb-6">
         <button
-          onClick={() => navigate('/masters/stock-item')}
+          onClick={() => navigate('/app/masters/stock-item')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}
@@ -644,7 +644,7 @@ const StockItemEdit = () => {
         <div className="mt-6 flex justify-end gap-3">
           <button
             type="button"
-            onClick={() => navigate('/masters/stock-item')}
+            onClick={() => navigate('/app/masters/stock-item')}
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             <X className="w-4 h-4" />

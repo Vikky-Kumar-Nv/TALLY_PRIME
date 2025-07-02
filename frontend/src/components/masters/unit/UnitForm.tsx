@@ -50,7 +50,7 @@ const UnitForm: React.FC = () => {
       addUnit(newUnit);
     }
     
-    navigate('/masters/unit');
+    navigate('/app/masters/unit');
   };
 
   return (
@@ -58,7 +58,7 @@ const UnitForm: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
         title='Back to Units'
-          onClick={() => navigate('/masters/units')}
+          onClick={() => navigate('/app/masters/units')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}
@@ -115,7 +115,7 @@ const UnitForm: React.FC = () => {
           <div className="flex justify-end space-x-4">
             <button
               type="button"
-              onClick={() => navigate('/masters/unit')}
+              onClick={() => navigate('/app/masters/unit')}
               className={`px-4 py-2 rounded ${
                 theme === 'dark' 
                   ? 'bg-gray-700 hover:bg-gray-600' 

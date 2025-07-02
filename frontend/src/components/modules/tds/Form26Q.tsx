@@ -155,7 +155,7 @@ const Form26Q: React.FC = () => {
             <button
                 title='Back to Reports'
                 type='button'
-                  onClick={() => navigate('/tds')}
+                  onClick={() => navigate('/app/tds')}
                   className="mr-4 p-2 rounded-full hover:bg-gray-200"
                 >
                   <ArrowLeft size={20} />

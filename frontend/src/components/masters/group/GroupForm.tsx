@@ -204,7 +204,7 @@ const GroupForm: React.FC = () => {
       if (res.ok) {
         if (!isEditMode) addLedgerGroup(groupData);
         alert(data.message || `Group ${isEditMode ? 'updated' : 'created'} successfully!`);
-        navigate('/masters/group');
+        navigate('/app/masters/group');
       } else {
         alert(data.message || `Failed to ${isEditMode ? 'update' : 'create'} group`);
       }
@@ -216,7 +216,7 @@ const GroupForm: React.FC = () => {
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
-      navigate('/masters/group');
+      navigate('/app/masters/group');
     } else if (e.ctrlKey && e.key === 'a') {
       e.preventDefault();
       handleSubmit(e);
@@ -261,7 +261,7 @@ const GroupForm: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
           title="Back to Group List"
-          onClick={() => navigate('/masters/group')}
+          onClick={() => navigate('/app/masters/group')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />
@@ -668,7 +668,7 @@ const GroupForm: React.FC = () => {
             <button
               title="Cancel Group Creation"
               type="button"
-              onClick={() => navigate('/masters/group')}
+              onClick={() => navigate('/app/masters/group')}
               className={`px-4 py-2 rounded text-sm font-medium ${
                 theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600 text-gray-100' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
               }`}

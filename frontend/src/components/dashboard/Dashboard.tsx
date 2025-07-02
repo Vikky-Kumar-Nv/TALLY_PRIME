@@ -326,7 +326,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
 
   const handleCreateCompany = () => {
-    navigate("/company");
+    navigate("/app/company");
   };
 
   const stats = [

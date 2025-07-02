@@ -18,7 +18,7 @@ const StockItemList = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Stock Items</h1>
         <Link
-          to="/masters/stock-item/create"
+          to="/app/masters/stock-item/create"
           className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
             theme === 'dark' 
               ? 'bg-blue-600 hover:bg-blue-700 text-white' 
@@ -123,7 +123,7 @@ const StockItemList = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <button
                             title='Edit Stock Item'
-                            onClick={() => navigate(`/masters/stock-item/edit/${item.id}`)}
+                            onClick={() => navigate(`/app/masters/stock-item/edit/${item.id}`)}
                             className={`mr-2 p-1 rounded ${
                               theme === 'dark' 
                                 ? 'text-blue-400 hover:text-blue-300 hover:bg-gray-600' 
