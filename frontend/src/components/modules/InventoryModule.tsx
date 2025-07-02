@@ -14,28 +14,28 @@ const InventoryModule: React.FC = () => {
     {
       title: 'Inventory Masters',
       items: [
-        { icon: <Package size={20} />, name: 'Stock Items', path: '/masters/stock-item' },
-        { icon: <Archive size={20} />, name: 'Stock Groups', path: '/masters/stock-group' },
-        { icon: <Building size={20} />, name: 'Godowns', path: '/masters/godowns' },
-        { icon: <FileText size={20} />, name: 'Units', path: '/masters/units' }
+        { icon: <Package size={20} />, name: 'Stock Items', path: '/app/masters/stock-item' },
+        { icon: <Archive size={20} />, name: 'Stock Groups', path: '/app/masters/stock-group' },
+        { icon: <Building size={20} />, name: 'Godowns', path: '/app/masters/godowns' },
+        { icon: <FileText size={20} />, name: 'Units', path: '/app/masters/units' }
       ]
     },
     {
       title: 'Stock Transactions',
       items: [
-        { icon: <ShoppingCart size={20} />, name: 'Sales Voucher', path: '/vouchers/sales/create' },
-        { icon: <Truck size={20} />, name: 'Purchase Voucher', path: '/vouchers/purchase/create' },
-        { icon: <FileText size={20} />, name: 'Stock Journal', path: '/vouchers/stock-journal/create' },
-        { icon: <Package size={20} />, name: 'Delivery Note', path: '/vouchers/delivery-note/create' }
+        { icon: <ShoppingCart size={20} />, name: 'Sales Voucher', path: '/app/vouchers/sales/create' },
+        { icon: <Truck size={20} />, name: 'Purchase Voucher', path: '/app/vouchers/purchase/create' },
+        { icon: <FileText size={20} />, name: 'Stock Journal', path: '/app/vouchers/stock-journal/create' },
+        { icon: <Package size={20} />, name: 'Delivery Note', path: '/app/vouchers/delivery-note/create' }
       ]
     },
     {
       title: 'Inventory Reports',
       items: [
-        { icon: <BarChart2 size={20} />, name: 'Stock Summary', path: '/reports/stock-summary' },
-        { icon: <Activity size={20} />, name: 'Movement Analysis', path: '/reports/movement-analysis' },
-        { icon: <FileText size={20} />, name: 'Ageing Analysis', path: '/reports/ageing-analysis' },
-        { icon: <Building size={20} />, name: 'Godown Summary', path: '/reports/godown-summary' }
+        { icon: <BarChart2 size={20} />, name: 'Stock Summary', path: '/app/reports/stock-summary' },
+        { icon: <Activity size={20} />, name: 'Movement Analysis', path: '/app/reports/movement-analysis' },
+        { icon: <FileText size={20} />, name: 'Ageing Analysis', path: '/app/reports/ageing-analysis' },
+        { icon: <Building size={20} />, name: 'Godown Summary', path: '/app/reports/godown-summary' }
       ]
     }
   ];

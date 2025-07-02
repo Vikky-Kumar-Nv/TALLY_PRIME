@@ -26,98 +26,98 @@ const VouchersIndex: React.FC = () => {
     { 
       icon: <DollarSign size={20} />, 
       name: 'Payment', 
-      path: '/vouchers/payment/create',
+      path: '/app/vouchers/payment/create',
       color: theme === 'dark' ? 'bg-red-900' : 'bg-red-50',
       iconBg: theme === 'dark' ? 'bg-red-800' : 'bg-red-100'
     },
     { 
       icon: <ArrowRightCircle size={20} />, 
       name: 'Receipt', 
-      path: '/vouchers/receipt/create',
+      path: '/app/vouchers/receipt/create',
       color: theme === 'dark' ? 'bg-green-900' : 'bg-green-50',
       iconBg: theme === 'dark' ? 'bg-green-800' : 'bg-green-100'
     },
     { 
       icon: <ArrowLeftCircle size={20} />, 
       name: 'Contra', 
-      path: '/vouchers/contra/create',
+      path: '/app/vouchers/contra/create',
       color: theme === 'dark' ? 'bg-purple-900' : 'bg-purple-50',
       iconBg: theme === 'dark' ? 'bg-purple-800' : 'bg-purple-100'
     },
     { 
       icon: <FileText size={20} />, 
       name: 'Journal', 
-      path: '/vouchers/journal/create',
+      path: '/app/vouchers/journal/create',
       color: theme === 'dark' ? 'bg-yellow-900' : 'bg-yellow-50',
       iconBg: theme === 'dark' ? 'bg-yellow-800' : 'bg-yellow-100'
     },
     { 
       icon: <ShoppingCart size={20} />, 
       name: 'Sales', 
-      path: '/vouchers/sales/create',
+      path: '/app/vouchers/sales/create',
       color: theme === 'dark' ? 'bg-blue-900' : 'bg-blue-50',
       iconBg: theme === 'dark' ? 'bg-blue-800' : 'bg-blue-100'
     },
     { 
       icon: <ShoppingBag size={20} />, 
       name: 'Purchase', 
-      path: '/vouchers/purchase/create',
+      path: '/app/vouchers/purchase/create',
       color: theme === 'dark' ? 'bg-indigo-900' : 'bg-indigo-50',
       iconBg: theme === 'dark' ? 'bg-indigo-800' : 'bg-indigo-100'
     },
     { 
       icon: <FilePlus size={20} />, 
       name: 'Debit Note', 
-      path: '/vouchers/debit-note/create',
+      path: '/app/vouchers/debit-note/create',
       color: theme === 'dark' ? 'bg-pink-900' : 'bg-pink-50',
       iconBg: theme === 'dark' ? 'bg-pink-800' : 'bg-pink-100'
     },
     { 
       icon: <FileMinus size={20} />, 
       name: 'Credit Note', 
-      path: '/vouchers/credit-note/create',
+      path: '/app/vouchers/credit-note/create',
       color: theme === 'dark' ? 'bg-teal-900' : 'bg-teal-50',
       iconBg: theme === 'dark' ? 'bg-teal-800' : 'bg-teal-100'
     },
     { 
       icon: <Receipt size={20} />, 
       name: 'Stock Journal', 
-      path: '/vouchers/stock-journal/create',
+      path: '/app/vouchers/stock-journal/create',
       color: theme === 'dark' ? 'bg-orange-900' : 'bg-orange-50',
       iconBg: theme === 'dark' ? 'bg-orange-800' : 'bg-orange-100'
     },
     { 
       icon: <Truck size={20} />, 
       name: 'Delivery Note', 
-      path: '/vouchers/delivery-note/create',
+      path: '/app/vouchers/delivery-note/create',
       color: theme === 'dark' ? 'bg-cyan-900' : 'bg-cyan-50',
       iconBg: theme === 'dark' ? 'bg-cyan-800' : 'bg-cyan-100'
     },
      { 
       icon: <FilePlus size={20} />, 
       name: 'Sales Return', 
-      path: '/vouchers/sales-return/create',
+      path: '/app/vouchers/sales-return/create',
       color: theme === 'dark' ? 'bg-pink-900' : 'bg-pink-50',
       iconBg: theme === 'dark' ? 'bg-pink-800' : 'bg-pink-100'
     },
      { 
       icon: <FilePlus size={20} />, 
       name: 'Purchase Return', 
-      path: '/vouchers/purchase-return/create',
+      path: '/app/vouchers/purchase-return/create',
       color: theme === 'dark' ? 'bg-pink-900' : 'bg-green-50',
       iconBg: theme === 'dark' ? 'bg-pink-800' : 'bg-green-100'
     },
     { 
       icon: <FilePlus size={20} />, 
       name: 'Sales Order', 
-      path: '/vouchers/sales-order/create',
+      path: '/app/vouchers/sales-order/create',
       color: theme === 'dark' ? 'bg-pink-900' : 'bg-pink-50',
       iconBg: theme === 'dark' ? 'bg-pink-800' : 'bg-pink-100'
     },
     { 
       icon: <FilePlus size={20} />, 
       name: 'Quation', 
-      path: '/vouchers/quation/create',
+      path: '/app/vouchers/quation/create',
       color: theme === 'dark' ? 'bg-pink-900' : 'bg-pink-50',
       iconBg: theme === 'dark' ? 'bg-pink-800' : 'bg-pink-100'
     },

@@ -153,7 +153,7 @@ const ContraVoucher: React.FC = () => {
             addVoucher(voucherData);
           }
           Swal.fire('Success', data.message || 'Voucher saved successfully', 'success').then(() => {
-            navigate('/vouchers');
+            navigate('/app/vouchers');
           });
         } else {
           Swal.fire('Error', data.message || 'Something went wrong', 'error');
@@ -245,7 +245,7 @@ const ContraVoucher: React.FC = () => {
       e.preventDefault();
       setShowConfigPanel(!showConfigPanel);
     } else if (e.key === 'Escape') {
-      navigate('/vouchers');
+      navigate('/app/vouchers');
     }
   }, [showConfigPanel, navigate, handlePrint, handleSubmit]);
 
@@ -268,7 +268,7 @@ const ContraVoucher: React.FC = () => {
         <button
           title="Back to Vouchers"
           type="button"
-          onClick={() => navigate('/vouchers')}
+          onClick={() => navigate('/app/vouchers')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />

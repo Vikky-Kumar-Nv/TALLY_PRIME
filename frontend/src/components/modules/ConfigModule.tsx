@@ -14,28 +14,28 @@ const ConfigModule: React.FC = () => {
     {
       title: 'System Configuration',
       items: [
-        { icon: <Settings size={20} />, name: 'General Settings', path: '/config/general' },
-        { icon: <Database size={20} />, name: 'Database Settings', path: '/config/database' },
-        { icon: <RefreshCcw size={20} />, name: 'Backup & Restore', path: '/config/backup' },
-        { icon: <Monitor size={20} />, name: 'Display Settings', path: '/config/display' }
+        { icon: <Settings size={20} />, name: 'General Settings', path: '/app/config/general' },
+        { icon: <Database size={20} />, name: 'Database Settings', path: '/app/config/database' },
+        { icon: <RefreshCcw size={20} />, name: 'Backup & Restore', path: '/app/config/backup' },
+        { icon: <Monitor size={20} />, name: 'Display Settings', path: '/app/config/display' }
       ]
     },
     {
       title: 'User Management',
       items: [
-        { icon: <Users size={20} />, name: 'User Accounts', path: '/config/users' },
-        { icon: <Shield size={20} />, name: 'Permissions', path: '/config/permissions' },
-        { icon: <Settings size={20} />, name: 'Role Management', path: '/config/roles' },
-        { icon: <Monitor size={20} />, name: 'Access Control', path: '/config/access' }
+        { icon: <Users size={20} />, name: 'User Accounts', path: '/app/config/users' },
+        { icon: <Shield size={20} />, name: 'Permissions', path: '/app/config/permissions' },
+        { icon: <Settings size={20} />, name: 'Role Management', path: '/app/config/roles' },
+        { icon: <Monitor size={20} />, name: 'Access Control', path: '/app/config/access' }
       ]
     },
     {
       title: 'Integration & Output',
       items: [
-        { icon: <Printer size={20} />, name: 'Print Settings', path: '/config/print' },
-        { icon: <Mail size={20} />, name: 'Email Configuration', path: '/config/email' },
-        { icon: <Database size={20} />, name: 'Import/Export', path: '/config/import-export' },
-        { icon: <Settings size={20} />, name: 'API Settings', path: '/config/api' }
+        { icon: <Printer size={20} />, name: 'Print Settings', path: '/app/config/print' },
+        { icon: <Mail size={20} />, name: 'Email Configuration', path: '/app/config/email' },
+        { icon: <Database size={20} />, name: 'Import/Export', path: '/app/config/import-export' },
+        { icon: <Settings size={20} />, name: 'API Settings', path: '/app/config/api' }
       ]
     }
   ];

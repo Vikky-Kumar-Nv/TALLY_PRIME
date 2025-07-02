@@ -99,7 +99,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     if (res.ok) {
       Swal.fire("Success", data.message, "success"); // Use sweetalert2
-      navigate("/masters/ledger");
+      navigate("/app/masters/ledger");
     } else {
       Swal.fire("Error", data.message || "Failed to create ledger", "error");
     }
@@ -113,7 +113,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     <div className='pt-[56px] px-4 '>
       <div className="flex items-center mb-6">
         <button
-          onClick={() => navigate('/masters/ledger')}
+          onClick={() => navigate('/app/masters/ledger')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}
@@ -327,7 +327,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <div className="flex justify-end space-x-4">
             <button
               type="button"
-              onClick={() => navigate('/masters/ledger')}
+              onClick={() => navigate('/app/masters/ledger')}
               className={`px-4 py-2 rounded ${
                 theme === 'dark' 
                   ? 'bg-gray-700 hover:bg-gray-600' 

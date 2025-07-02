@@ -341,7 +341,7 @@ const StockItemForm = () => {
       secondaryUnit: formData.maintainInPieces ? formData.secondaryUnit : undefined
     };
     addStockItem(stockItem);
-    navigate('/masters/stock-item');
+    navigate('/app/masters/stock-item');
   };
 
   const hsnSacOptions = [
@@ -387,7 +387,7 @@ const StockItemForm = () => {
     <div className="pt-[56px] px-4">
       <div className="flex items-center mb-6">
         <button
-          onClick={() => navigate('/masters/stock-item')}
+          onClick={() => navigate('/app/masters/stock-item')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}
@@ -635,7 +635,7 @@ const StockItemForm = () => {
         <div className="mt-6 flex justify-end gap-3">
           <button
             type="button"
-            onClick={() => navigate('/masters/stock-item')}
+            onClick={() => navigate('/app/masters/stock-item')}
             className={`px-4 py-2 rounded ${
               theme === 'dark' 
                 ? 'bg-gray-700 hover:bg-gray-600' 

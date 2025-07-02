@@ -67,16 +67,16 @@ interface HorizontalMenuProps {
 }
 
 const menuItems = [
-  { title: 'Dashboard', path: '/' },
-  { title: 'Masters', path: '/masters' },
-  { title: 'Vouchers', path: '/vouchers' },
-  { title: 'Reports', path: '/reports' },
-  { title: 'Accounting', path: '/accounting' },
-  { title: 'Inventory', path: '/inventory' },
-  { title: 'GST', path: '/gst' },
-  { title: 'TDS', path: '/tds' },
-  { title: 'Audit', path: '/audit' },
-  { title: 'Config', path: '/config' },
+  { title: 'Dashboard', path: '/app' },
+  { title: 'Masters', path: '/app/masters' },
+  { title: 'Vouchers', path: '/app/vouchers' },
+  { title: 'Reports', path: '/app/reports' },
+  { title: 'Accounting', path: '/app/accounting' },
+  { title: 'Inventory', path: '/app/inventory' },
+  { title: 'GST', path: '/app/gst' },
+  { title: 'TDS', path: '/app/tds' },
+  { title: 'Audit', path: '/app/audit' },
+  { title: 'Config', path: '/app/config' },
 ];
 
 const HorizontalMenu: React.FC<HorizontalMenuProps> = ({ sidebarOpen }) => {

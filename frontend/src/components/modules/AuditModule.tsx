@@ -14,28 +14,28 @@ const AuditModule: React.FC = () => {
     {
       title: 'Audit Trail',
       items: [
-        { icon: <Activity size={20} />, name: 'Transaction Log', path: '/audit/transaction-log' },
-        { icon: <Users size={20} />, name: 'User Activity', path: '/audit/user-activity' },
-        { icon: <Clock size={20} />, name: 'Login History', path: '/audit/login-history' },
-        { icon: <FileText size={20} />, name: 'Data Changes', path: '/audit/data-changes' }
+        { icon: <Activity size={20} />, name: 'Transaction Log', path: '/app/audit/transaction-log' },
+        { icon: <Users size={20} />, name: 'User Activity', path: '/app/audit/user-activity' },
+        { icon: <Clock size={20} />, name: 'Login History', path: '/app/audit/login-history' },
+        { icon: <FileText size={20} />, name: 'Data Changes', path: '/app/audit/data-changes' }
       ]
     },
     {
       title: 'Security & Compliance',
       items: [
-        { icon: <Shield size={20} />, name: 'Security Settings', path: '/audit/security' },
-        { icon: <CheckCircle size={20} />, name: 'Compliance Check', path: '/audit/compliance' },
-        { icon: <AlertTriangle size={20} />, name: 'Risk Assessment', path: '/audit/risk' },
-        { icon: <Search size={20} />, name: 'Fraud Detection', path: '/audit/fraud' }
+        { icon: <Shield size={20} />, name: 'Security Settings', path: '/app/audit/security' },
+        { icon: <CheckCircle size={20} />, name: 'Compliance Check', path: '/app/audit/compliance' },
+        { icon: <AlertTriangle size={20} />, name: 'Risk Assessment', path: '/app/audit/risk' },
+        { icon: <Search size={20} />, name: 'Fraud Detection', path: '/app/audit/fraud' }
       ]
     },
     {
       title: 'Audit Reports',
       items: [
-        { icon: <FileText size={20} />, name: 'Audit Summary', path: '/audit/summary' },
-        { icon: <Activity size={20} />, name: 'Exception Reports', path: '/audit/exceptions' },
-        { icon: <Clock size={20} />, name: 'Period Analysis', path: '/audit/period-analysis' },
-        { icon: <Users size={20} />, name: 'User Reports', path: '/audit/user-reports' }
+        { icon: <FileText size={20} />, name: 'Audit Summary', path: '/app/audit/summary' },
+        { icon: <Activity size={20} />, name: 'Exception Reports', path: '/app/audit/exceptions' },
+        { icon: <Clock size={20} />, name: 'Period Analysis', path: '/app/audit/period-analysis' },
+        { icon: <Users size={20} />, name: 'User Reports', path: '/app/audit/user-reports' }
       ]
     }
   ];

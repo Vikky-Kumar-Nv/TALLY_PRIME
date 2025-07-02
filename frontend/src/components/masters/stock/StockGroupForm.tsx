@@ -137,7 +137,7 @@ const StockGroupForm: React.FC = () => {
       } else {
         addStockGroup(stockGroupData);
       }
-      navigate('/masters/stock-group');
+      navigate('/app/masters/stock-group');
     }
   }, [formData, isEditMode, updateStockGroup, addStockGroup, navigate, validateForm]);
 
@@ -189,7 +189,7 @@ const StockGroupForm: React.FC = () => {
       e.preventDefault();
       handlePrint();
     } else if (e.key === 'Escape') {
-      navigate('/masters/stock-group');
+      navigate('/app/masters/stock-group');
     }
   }, [handleSubmit, handlePrint, navigate]);
 
@@ -203,7 +203,7 @@ const StockGroupForm: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
           title="Back to Stock Groups"
-          onClick={() => navigate('/masters/stock-group')}
+          onClick={() => navigate('/app/masters/stock-group')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />

@@ -139,7 +139,7 @@ const PaymentVoucher: React.FC = () => {
       } else {
         addVoucher(newVoucher);
       }
-      navigate('/vouchers');
+      navigate('/app/vouchers');
     }
   }, [formData, isEditMode, id, addVoucher, updateVoucher, navigate, validateForm]);
 
@@ -218,7 +218,7 @@ const PaymentVoucher: React.FC = () => {
       e.preventDefault();
       setShowConfigPanel(!showConfigPanel);
     } else if (e.key === 'Escape') {
-      navigate('/vouchers');
+      navigate('/app/vouchers');
     }
   }, [showConfigPanel, navigate, handleSubmit, handlePrint]);
 
@@ -240,7 +240,7 @@ const PaymentVoucher: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
           title="Back to Vouchers"
-          onClick={() => navigate('/vouchers')}
+          onClick={() => navigate('/app/vouchers')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />

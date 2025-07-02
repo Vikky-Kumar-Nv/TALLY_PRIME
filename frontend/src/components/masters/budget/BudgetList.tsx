@@ -34,7 +34,7 @@ const BudgetList: React.FC = () => {
         <h1 className="text-2xl font-bold">Budget List</h1>
         <button
           title='Create New Budget'
-          onClick={() => navigate('/masters/budget/create')}
+          onClick={() => navigate('/app/masters/budget/create')}
           className={`flex items-center px-4 py-2 rounded ${
             theme === 'dark' 
               ? 'bg-blue-600 hover:bg-blue-700' 
@@ -101,7 +101,7 @@ const BudgetList: React.FC = () => {
                     <div className="flex justify-center space-x-2">
                       <button
                         title='Edit Budget'
-                        onClick={() => navigate(`/masters/budget/edit/${budget.id}`)}
+                        onClick={() => navigate(`/app/masters/budget/edit/${budget.id}`)}
                         className={`p-1 rounded ${
                           theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                         }`}

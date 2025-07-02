@@ -182,7 +182,7 @@ const ScenarioList: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
           title="Back to Dashboard"
-          onClick={() => navigate('/masters')}
+          onClick={() => navigate('/app/masters')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />
@@ -193,7 +193,7 @@ const ScenarioList: React.FC = () => {
         <div className="ml-auto flex space-x-2">
           <button
             title="Create Scenario"
-            onClick={() => navigate('/scenarios/create')}
+            onClick={() => navigate('/app/scenarios/create')}
             className={`px-4 py-2 rounded-md ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white`}
           >
             Create Scenario

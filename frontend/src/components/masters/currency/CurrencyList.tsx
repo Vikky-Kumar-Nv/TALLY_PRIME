@@ -43,7 +43,7 @@ const CurrencyList: React.FC = () => {
         <h1 className="text-2xl font-bold">Currency List</h1>
         <button
           title='Create New Currency'
-          onClick={() => navigate('/masters/currency/create')}
+          onClick={() => navigate('/app/masters/currency/create')}
           className={`flex items-center px-4 py-2 rounded ${
             theme === 'dark' 
               ? 'bg-blue-600 hover:bg-blue-700' 
@@ -118,7 +118,7 @@ const CurrencyList: React.FC = () => {
                         <div className="flex justify-center space-x-2">
                           <button
                             title='Edit Currency'
-                            onClick={() => navigate(`/masters/currency/edit/${currency.id}`)}
+                            onClick={() => navigate(`/app/masters/currency/edit/${currency.id}`)}
                             className={`p-1 rounded ${
                               theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                             }`}

@@ -14,22 +14,22 @@ const MastersIndex: React.FC = () => {
     {
       title: 'Accounting Masters',
       items: [
-        { icon: <BookOpen size={20} />, name: 'Ledger', path: '/masters/ledger' },
-        { icon: <Users size={20} />, name: 'Group', path: '/masters/group' },
-        { icon: <CreditCard size={20} />, name: 'Currency', path: '/masters/currency' },
-        { icon: <DollarSign size={20} />, name: 'Budgets', path: '/masters/budgets' },
-        { icon: <FileText size={20} />, name: 'Scenarios', path: '/masters/scenarios' },
-        { icon: <BarChart2 size={20} />, name: 'Cost Centers', path: '/masters/cost-centers' },
+        { icon: <BookOpen size={20} />, name: 'Ledger', path: '/app/masters/ledger' },
+        { icon: <Users size={20} />, name: 'Group', path: '/app/masters/group' },
+        { icon: <CreditCard size={20} />, name: 'Currency', path: '/app/masters/currency' },
+        { icon: <DollarSign size={20} />, name: 'Budgets', path: '/app/masters/budgets' },
+        { icon: <FileText size={20} />, name: 'Scenarios', path: '/app/masters/scenarios' },
+        { icon: <BarChart2 size={20} />, name: 'Cost Centers', path: '/app/masters/cost-centers' },
       ]
     },
     {
       title: 'Inventory Masters',
       items: [
-        { icon: <Package size={20} />, name: 'Stock Item', path: '/masters/stock-item' },
-        { icon: <Users size={20} />, name: 'Stock Group', path: '/masters/stock-group' },
-        { icon: <Truck size={20} />, name: 'Units', path: '/masters/units' },
-        { icon: <Building size={20} />, name: 'Godowns', path: '/masters/godowns' },
-        { icon: <Briefcase size={20} />, name: 'Stock Categories', path: '/masters/stock-categories' }
+        { icon: <Package size={20} />, name: 'Stock Item', path: '/app/masters/stock-item' },
+        { icon: <Users size={20} />, name: 'Stock Group', path: '/app/masters/stock-group' },
+        { icon: <Truck size={20} />, name: 'Units', path: '/app/masters/units' },
+        { icon: <Building size={20} />, name: 'Godowns', path: '/app/masters/godowns' },
+        { icon: <Briefcase size={20} />, name: 'Stock Categories', path: '/app/masters/stock-categories' }
       ]
     }
   ];

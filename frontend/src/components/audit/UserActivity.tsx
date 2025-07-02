@@ -111,7 +111,7 @@ const UserActivity = () => {
             <button
                 title='Back to Reports'
                 type='button'
-                onClick={() => navigate('/audit')}
+                onClick={() => navigate('/app/audit')}
                 className="mr-4 p-2 rounded-full hover:bg-gray-200"
                     >
                 <ArrowLeft size={20} />

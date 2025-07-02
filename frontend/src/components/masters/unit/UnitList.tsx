@@ -19,7 +19,7 @@ const UnitList: React.FC = () => {
         <h1 className="text-2xl font-bold">Units of Measurement</h1>
         <button
         title='Create New Unit'
-          onClick={() => navigate('/masters/unit/create')}
+          onClick={() => navigate('/app/masters/unit/create')}
           className={`flex items-center px-4 py-2 rounded ${
             theme === 'dark' 
               ? 'bg-blue-600 hover:bg-blue-700' 
@@ -74,7 +74,7 @@ const UnitList: React.FC = () => {
                     <div className="flex justify-center space-x-2">
                       <button
                         title="Edit Unit"
-                        onClick={() => navigate(`/masters/unit/edit/${unit.id}`)}
+                        onClick={() => navigate(`/app/masters/unit/edit/${unit.id}`)}
                         className={`p-1 rounded ${
                           theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
                         }`}

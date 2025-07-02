@@ -227,7 +227,7 @@ const StockSummary: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
           title="Back to Reports"
-          onClick={() => navigate('/reports')}
+          onClick={() => navigate('/app/reports')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />

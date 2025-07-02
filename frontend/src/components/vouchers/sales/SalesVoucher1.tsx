@@ -460,7 +460,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         icon: 'success',
         confirmButtonText: 'OK'
       });
-      navigate('/vouchers');
+      navigate('/app/vouchers');
     } else {
       Swal.fire('Error', data.message || 'Something went wrong', 'error');
     }
@@ -554,7 +554,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       <div className="flex items-center mb-6">
         <button
           title='Back to Vouchers'
-          onClick={() => navigate('/vouchers')}
+          onClick={() => navigate('/app/vouchers')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />
@@ -998,7 +998,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             <button
               title='Cancel (Esc)'
               type="button"
-              onClick={() => navigate('/vouchers')}
+              onClick={() => navigate('/app/vouchers')}
               className={`px-4 py-2 rounded ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
             >
               Cancel

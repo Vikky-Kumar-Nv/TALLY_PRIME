@@ -106,7 +106,7 @@ const ScenarioForm: React.FC = () => {
       // In a real app, this would save to an API or context
       console.log(isEditMode ? 'Updating scenario:' : 'Creating scenario:', scenarioData);
       alert(`Scenario ${isEditMode ? 'updated' : 'created'} successfully!`);
-      navigate('/scenarios');
+      navigate('/app/scenarios');
     }
   }, [formData, isEditMode, navigate, validateForm]);
 
@@ -151,7 +151,7 @@ const ScenarioForm: React.FC = () => {
       e.preventDefault();
       handlePrint();
     } else if (e.key === 'Escape') {
-      navigate('/scenarios');
+      navigate('/app/scenarios');
     }
   }, [handleSubmit, handlePrint, navigate]);
 
@@ -165,7 +165,7 @@ const ScenarioForm: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
           title="Back to Scenarios"
-          onClick={() => navigate('/scenarios')}
+          onClick={() => navigate('/app/scenarios')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />

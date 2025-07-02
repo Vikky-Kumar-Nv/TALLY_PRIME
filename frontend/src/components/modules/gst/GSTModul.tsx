@@ -14,28 +14,28 @@ const GSTModule: React.FC = () => {
     {
       title: 'GST Returns',
       items: [
-        { icon: <FileText size={20} />, name: 'GSTR-1', path: '../gst/gstr-1' },
-        { icon: <FileText size={20} />, name: 'GSTR-3B', path: '../gst/gstr-3b' },
-        { icon: <BarChart2 size={20} />, name: 'GST Analysis', path: '../gst/gst-analysis' },
-        { icon: <Calculator size={20} />, name: 'GST Calculator', path: '/gst/calculator' }
+        { icon: <FileText size={20} />, name: 'GSTR-1', path: '/app/gst/gstr-1' },
+        { icon: <FileText size={20} />, name: 'GSTR-3B', path: '/app/gst/gstr-3b' },
+        { icon: <BarChart2 size={20} />, name: 'GST Analysis', path: '/app/gst/gst-analysis' },
+        { icon: <Calculator size={20} />, name: 'GST Calculator', path: '/app/gst/calculator' }
       ]
     },
     {
       title: 'GST Configuration',
       items: [
-        { icon: <Settings size={20} />, name: 'GST Rates', path: '/gst/rates' },
-        { icon: <FileText size={20} />, name: 'HSN Codes', path: '/gst/hsn-codes' },
-        { icon: <CheckCircle size={20} />, name: 'GST Registration', path: '/gst/registration' },
-        { icon: <AlertCircle size={20} />, name: 'Compliance Check', path: '/gst/compliance' }
+        { icon: <Settings size={20} />, name: 'GST Rates', path: '/app/gst/rates' },
+        { icon: <FileText size={20} />, name: 'HSN Codes', path: '/app/gst/hsn-codes' },
+        { icon: <CheckCircle size={20} />, name: 'GST Registration', path: '/app/gst/registration' },
+        { icon: <AlertCircle size={20} />, name: 'Compliance Check', path: '/app/gst/compliance' }
       ]
     },
     {
       title: 'Import/Export',
       items: [
-        { icon: <Upload size={20} />, name: 'Import Data', path: '/gst/import' },
-        { icon: <Download size={20} />, name: 'Export Returns', path: '/gst/export' },
-        { icon: <FileText size={20} />, name: 'Reconciliation', path: '/gst/reconciliation' },
-        { icon: <BarChart2 size={20} />, name: 'Summary Reports', path: '/gst/summary' }
+        { icon: <Upload size={20} />, name: 'Import Data', path: '/app/gst/import' },
+        { icon: <Download size={20} />, name: 'Export Returns', path: '/app/gst/export' },
+        { icon: <FileText size={20} />, name: 'Reconciliation', path: '/app/gst/reconciliation' },
+        { icon: <BarChart2 size={20} />, name: 'Summary Reports', path: '/app/gst/summary' }
       ]
     }
   ];

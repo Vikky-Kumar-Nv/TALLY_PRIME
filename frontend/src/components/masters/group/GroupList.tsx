@@ -53,10 +53,10 @@ const GroupList: React.FC = () => {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.ctrlKey && e.key === 'c') {
       e.preventDefault();
-      navigate('/masters/group/create');
+      navigate('/app/masters/group/create');
     } else if (e.ctrlKey && e.key === 'a' && groups.length > 0) {
       e.preventDefault();
-      navigate(`/masters/group/edit/${groups[0].id}`);
+      navigate(`/app/masters/group/edit/${groups[0].id}`);
     } else if (e.ctrlKey && e.key === 'd' && groups.length > 0) {
       e.preventDefault();
       handleDelete(groups[0].id);
@@ -76,7 +76,7 @@ const GroupList: React.FC = () => {
         <div className="flex items-center mb-6">
         <button
           title="Back to Group List"
-          onClick={() => navigate('/masters')}
+          onClick={() => navigate('/app/masters')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />
@@ -86,7 +86,7 @@ const GroupList: React.FC = () => {
         <button
           type="button"
           title="Create Group"
-          onClick={() => navigate('/masters/group/create')}
+          onClick={() => navigate('/app/masters/group/create')}
           className={`flex items-center px-4 py-2 rounded text-sm font-medium ${
             theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'
           }`}
@@ -151,7 +151,7 @@ const GroupList: React.FC = () => {
                     <div className="flex justify-center space-x-2">
                       <button
                         title="Edit Group"
-                        onClick={() => navigate(`/masters/group/edit/${group.id}`)}
+                        onClick={() => navigate(`/app/masters/group/edit/${group.id}`)}
                         className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
                       >
                         <Edit size={16} className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`} />

@@ -59,7 +59,7 @@ const BudgetForm: React.FC = () => {
 
     if (res.ok) {
             Swal.fire('Success', data.message, 'success');
-            navigate('/masters/budgets');
+            navigate('/app/masters/budgets');
           } else {
             Swal.fire('Error', data.message || 'Insert failed', 'error');
           }
@@ -77,7 +77,7 @@ const BudgetForm: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
             title='Back to Budget List'
-          onClick={() => navigate('/masters/budgets')}
+          onClick={() => navigate('/app/masters/budgets')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}
@@ -189,7 +189,7 @@ const BudgetForm: React.FC = () => {
           <div className="flex justify-end space-x-4">
             <button
               type="button"
-              onClick={() => navigate('/masters/budgets')}
+              onClick={() => navigate('/app/masters/budgets')}
               className={`px-4 py-2 rounded ${
                 theme === 'dark' 
                   ? 'bg-gray-700 hover:bg-gray-600' 

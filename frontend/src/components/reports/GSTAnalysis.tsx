@@ -13,7 +13,7 @@ const GSTAnalysis: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
         title='Back to Reports'
-          onClick={() => navigate('/gst')}
+          onClick={() => navigate('/app/gst')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}

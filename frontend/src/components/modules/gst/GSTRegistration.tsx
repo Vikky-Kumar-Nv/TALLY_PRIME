@@ -270,7 +270,7 @@ const GSTRegistration: React.FC = () => {
     };
     setCompanyInfo(companyInfoData);
     alert('GST Registration Details saved successfully!');
-    navigate('/masters');
+    navigate('/app/masters');
   };
 
   return (
@@ -280,7 +280,7 @@ const GSTRegistration: React.FC = () => {
             <button
                 title='Back to Reports'
                 type='button'
-                  onClick={() => navigate('/gst')}
+                  onClick={() => navigate('/app/gst')}
                   className="mr-4 p-2 rounded-full hover:bg-gray-200"
                 >
                   <ArrowLeft size={20} />
@@ -473,7 +473,7 @@ const GSTRegistration: React.FC = () => {
             <div className="flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => navigate('/masters')}
+                onClick={() => navigate('/app/masters')}
                 className={`px-4 py-2 rounded text-sm font-medium flex items-center gap-2 ${
                   theme === 'dark' 
                     ? 'bg-gray-700 text-gray-100 hover:bg-gray-600' 

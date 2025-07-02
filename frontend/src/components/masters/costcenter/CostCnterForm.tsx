@@ -48,7 +48,7 @@ const CostCenterForm: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle form submission
-    navigate('/masters/cost-center');
+    navigate('/app/masters/cost-center');
   };
 
   return (
@@ -56,7 +56,7 @@ const CostCenterForm: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
         title='Back to Cost Centers'
-          onClick={() => navigate('/masters/cost-centers')}
+          onClick={() => navigate('/app/masters/cost-centers')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}
@@ -129,7 +129,7 @@ const CostCenterForm: React.FC = () => {
           <div className="flex justify-end space-x-4">
             <button
               type="button"
-              onClick={() => navigate('/masters/cost-center')}
+              onClick={() => navigate('/app/masters/cost-center')}
               className={`px-4 py-2 rounded ${
                 theme === 'dark' 
                   ? 'bg-gray-700 hover:bg-gray-600' 

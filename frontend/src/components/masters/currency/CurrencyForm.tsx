@@ -30,7 +30,7 @@ const CurrencyForm: React.FC = () => {
       const data = await res.json();
       if (res.ok) {
         Swal.fire('Success', data.message, 'success');
-        navigate('/masters/currency');
+        navigate('/app/masters/currency');
       } else {
         Swal.fire('Error', data.message || 'Insert failed', 'error');
       }
@@ -90,7 +90,7 @@ const CurrencyForm: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
         title='Back to Currency List'
-          onClick={() => navigate('/masters/currency')}
+          onClick={() => navigate('/app/masters/currency')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}
@@ -207,7 +207,7 @@ const CurrencyForm: React.FC = () => {
           <div className="flex justify-end space-x-4">
             <button
               type="button"
-              onClick={() => navigate('/masters/currency')}
+              onClick={() => navigate('/app/masters/currency')}
               className={`px-4 py-2 rounded ${
                 theme === 'dark' 
                   ? 'bg-gray-700 hover:bg-gray-600' 
