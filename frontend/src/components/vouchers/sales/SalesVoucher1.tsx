@@ -167,7 +167,7 @@ const SalesVoucher: React.FC = () => {
     },
     onAfterPrint: () => {
       console.log('Print completed successfully');
-    },onPrintError: (errorLocation, error) => {
+    },    onPrintError: (errorLocation: string, error: Error) => {
       console.error('Print error at:', errorLocation, error);
       alert('Print failed. Please try your browser\'s print function (Ctrl+P).');
     },

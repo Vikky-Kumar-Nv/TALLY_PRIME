@@ -15,7 +15,7 @@ import {
   Tooltip,
   Legend
 } from 'chart.js';
-import type { ChartData, ChartOptions, ScriptableContext } from 'chart.js';
+import type { ChartData, ChartOptions, ScriptableContext, TooltipItem } from 'chart.js';
 import './TradingAccount.css';
 
 // Register Chart.js components
@@ -126,7 +126,7 @@ const TradingAccount: React.FC<TradingAccountProps> = () => {
         },
         ticks: {
           color: theme === 'dark' ? '#D1D5DB' : '#1F2937',
-          callback: function(tickValue) {
+          callback: function(tickValue: string | number) {
             return '₹' + (typeof tickValue === 'number' ? tickValue.toLocaleString() : tickValue);
           },
           font: { size: 12, family: 'Inter' },
@@ -175,7 +175,7 @@ const TradingAccount: React.FC<TradingAccountProps> = () => {
         cornerRadius: 8,
         padding: 12,
         callbacks: {
-          label: function(context) {
+          label: function(context: TooltipItem<'bar'>) {
             const value = context.parsed.y;
             return `₹${value?.toLocaleString() ?? '0'}`;
           },
