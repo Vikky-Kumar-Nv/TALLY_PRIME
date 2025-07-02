@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
 import { Save, Plus, Trash2, ArrowLeft, Printer, Settings } from 'lucide-react';
 import type { VoucherEntry, Ledger } from '../../../types';
-<<<<<<< HEAD
 import Swal from 'sweetalert2';
 interface Ledgers {
   id: number;
@@ -23,15 +22,6 @@ const [cashBankLedgers, setCashBankLedgers] = useState<Ledgers[]>([]);
   const randomNumber = Math.floor(100000 + Math.random() * 900000); // 6-digit
   return `${prefix}${randomNumber}`;
 };
-=======
-
-const PaymentVoucher: React.FC = () => {
-  const { theme, ledgers, vouchers, addVoucher, updateVoucher, companyInfo } = useAppContext();
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const isEditMode = !!id;
-
->>>>>>> 21fa05d357066fab23f62f3a466fde1468c2e25c
   const initialFormData: Omit<VoucherEntry, 'id'> = {
     date: new Date().toISOString().split('T')[0],
     type: 'payment',

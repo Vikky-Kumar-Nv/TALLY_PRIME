@@ -4,7 +4,6 @@ import Swal from 'sweetalert2';
 import { useAppContext } from '../../../context/AppContext';
 import { Save, Plus, Trash2, ArrowLeft, Printer, Settings } from 'lucide-react';
 import type { VoucherEntry, Ledger } from '../../../types';
-<<<<<<< HEAD
 interface Ledgers {
   id: number;
   name: string;
@@ -23,23 +22,6 @@ const [cashBankLedgers, setCashBankLedgers] = useState<Ledgers[]>([]);
   const randomNumber = Math.floor(100000 + Math.random() * 900000); // 6-digit
   return `${prefix}${randomNumber}`;
 };
-=======
-
-const ContraVoucher: React.FC = () => {
-  const { theme, companyInfo, ledgers, vouchers, addVoucher, updateVoucher } = useAppContext();
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const isEditMode = !!id;
-
-  const generateVoucherNumber = () => {
-    const prefix = 'CV';
-    const lastVoucher = vouchers
-      .filter(v => v.type === 'contra')
-      .sort((a, b) => parseInt(b.number.replace('CV', '') || '0') - parseInt(a.number.replace('CV', '') || '0'))[0];
-    const newNumber = lastVoucher ? parseInt(lastVoucher.number.replace('CV', '')) + 1 : 1;
-    return `${prefix}${newNumber.toString().padStart(6, '0')}`;
-  };
->>>>>>> 21fa05d357066fab23f62f3a466fde1468c2e25c
 
   const initialFormData: Omit<VoucherEntry, 'id'> = {
     date: new Date().toISOString().split('T')[0],
@@ -115,7 +97,6 @@ const ContraVoucher: React.FC = () => {
   };
 
   const handleEntryChange = (
-<<<<<<< HEAD
   index: number,
   e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
 ) => {
@@ -124,25 +105,6 @@ const ContraVoucher: React.FC = () => {
   updatedEntries[index] = {
     ...updatedEntries[index],
     [name]: type === 'number' ? parseFloat(value) || 0 : value,
-=======
-    index: number,
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type } = e.target;
-    const updatedEntries = [...formData.entries];
-    updatedEntries[index] = {
-      ...updatedEntries[index],
-      [name]: type === 'number' ? parseFloat(value) || 0 : value,
-    };
-    if (formData.mode === 'single-entry') {
-      if (index === 0) updatedEntries[0].type = 'debit';
-      if (index === 1) updatedEntries[1].type = 'credit';
-      if (name === 'amount' && index === 0) updatedEntries[1].amount = updatedEntries[0].amount;
-      if (name === 'amount' && index === 1) updatedEntries[0].amount = updatedEntries[1].amount;
-    }
-    setFormData(prev => ({ ...prev, entries: updatedEntries }));
-    setErrors(prev => ({ ...prev, [`${name}${index}`]: '' }));
->>>>>>> 21fa05d357066fab23f62f3a466fde1468c2e25c
   };
 
   // Handle single-entry mode type/amount syncing
@@ -310,131 +272,6 @@ useEffect(() => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleKeyDown]);
 
-<<<<<<< HEAD
-=======
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      try {
-        const voucherData: VoucherEntry = {
-          id: isEditMode ? id! : Math.random().toString(36).substring(2, 9),
-          ...formData,
-        };
-        const res = await fetch(`http://localhost:5000/api/vouchers${isEditMode ? `/${id}` : ''}`, {
-          method: isEditMode ? 'PUT' : 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(voucherData),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          if (isEditMode) {
-            updateVoucher(id!, voucherData);
-          } else {
-            addVoucher(voucherData);
-          }
-          Swal.fire('Success', data.message || 'Voucher saved successfully', 'success').then(() => {
-            navigate('/vouchers');
-          });
-        } else {
-          Swal.fire('Error', data.message || 'Something went wrong', 'error');
-        }
-      } catch (err) {
-        console.error(err);
-        Swal.fire('Error', 'Network or server issue', 'error');
-      }
-    } else {
-      Swal.fire('Error', 'Please correct the errors in the form', 'error');
-    }
-  }, [formData, isEditMode, id, validateForm, updateVoucher, addVoucher, navigate]);
-
-  const handlePrint = useCallback(() => {
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head><title>Contra Voucher</title>
-            <style>
-              body { font-family: Arial, sans-serif; padding: 20px; }
-              h1 { font-size: 24px; }
-              table { width: 100%; border-collapse: collapse; }
-              th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
-            </style>
-          </head>
-          <body>
-            <h1>${companyInfo?.name || 'Hanuman Car Wash'} - Contra Voucher</h1>
-            <table>
-              <tr><th>Voucher No.</th><td>${formData.number}</td></tr>
-              <tr><th>Date</th><td>${formData.date}</td></tr>
-              <tr><th>Mode</th><td>${formData.mode === 'double-entry' ? 'Double Entry' : 'Single Entry'}</td></tr>
-              ${formData.referenceNo ? `<tr><th>Reference No.</th><td>${formData.referenceNo}</td></tr>` : ''}
-              ${formData.supplierInvoiceDate ? `<tr><th>Reference Date</th><td>${formData.supplierInvoiceDate}</td></tr>` : ''}
-              <tr><th>Narration</th><td>${formData.narration || 'N/A'}</td></tr>
-            </table>
-            <h2>Entries</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Ledger</th>
-                  <th>Type</th>
-                  <th>Amount</th>
-                  ${config.showEntryNarration ? '<th>Narration</th>' : ''}
-                  ${config.showCostCentre ? '<th>Cost Centre</th>' : ''}
-                  ${config.showBankDetails ? '<th>Bank Details</th>' : ''}
-                </tr>
-              </thead>
-              <tbody>
-                ${formData.entries.map(entry => `
-                  <tr>
-                    <td>${ledgers.find(l => l.id === entry.ledgerId)?.name || 'N/A'}</td>
-                    <td>${entry.type === 'debit' ? 'Dr' : 'Cr'}</td>
-                    <td>${entry.amount.toLocaleString()}</td>
-                    ${config.showEntryNarration ? `<td>${entry.narration || 'N/A'}</td>` : ''}
-                    ${config.showCostCentre ? `<td>${entry.costCentreId ? costCentres.find(c => c.id === entry.costCentreId)?.name || 'N/A' : 'N/A'}</td>` : ''}
-                    ${config.showBankDetails && ledgers.find(l => l.id === entry.ledgerId)?.type === 'bank' ? `<td>${entry.bankName || ''} ${entry.chequeNumber || ''}</td>` : ''}
-                  </tr>
-                `).join('')}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td>Totals</td>
-                  <td></td>
-                  <td>Dr: ${formData.entries.filter(e => e.type === 'debit').reduce((sum, e) => sum + e.amount, 0).toLocaleString()}<br/>
-                      Cr: ${formData.entries.filter(e => e.type === 'credit').reduce((sum, e) => sum + e.amount, 0).toLocaleString()}</td>
-                  ${config.showEntryNarration ? '<td></td>' : ''}
-                  ${config.showCostCentre ? '<td></td>' : ''}
-                  ${config.showBankDetails ? '<td></td>' : ''}
-                </tr>
-              </tfoot>
-            </table>
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.print();
-    }
-  }, [formData, config, companyInfo, ledgers, costCentres]);
-
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.ctrlKey && e.key === 's') {
-      e.preventDefault();
-      handleSubmit({ preventDefault: () => {} } as React.FormEvent);
-    } else if (e.ctrlKey && e.key === 'p') {
-      e.preventDefault();
-      handlePrint();
-    } else if (e.key === 'F12') {
-      e.preventDefault();
-      setShowConfigPanel(!showConfigPanel);
-    } else if (e.key === 'Escape') {
-      navigate('/vouchers');
-    }
-  }, [showConfigPanel, navigate, handlePrint, handleSubmit]);
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
-
->>>>>>> 21fa05d357066fab23f62f3a466fde1468c2e25c
   const totalDebit = formData.entries
     .filter(entry => entry.type === 'debit')
     .reduce((sum, entry) => sum + entry.amount, 0);
@@ -583,7 +420,6 @@ useEffect(() => {
                   Account Ledger (Cash/Bank)
                 </label>
                 <select
-<<<<<<< HEAD
   name="ledgerId"
   value={formData.entries[0].ledgerId}
   onChange={e => handleEntryChange(0, e)}
@@ -600,20 +436,6 @@ useEffect(() => {
 </select>
 
 
-=======
-                  name="ledgerId"
-                  value={formData.entries[0].ledgerId}
-                  onChange={e => handleEntryChange(0, e)}
-                  required
-                  title="Select account ledger (Cash/Bank)"
-                  className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
-                >
-                  <option value="">Select Cash/Bank Ledger</option>
-                  {ledgers.filter(l => l.type === 'cash' || l.type === 'bank').map((ledger: Ledger) => (
-                    <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
-                  ))}
-                </select>
->>>>>>> 21fa05d357066fab23f62f3a466fde1468c2e25c
                 {errors.ledgerId0 && <p className="text-red-500 text-sm mt-1">{errors.ledgerId0}</p>}
               </div>
               <div>
@@ -621,7 +443,6 @@ useEffect(() => {
                   Party Ledger (Cash/Bank)
                 </label>
                 <select
-<<<<<<< HEAD
   name="ledgerId"
   value={formData.entries[1].ledgerId}
   onChange={e => handleEntryChange(1, e)}
@@ -637,20 +458,6 @@ useEffect(() => {
   ))}
 </select>
 
-=======
-                  name="ledgerId"
-                  value={formData.entries[1].ledgerId}
-                  onChange={e => handleEntryChange(1, e)}
-                  required
-                  title="Select party ledger (Cash/Bank)"
-                  className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
-                >
-                  <option value="">Select Cash/Bank Ledger</option>
-                  {ledgers.filter(l => l.type === 'cash' || l.type === 'bank').map((ledger: Ledger) => (
-                    <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
-                  ))}
-                </select>
->>>>>>> 21fa05d357066fab23f62f3a466fde1468c2e25c
                 {errors.ledgerId1 && <p className="text-red-500 text-sm mt-1">{errors.ledgerId1}</p>}
               </div>
               <div>
@@ -772,7 +579,6 @@ useEffect(() => {
                     {formData.entries.map((entry, index) => (
                       <tr key={index} className={`${theme === 'dark' ? 'border-b border-gray-600' : 'border-b border-gray-300'}`}>
                         <td className="px-4 py-2">
-<<<<<<< HEAD
                           
                          <select
                 name="ledgerId"
@@ -794,21 +600,6 @@ useEffect(() => {
                 )}
               </select>
 
-=======
-                          <select
-                            name="ledgerId"
-                            value={entry.ledgerId}
-                            onChange={e => handleEntryChange(index, e)}
-                            required
-                            title="Select ledger account (Cash/Bank)"
-                            className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
-                          >
-                            <option value="">Select Cash/Bank Ledger</option>
-                            {ledgers.filter(l => l.type === 'cash' || l.type === 'bank').map((ledger: Ledger) => (
-                              <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
-                            ))}
-                          </select>
->>>>>>> 21fa05d357066fab23f62f3a466fde1468c2e25c
                           {errors[`ledgerId${index}`] && <p className="text-red-500 text-sm mt-1">{errors[`ledgerId${index}`]}</p>}
                         </td>
                         <td className="px-4 py-2">
@@ -816,10 +607,6 @@ useEffect(() => {
                             name="type"
                             value={entry.type}
                             onChange={e => handleEntryChange(index, e)}
-<<<<<<< HEAD
-=======
-                            required
->>>>>>> 21fa05d357066fab23f62f3a466fde1468c2e25c
                             title="Select debit or credit"
                             className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
                           >
