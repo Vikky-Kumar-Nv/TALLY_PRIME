@@ -32,7 +32,7 @@ const BalanceSheet: React.FC = () => {
         <button
           title='Back to Reports'
           type="button"
-          onClick={() => navigate('/app/reports')}
+          onClick={() => navigate('/app/accounting')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}

@@ -51,15 +51,22 @@ import StockJournalVoucher1 from './components/vouchers/stockjournal/StockJourna
 import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
 
 
+//Accounting
+import DayBook from './components/accounting/DayBook';
+import LedgerReport from './components/accounting/LedgerReport';
+import TrialBalance from './components/accounting/TrialBalance';
+import TradingAccount from './components/accounting/TradingAccount';
+// import ProfitLoss from './components/accounting/ProfitLoss';
+import ProfitLoss from './components/accounting/ProfitLoss';
+import BalanceSheet from './components/accounting/BalanceSheet';
+import CashFlow from './components/accounting/CashFlow';
+
 
 // // Reports Components
 import ReportsIndex from './components/reports/ReportsIndex';
-import DayBook from './components/reports/DayBook';
-import LedgerReport from './components/reports/LedgerReport';
-import TrialBalance from './components/reports/TrialBalance';
-import ProfitLoss from './components/reports/ProfitLoss';
-import BalanceSheet from './components/reports/BalanceSheet';
-import CashFlow from './components/reports/CashFlow';
+
+
+
 import StockSummary from './components/reports/StockSummary';
 import MovementAnalysis from './components/reports/MovementAnalysis';
 import AgeingAnalysis from './components/reports/AgeingAnalysis';
@@ -67,7 +74,7 @@ import GodownSummary from './components/reports/GodownSummary';
 import GSTR1 from './components/reports/GSTR1';
 import GSTR3B from './components/reports/GSTR3B';
 import GSTAnalysis from './components/reports/GSTAnalysis';
-import TradingAccount from './components/reports/TradingAccount';
+
 
 
 // GST Module Components
@@ -115,7 +122,7 @@ import PeriodAnalysis from './components/audit/PeriodAnalysis';
 import UserReports from './components/audit/UserReports';
 
 // Other Modules
-import AccountingModule from './components/modules/AccountingModule';
+import AccountingModule from './components/accounting/AccountingModule';
 import InventoryModule from './components/modules/InventoryModule';
 
 // Home Pages
@@ -236,23 +243,27 @@ function App() {
             <Route path="vouchers/stock-journal/create" element={<StockJournalVoucher1 />} />
             <Route path="vouchers/sales/create" element={<SalesVoucher1 />} />
            
+           
+
+           //Accounting Routes
+           <Route path="accounting" element={<AccountingModule />} />
+            <Route path="accounting/day-book" element={<DayBook />} />
+            <Route path="accounting/ledger" element={<LedgerReport />} />
+            <Route path="accounting/trial-balance" element={<TrialBalance />} />
+             <Route path="accounting/trading-account" element={<TradingAccount />} />
+            <Route path="accounting/profit-loss" element={<ProfitLoss />} />
+            <Route path="accounting/balance-sheet" element={<BalanceSheet />} />
+            <Route path="accounting/cash-flow" element={<CashFlow />} />
 
 
             
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
-            <Route path="reports/trading-account" element={<TradingAccount />} />
-            
-            <Route path="reports/day-book" element={<DayBook />} />
-            <Route path="reports/ledger" element={<LedgerReport />} />
-            <Route path="reports/trial-balance" element={<TrialBalance />} />
-            <Route path="reports/profit-loss" element={<ProfitLoss />} />
-            <Route path="reports/balance-sheet" element={<BalanceSheet />} />
-            <Route path="reports/cash-flow" element={<CashFlow />} />
             <Route path="reports/stock-summary" element={<StockSummary />} />
             <Route path="reports/movement-analysis" element={<MovementAnalysis />} />
             <Route path="reports/ageing-analysis" element={<AgeingAnalysis />} />
             <Route path="reports/godown-summary" element={<GodownSummary />} />
+            <Route path="reports/trading-account" element={<TradingAccount />} />
             
 
 
@@ -308,7 +319,7 @@ function App() {
 
 
                {/* Other Module Routes */}
-            <Route path="accounting" element={<AccountingModule />} />
+            
             <Route path="inventory" element={<InventoryModule />} />
             <Route path="gst" element={<GSTModule />} />
             

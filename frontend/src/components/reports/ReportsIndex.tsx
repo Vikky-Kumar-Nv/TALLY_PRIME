@@ -2,8 +2,7 @@ import React from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { 
-  BookOpen, BarChart2, PieChart, TrendingUp, 
-  DollarSign, FileText, Activity, Calendar 
+  BookOpen, BarChart2, Activity, Calendar 
 } from 'lucide-react';
 
 const ReportsIndex: React.FC = () => {
@@ -14,13 +13,13 @@ const ReportsIndex: React.FC = () => {
     {
       title: 'Accounting Reports',
       items: [
-        { icon: <BookOpen size={20} />, name: 'Day Book', path: '/app/reports/day-book' },
-        { icon: <FileText size={20} />, name: 'Ledger', path: '/app/reports/ledger' },
-        { icon: <BarChart2 size={20} />, name: 'Trial Balance', path: '/app/reports/trial-balance' },
-        { icon: <TrendingUp size={20} />, name: 'Trading Account', path: '/app/reports/trading-account' },
-        { icon: <TrendingUp size={20} />, name: 'Profit & Loss', path: '/app/reports/profit-loss' },
-        { icon: <DollarSign size={20} />, name: 'Balance Sheet', path: '/app/reports/balance-sheet' },
-        { icon: <PieChart size={20} />, name: 'Cash/Funds Flow', path: '/app/reports/cash-flow' }
+        
+        // { icon: <FileText size={20} />, name: 'Ledger', path: '/app/reports/ledger' },
+        // { icon: <BarChart2 size={20} />, name: 'Trial Balance', path: '/app/reports/trial-balance' },
+        // { icon: <TrendingUp size={20} />, name: 'Trading Account', path: '/app/reports/trading-account' },
+        // { icon: <TrendingUp size={20} />, name: 'Profit & Loss', path: '/app/reports/profit-loss' },
+        // { icon: <DollarSign size={20} />, name: 'Balance Sheet', path: '/app/reports/balance-sheet' },
+        // { icon: <PieChart size={20} />, name: 'Cash/Funds Flow', path: '/app/reports/cash-flow' }
       ]
     },
     {
