@@ -270,7 +270,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setShowConfigPanel(!showConfigPanel);
       } else if (e.key === 'Escape') {
-        navigate('/vouchers');
+        navigate('/app/vouchers');
       }
     };
 
@@ -292,7 +292,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         <button
           title="Back to Vouchers"
           type="button"
-          onClick={() => navigate('/vouchers')}
+          onClick={() => navigate('/app/vouchers')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />

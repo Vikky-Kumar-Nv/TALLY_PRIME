@@ -4,21 +4,24 @@ import Swal from 'sweetalert2';
 import { useAppContext } from '../../../context/AppContext';
 import { Save, Plus, Trash2, ArrowLeft, Printer, Settings } from 'lucide-react';
 import type { VoucherEntry, Ledger } from '../../../types';
-
+interface Ledgers {
+  id: number;
+  name: string;
+  groupName: string;
+}
 const ContraVoucher: React.FC = () => {
-  const { theme, companyInfo, ledgers, vouchers, addVoucher, updateVoucher } = useAppContext();
+  const { theme,  companyInfo, vouchers, addVoucher, updateVoucher } = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
+  const [ledgers] = useState<Ledger[]>([]);
+const [cashBankLedgers, setCashBankLedgers] = useState<Ledgers[]>([]);
 
   const generateVoucherNumber = () => {
-    const prefix = 'CV';
-    const lastVoucher = vouchers
-      .filter(v => v.type === 'contra')
-      .sort((a, b) => parseInt(b.number.replace('CV', '') || '0') - parseInt(a.number.replace('CV', '') || '0'))[0];
-    const newNumber = lastVoucher ? parseInt(lastVoucher.number.replace('CV', '')) + 1 : 1;
-    return `${prefix}${newNumber.toString().padStart(6, '0')}`;
-  };
+  const prefix = 'CV';
+  const randomNumber = Math.floor(100000 + Math.random() * 900000); // 6-digit
+  return `${prefix}${randomNumber}`;
+};
 
   const initialFormData: Omit<VoucherEntry, 'id'> = {
     date: new Date().toISOString().split('T')[0],
@@ -94,24 +97,28 @@ const ContraVoucher: React.FC = () => {
   };
 
   const handleEntryChange = (
-    index: number,
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type } = e.target;
-    const updatedEntries = [...formData.entries];
-    updatedEntries[index] = {
-      ...updatedEntries[index],
-      [name]: type === 'number' ? parseFloat(value) || 0 : value,
-    };
-    if (formData.mode === 'single-entry') {
-      if (index === 0) updatedEntries[0].type = 'debit';
-      if (index === 1) updatedEntries[1].type = 'credit';
-      if (name === 'amount' && index === 0) updatedEntries[1].amount = updatedEntries[0].amount;
-      if (name === 'amount' && index === 1) updatedEntries[0].amount = updatedEntries[1].amount;
-    }
-    setFormData(prev => ({ ...prev, entries: updatedEntries }));
-    setErrors(prev => ({ ...prev, [`${name}${index}`]: '' }));
+  index: number,
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+) => {
+  const { name, value, type } = e.target;
+  const updatedEntries = [...formData.entries];
+  updatedEntries[index] = {
+    ...updatedEntries[index],
+    [name]: type === 'number' ? parseFloat(value) || 0 : value,
   };
+
+  // Handle single-entry mode type/amount syncing
+  if (formData.mode === 'single-entry') {
+    if (index === 0) updatedEntries[0].type = 'debit';
+    if (index === 1) updatedEntries[1].type = 'credit';
+    if (name === 'amount' && index === 0) updatedEntries[1].amount = updatedEntries[0].amount;
+    if (name === 'amount' && index === 1) updatedEntries[0].amount = updatedEntries[1].amount;
+  }
+
+  setFormData(prev => ({ ...prev, entries: updatedEntries }));
+  setErrors(prev => ({ ...prev, [`${name}${index}`]: '' }));
+};
+
 
   const addEntry = () => {
     if (formData.mode === 'single-entry') return; // No additional entries in single entry mode
@@ -131,42 +138,53 @@ const ContraVoucher: React.FC = () => {
     setFormData(prev => ({ ...prev, entries: updatedEntries }));
     setErrors(prev => ({ ...prev, [`ledgerId${index}`]: '', [`amount${index}`]: '' }));
   };
+useEffect(() => {
+  fetch('http://localhost:5000/api/ledger/cash-bank')
+    .then(res => res.json())
+    .then(data => setCashBankLedgers(data))
+    .catch(err => console.error('Ledger fetch error:', err));
+}, []);
+useEffect(() => {
+  console.log("cashBankLedgers:", cashBankLedgers);
+}, [cashBankLedgers]);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      try {
-        const voucherData: VoucherEntry = {
-          id: isEditMode ? id! : Math.random().toString(36).substring(2, 9),
-          ...formData,
-        };
-        const res = await fetch(`http://localhost:5000/api/vouchers${isEditMode ? `/${id}` : ''}`, {
-          method: isEditMode ? 'PUT' : 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(voucherData),
+  
+    // if (!validateForm()) {
+    //   Swal.fire('Validation Error', 'Please fix the errors before submitting.', 'warning');
+    //   return;
+    // }
+  
+    try {
+      const response = await fetch('http://localhost:5000/api/vouchers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData), // your state
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: data.message,
+        }).then(() => {
+          navigate('/app/vouchers'); // or your route to go back
         });
-        const data = await res.json();
-        if (res.ok) {
-          if (isEditMode) {
-            updateVoucher(id!, voucherData);
-          } else {
-            addVoucher(voucherData);
-          }
-          Swal.fire('Success', data.message || 'Voucher saved successfully', 'success').then(() => {
-            navigate('/app/vouchers');
-          });
-        } else {
-          Swal.fire('Error', data.message || 'Something went wrong', 'error');
-        }
-      } catch (err) {
-        console.error(err);
-        Swal.fire('Error', 'Network or server issue', 'error');
+      } else {
+        Swal.fire('Error', data.message || 'Something went wrong', 'error');
       }
-    } else {
-      Swal.fire('Error', 'Please correct the errors in the form', 'error');
+    } catch (error) {
+      console.error('Error:', error);
+      Swal.fire('Network Error', 'Failed to connect to the server.', 'error');
     }
-  }, [formData, isEditMode, id, validateForm, updateVoucher, addVoucher, navigate]);
-
+  };
+  
+  
   const handlePrint = useCallback(() => {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
@@ -402,18 +420,22 @@ const ContraVoucher: React.FC = () => {
                   Account Ledger (Cash/Bank)
                 </label>
                 <select
-                  name="ledgerId"
-                  value={formData.entries[0].ledgerId}
-                  onChange={e => handleEntryChange(0, e)}
-                  required
-                  title="Select account ledger (Cash/Bank)"
-                  className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
-                >
-                  <option value="">Select Cash/Bank Ledger</option>
-                  {ledgers.filter(l => l.type === 'cash' || l.type === 'bank').map((ledger: Ledger) => (
-                    <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
-                  ))}
-                </select>
+  name="ledgerId"
+  value={formData.entries[0].ledgerId}
+  onChange={e => handleEntryChange(0, e)}
+  required
+  title="Select account ledger (Cash/Bank)"
+  className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
+>
+  <option value="">Select Cash/Bank Ledger</option>
+  {cashBankLedgers.map(ledger => (
+    <option key={ledger.id} value={ledger.id}>
+      {ledger.name} ({ledger.groupName})
+    </option>
+  ))}
+</select>
+
+
                 {errors.ledgerId0 && <p className="text-red-500 text-sm mt-1">{errors.ledgerId0}</p>}
               </div>
               <div>
@@ -421,18 +443,21 @@ const ContraVoucher: React.FC = () => {
                   Party Ledger (Cash/Bank)
                 </label>
                 <select
-                  name="ledgerId"
-                  value={formData.entries[1].ledgerId}
-                  onChange={e => handleEntryChange(1, e)}
-                  required
-                  title="Select party ledger (Cash/Bank)"
-                  className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
-                >
-                  <option value="">Select Cash/Bank Ledger</option>
-                  {ledgers.filter(l => l.type === 'cash' || l.type === 'bank').map((ledger: Ledger) => (
-                    <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
-                  ))}
-                </select>
+  name="ledgerId"
+  value={formData.entries[1].ledgerId}
+  onChange={e => handleEntryChange(1, e)}
+  required
+  title="Select party ledger (Cash/Bank)"
+  className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
+>
+  <option value="">Select Cash/Bank Ledger</option>
+  {cashBankLedgers.map(ledger => (
+    <option key={ledger.id} value={ledger.id}>
+      {ledger.name} ({ledger.groupName})
+    </option>
+  ))}
+</select>
+
                 {errors.ledgerId1 && <p className="text-red-500 text-sm mt-1">{errors.ledgerId1}</p>}
               </div>
               <div>
@@ -554,19 +579,27 @@ const ContraVoucher: React.FC = () => {
                     {formData.entries.map((entry, index) => (
                       <tr key={index} className={`${theme === 'dark' ? 'border-b border-gray-600' : 'border-b border-gray-300'}`}>
                         <td className="px-4 py-2">
-                          <select
-                            name="ledgerId"
-                            value={entry.ledgerId}
-                            onChange={e => handleEntryChange(index, e)}
-                            required
-                            title="Select ledger account (Cash/Bank)"
-                            className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
-                          >
-                            <option value="">Select Cash/Bank Ledger</option>
-                            {ledgers.filter(l => l.type === 'cash' || l.type === 'bank').map((ledger: Ledger) => (
-                              <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
-                            ))}
-                          </select>
+                          
+                         <select
+                name="ledgerId"
+                value={entry.ledgerId}
+                onChange={e => handleEntryChange(index, e)}
+                required
+                title="Select ledger account (Cash/Bank)"
+                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
+              >
+                <option value="">Select Cash/Bank Ledger</option>
+                {cashBankLedgers && cashBankLedgers.length > 0 ? (
+                  cashBankLedgers.map(ledger => (
+                    <option key={ledger.id} value={ledger.id}>
+                      {ledger.name} ({ledger.groupName})
+                    </option>
+                  ))
+                ) : (
+                  <option disabled>No Cash/Bank Ledgers Found</option>
+                )}
+              </select>
+
                           {errors[`ledgerId${index}`] && <p className="text-red-500 text-sm mt-1">{errors[`ledgerId${index}`]}</p>}
                         </td>
                         <td className="px-4 py-2">
@@ -574,7 +607,6 @@ const ContraVoucher: React.FC = () => {
                             name="type"
                             value={entry.type}
                             onChange={e => handleEntryChange(index, e)}
-                            required
                             title="Select debit or credit"
                             className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
                           >
