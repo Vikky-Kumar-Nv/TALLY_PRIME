@@ -50,6 +50,22 @@ import PurchaseVoucher1 from './components/vouchers/purches/PurcheseVoucher1';
 import StockJournalVoucher1 from './components/vouchers/stockjournal/StockJournalVoucher1';
 import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
 
+// Voucher Register Components
+import VoucherRegisterIndex from './components/voucherRegister/VoucherRegisterIndex';
+import PaymentRegister from './components/voucherRegister/PaymentRegister';
+import ReceiptRegister from './components/voucherRegister/ReceiptRegister';
+import ContraRegister from './components/voucherRegister/ContraRegister';
+import JournalRegister from './components/voucherRegister/JournalRegister';
+import SalesRegister from './components/voucherRegister/salesVoucherRegister/SalesRegister';
+import PurchaseRegister from './components/voucherRegister/purchaseVoucherRegister/PurchaseRegister';
+import CreditNoteRegister from './components/voucherRegister/CreditNoteRegister';
+import DebitNoteRegister from './components/voucherRegister/DebitNoteRegister';
+import SalesOrderRegister from './components/voucherRegister/SalesOrderRegister';
+import PurchaseReturnRegister from './components/voucherRegister/PurchaseReturnRegister';
+import StockJournalRegister from './components/voucherRegister/StockJournalRegister';
+import DeliveryNoteRegister from './components/voucherRegister/DeliveryNoteRegister';
+import QuotationRegister from './components/voucherRegister/QuotationRegister';
+import SalesReturnRegister from './components/voucherRegister/SalesReturnRegister';
 
 //Accounting
 import DayBook from './components/accounting/DayBook';
@@ -247,7 +263,22 @@ function App() {
             <Route path="vouchers/stock-journal/create" element={<StockJournalVoucher1 />} />
             <Route path="vouchers/sales/create" element={<SalesVoucher1 />} />
            
-           
+            {/* Voucher Register Routes */}
+            <Route path="voucher-register" element={<VoucherRegisterIndex />} />
+            <Route path="voucher-register/payment" element={<PaymentRegister />} />
+            <Route path="voucher-register/receipt" element={<ReceiptRegister />} />
+            <Route path="voucher-register/contra" element={<ContraRegister />} />
+            <Route path="voucher-register/journal" element={<JournalRegister />} />
+            <Route path="voucher-register/sales" element={<SalesRegister />} />
+            <Route path="voucher-register/purchase" element={<PurchaseRegister />} />
+            <Route path="voucher-register/credit-note" element={<CreditNoteRegister />} />
+            <Route path="voucher-register/debit-note" element={<DebitNoteRegister />} />
+            <Route path="voucher-register/sales-order" element={<SalesOrderRegister />} />
+            <Route path="voucher-register/purchase-return" element={<PurchaseReturnRegister />} />
+            <Route path="voucher-register/stock-journal" element={<StockJournalRegister />} />
+            <Route path="voucher-register/delivery-note" element={<DeliveryNoteRegister />} />
+            <Route path="voucher-register/quotation" element={<QuotationRegister />} />
+            <Route path="voucher-register/sales-return" element={<SalesReturnRegister />} />
 
            //Accounting Routes
            <Route path="accounting" element={<AccountingModule />} />
