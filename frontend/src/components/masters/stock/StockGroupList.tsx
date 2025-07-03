@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
 import { Plus, Edit, Trash, Printer, Download, Filter, ArrowLeft } from 'lucide-react';
-import ReportTable from '../../reports/ReportTable';
+import ReportTable from '../../inventory/ReportTable';
 import type { StockGroup } from '../../../types';
 
 const StockGroupList: React.FC = () => {

@@ -62,15 +62,19 @@ import BalanceSheet from './components/accounting/BalanceSheet';
 import CashFlow from './components/accounting/CashFlow';
 
 
+//inventry 
+import StockSummary from './components/inventory/StockSummary';
+import MovementAnalysis from './components/inventory/MovementAnalysis';
+import AgeingAnalysis from './components/inventory/AgeingAnalysis';
+import GodownSummary from './components/inventory/GodownSummary';
+
+
+
+
+
 // // Reports Components
 import ReportsIndex from './components/reports/ReportsIndex';
 
-
-
-import StockSummary from './components/reports/StockSummary';
-import MovementAnalysis from './components/reports/MovementAnalysis';
-import AgeingAnalysis from './components/reports/AgeingAnalysis';
-import GodownSummary from './components/reports/GodownSummary';
 import GSTR1 from './components/reports/GSTR1';
 import GSTR3B from './components/reports/GSTR3B';
 import GSTAnalysis from './components/reports/GSTAnalysis';
@@ -123,7 +127,7 @@ import UserReports from './components/audit/UserReports';
 
 // Other Modules
 import AccountingModule from './components/accounting/AccountingModule';
-import InventoryModule from './components/modules/InventoryModule';
+import InventoryModule from './components/inventory/InventoryModule';
 
 // Home Pages
 import HomePage from './home/pages/HomePage';
@@ -255,14 +259,14 @@ function App() {
             <Route path="accounting/balance-sheet" element={<BalanceSheet />} />
             <Route path="accounting/cash-flow" element={<CashFlow />} />
 
-
+           //inventory Routes
+           <Route path="inventory/stock-summary" element={<StockSummary />} />
+            <Route path="inventory/movement-analysis" element={<MovementAnalysis />} />
+            <Route path="inventory/ageing-analysis" element={<AgeingAnalysis />} />
+             <Route path="inventory/godown-summary" element={<GodownSummary />} />
             
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
-            <Route path="reports/stock-summary" element={<StockSummary />} />
-            <Route path="reports/movement-analysis" element={<MovementAnalysis />} />
-            <Route path="reports/ageing-analysis" element={<AgeingAnalysis />} />
-            <Route path="reports/godown-summary" element={<GodownSummary />} />
             <Route path="reports/trading-account" element={<TradingAccount />} />
             
 
@@ -295,7 +299,7 @@ function App() {
                <Route path="tds/tan" element={<TANRegistration />} />
 
             {/* Audit Module Routes */}
-            <Route path="audit" element={<AuditModule />} />
+                <Route path="audit" element={<AuditModule />} />
                 <Route path='audit/summary' element={<AuditSummary />} />
                 <Route path='audit/transaction-log' element={<TransactionLog />} />
                 <Route path='audit/user-activity'   element= {<UserActivity />} />
