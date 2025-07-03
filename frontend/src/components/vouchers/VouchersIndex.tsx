@@ -274,6 +274,105 @@ const VouchersIndex: React.FC = () => {
           iconBg: theme === 'dark' ? 'bg-amber-800/70' : 'bg-amber-100',
           description: 'General journal entries',
           category: 'accounting'
+        },
+        {
+          id: 'sales',
+          icon: <ShoppingCart size={20} />,
+          name: 'Sales',
+          path: '/app/vouchers/sales/create',
+          color: theme === 'dark' ? 'bg-blue-900/50 hover:bg-blue-800/50' : 'bg-blue-50 hover:bg-blue-100',
+          iconBg: theme === 'dark' ? 'bg-blue-800/70' : 'bg-blue-100',
+          description: 'Sales invoices',
+          category: 'trading'
+        },
+        {
+          id: 'purchase',
+          icon: <ShoppingBag size={20} />,
+          name: 'Purchase',
+          path: '/app/vouchers/purchase/create',
+          color: theme === 'dark' ? 'bg-indigo-900/50 hover:bg-indigo-800/50' : 'bg-indigo-50 hover:bg-indigo-100',
+          iconBg: theme === 'dark' ? 'bg-indigo-800/70' : 'bg-indigo-100',
+          description: 'Purchase invoices',
+          category: 'trading'
+        },
+        {
+          id: 'sales-order',
+          icon: <Clipboard size={20} />,
+          name: 'Sales Order',
+          path: '/app/vouchers/sales-order/create',
+          color: theme === 'dark' ? 'bg-sky-900/50 hover:bg-sky-800/50' : 'bg-sky-50 hover:bg-sky-100',
+          iconBg: theme === 'dark' ? 'bg-sky-800/70' : 'bg-sky-100',
+          description: 'Sales orders',
+          category: 'trading'
+        },
+        {
+          id: 'quotation',
+          icon: <FileText size={20} />,
+          name: 'Quotation',
+          path: '/app/vouchers/quotation/create',
+          color: theme === 'dark' ? 'bg-violet-900/50 hover:bg-violet-800/50' : 'bg-violet-50 hover:bg-violet-100',
+          iconBg: theme === 'dark' ? 'bg-violet-800/70' : 'bg-violet-100',
+          description: 'Price quotations',
+          category: 'trading'
+        },
+        {
+          id: 'debit-note',
+          icon: <FilePlus size={20} />,
+          name: 'Debit Note',
+          path: '/app/vouchers/debit-note/create',
+          color: theme === 'dark' ? 'bg-rose-900/50 hover:bg-rose-800/50' : 'bg-rose-50 hover:bg-rose-100',
+          iconBg: theme === 'dark' ? 'bg-rose-800/70' : 'bg-rose-100',
+          description: 'Debit adjustments',
+          category: 'trading'
+        },
+        {
+          id: 'credit-note',
+          icon: <FileMinus size={20} />,
+          name: 'Credit Note',
+          path: '/app/vouchers/credit-note/create',
+          color: theme === 'dark' ? 'bg-teal-900/50 hover:bg-teal-800/50' : 'bg-teal-50 hover:bg-teal-100',
+          iconBg: theme === 'dark' ? 'bg-teal-800/70' : 'bg-teal-100',
+          description: 'Credit adjustments',
+          category: 'trading'
+        },
+        {
+          id: 'sales-return',
+          icon: <RotateCcw size={20} />,
+          name: 'Sales Return',
+          path: '/app/vouchers/sales-return/create',
+          color: theme === 'dark' ? 'bg-orange-900/50 hover:bg-orange-800/50' : 'bg-orange-50 hover:bg-orange-100',
+          iconBg: theme === 'dark' ? 'bg-orange-800/70' : 'bg-orange-100',
+          description: 'Sales returns',
+          category: 'trading'
+        },
+        {
+          id: 'purchase-return',
+          icon: <RefreshCcw size={20} />,
+          name: 'Purchase Return',
+          path: '/app/vouchers/purchase-return/create',
+          color: theme === 'dark' ? 'bg-emerald-900/50 hover:bg-emerald-800/50' : 'bg-emerald-50 hover:bg-emerald-100',
+          iconBg: theme === 'dark' ? 'bg-emerald-800/70' : 'bg-emerald-100',
+          description: 'Purchase returns',
+          category: 'trading'
+        },{
+          id: 'stock-journal',
+          icon: <Package size={20} />,
+          name: 'Stock Journal',
+          path: '/app/vouchers/stock-journal/create',
+          color: theme === 'dark' ? 'bg-yellow-900/50 hover:bg-yellow-800/50' : 'bg-yellow-50 hover:bg-yellow-100',
+          iconBg: theme === 'dark' ? 'bg-yellow-800/70' : 'bg-yellow-100',
+          description: 'Stock adjustments',
+          category: 'inventory'
+        },
+        {
+          id: 'delivery-note',
+          icon: <Truck size={20} />,
+          name: 'Delivery Note',
+          path: '/app/vouchers/delivery-note/create',
+          color: theme === 'dark' ? 'bg-cyan-900/50 hover:bg-cyan-800/50' : 'bg-cyan-50 hover:bg-cyan-100',
+          iconBg: theme === 'dark' ? 'bg-cyan-800/70' : 'bg-cyan-100',
+          description: 'Delivery notes',
+          category: 'inventory'
         }
       ]
     },
