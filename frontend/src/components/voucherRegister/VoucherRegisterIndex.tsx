@@ -238,13 +238,6 @@ const VoucherRegisterIndex: React.FC = () => {
     <div className="pt-[56px] px-4 min-h-screen">
       {/* Header Section */}
       <div className="mb-6">
-        {/* Breadcrumbs */}
-        <nav className={`text-sm mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-          <button onClick={() => navigate('/app')} className="hover:underline">Home</button>
-          <span className="mx-2">/</span>
-          <span className="font-medium">Voucher Registers</span>
-        </nav>
-
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-bold mb-2 flex items-center">
