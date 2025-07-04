@@ -110,6 +110,7 @@ import ImportData from './components/modules/gst/ImportData';
 import Reconciliation from './components/modules/gst/Reconciliation';
 import ExportReturns from './components/modules/gst/ExportReturns';
 import GSTSummary from './components/modules/gst/GSTSummary';
+import EWayBill from './components/modules/gst/EWayBill';
 import TDSSummary from './components/modules/tds/TDSSummary';
 
 
@@ -316,7 +317,9 @@ function App() {
             <Route path="gst/registration" element={<GSTRegistration />} />
             <Route path="gst/import" element={<ImportData />} />
             <Route path="gst/reconciliation" element={<Reconciliation />} />
-            <Route path="gst/export" element={<ExportReturns />} />            <Route path="gst/summary" element={<GSTSummary />} />
+            <Route path="gst/export" element={<ExportReturns />} />
+            <Route path="gst/e-way-bill" element={<EWayBill />} />
+            <Route path="gst/summary" element={<GSTSummary />} />
 
             {/* TDS Module Routes */}
             <Route path="tds" element={<TDSModule />} />

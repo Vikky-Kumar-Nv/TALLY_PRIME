@@ -5,8 +5,8 @@ import { useNavigate } from 'react-router-dom';
 
 import { 
   FileText, Calculator, Users, BarChart2, 
-  Download, Upload, CheckCircle, AlertTriangle 
-} from 'lucide-react';
+  Download, Upload,
+} from 'lucide-react'; // CheckCircle, AlertTriangle 
 
 const TDSModule: React.FC = () => {
   const { theme } = useAppContext();
@@ -19,7 +19,8 @@ const TDSModule: React.FC = () => {
         { icon: <FileText size={20} />, name: 'Form 24Q', path: '/app/tds/form-24q' },
         { icon: <FileText size={20} />, name: 'Form 26Q', path: '/app/tds/form-26q' },
         { icon: <FileText size={20} />, name: 'Form 27Q', path: '/app/tds/form-27q' },
-        { icon: <BarChart2 size={20} />, name: 'TDS Summary', path: '/app/tds/summary' }
+         { icon: <FileText size={20} />, name: 'Form 27EQ', path: '/app/tds/form-27q' },
+        
       ]
     },
     {
@@ -27,8 +28,9 @@ const TDSModule: React.FC = () => {
       items: [
         { icon: <Calculator size={20} />, name: 'TDS Rates', path: '/app/tds/rates' },
         { icon: <Users size={20} />, name: 'Deductee Master', path: '/app/tds/deductees' },
-        { icon: <CheckCircle size={20} />, name: 'TAN Registration', path: '/app/tds/tan' },
-        { icon: <AlertTriangle size={20} />, name: 'Compliance Check', path: '/app/tds/compliance' }
+        { icon: <BarChart2 size={20} />, name: 'TDS Summary', path: '/app/tds/summary' }
+        // { icon: <CheckCircle size={20} />, name: 'TAN Registration', path: '/app/tds/tan' },
+        // { icon: <AlertTriangle size={20} />, name: 'Compliance Check', path: '/app/tds/compliance' }
       ]
     },
     {
