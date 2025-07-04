@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
-import { Plus, Edit, Trash, Printer, Download, Filter, ArrowLeft } from 'lucide-react';
-import ReportTable from '../../reports/ReportTable';
+import { useNavigate } from 'react-router-dom';
 import type { StockCategory } from '../../../types';
 import { Edit, Trash2, Plus, Search, ArrowLeft } from 'lucide-react';
 
