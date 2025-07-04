@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
 import { ArrowLeft, Edit, Trash, Printer, Download, Filter, Play } from 'lucide-react';
-import ReportTable from '../../reports/ReportTable';
+import ReportTable from '../../inventory/ReportTable';
 import type { Scenario } from '../../../types';
 
 const ScenarioList: React.FC = () => {

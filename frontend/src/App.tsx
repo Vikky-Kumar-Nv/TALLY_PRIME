@@ -50,6 +50,22 @@ import PurchaseVoucher1 from './components/vouchers/purches/PurcheseVoucher1';
 import StockJournalVoucher1 from './components/vouchers/stockjournal/StockJournalVoucher1';
 import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
 
+// Voucher Register Components
+import VoucherRegisterIndex from './components/voucherRegister/VoucherRegisterIndex';
+import PaymentRegister from './components/voucherRegister/PaymentRegister';
+import ReceiptRegister from './components/voucherRegister/ReceiptRegister';
+import ContraRegister from './components/voucherRegister/ContraRegister';
+import JournalRegister from './components/voucherRegister/JournalRegister';
+import SalesRegister from './components/voucherRegister/salesVoucherRegister/SalesRegister';
+import PurchaseRegister from './components/voucherRegister/purchaseVoucherRegister/PurchaseRegister';
+import CreditNoteRegister from './components/voucherRegister/CreditNoteRegister';
+import DebitNoteRegister from './components/voucherRegister/DebitNoteRegister';
+import SalesOrderRegister from './components/voucherRegister/SalesOrderRegister';
+import PurchaseReturnRegister from './components/voucherRegister/PurchaseReturnRegister';
+import StockJournalRegister from './components/voucherRegister/StockJournalRegister';
+import DeliveryNoteRegister from './components/voucherRegister/DeliveryNoteRegister';
+import QuotationRegister from './components/voucherRegister/QuotationRegister';
+import SalesReturnRegister from './components/voucherRegister/SalesReturnRegister';
 
 //Accounting
 import DayBook from './components/accounting/DayBook';
@@ -62,15 +78,19 @@ import BalanceSheet from './components/accounting/BalanceSheet';
 import CashFlow from './components/accounting/CashFlow';
 
 
+//inventry 
+import StockSummary from './components/inventory/StockSummary';
+import MovementAnalysis from './components/inventory/MovementAnalysis';
+import AgeingAnalysis from './components/inventory/AgeingAnalysis';
+import GodownSummary from './components/inventory/GodownSummary';
+
+
+
+
+
 // // Reports Components
 import ReportsIndex from './components/reports/ReportsIndex';
 
-
-
-import StockSummary from './components/reports/StockSummary';
-import MovementAnalysis from './components/reports/MovementAnalysis';
-import AgeingAnalysis from './components/reports/AgeingAnalysis';
-import GodownSummary from './components/reports/GodownSummary';
 import GSTR1 from './components/reports/GSTR1';
 import GSTR3B from './components/reports/GSTR3B';
 import GSTAnalysis from './components/reports/GSTAnalysis';
@@ -123,7 +143,7 @@ import UserReports from './components/audit/UserReports';
 
 // Other Modules
 import AccountingModule from './components/accounting/AccountingModule';
-import InventoryModule from './components/modules/InventoryModule';
+import InventoryModule from './components/inventory/InventoryModule';
 
 // Home Pages
 import HomePage from './home/pages/HomePage';
@@ -243,7 +263,22 @@ function App() {
             <Route path="vouchers/stock-journal/create" element={<StockJournalVoucher1 />} />
             <Route path="vouchers/sales/create" element={<SalesVoucher1 />} />
            
-           
+            {/* Voucher Register Routes */}
+            <Route path="voucher-register" element={<VoucherRegisterIndex />} />
+            <Route path="voucher-register/payment" element={<PaymentRegister />} />
+            <Route path="voucher-register/receipt" element={<ReceiptRegister />} />
+            <Route path="voucher-register/contra" element={<ContraRegister />} />
+            <Route path="voucher-register/journal" element={<JournalRegister />} />
+            <Route path="voucher-register/sales" element={<SalesRegister />} />
+            <Route path="voucher-register/purchase" element={<PurchaseRegister />} />
+            <Route path="voucher-register/credit-note" element={<CreditNoteRegister />} />
+            <Route path="voucher-register/debit-note" element={<DebitNoteRegister />} />
+            <Route path="voucher-register/sales-order" element={<SalesOrderRegister />} />
+            <Route path="voucher-register/purchase-return" element={<PurchaseReturnRegister />} />
+            <Route path="voucher-register/stock-journal" element={<StockJournalRegister />} />
+            <Route path="voucher-register/delivery-note" element={<DeliveryNoteRegister />} />
+            <Route path="voucher-register/quotation" element={<QuotationRegister />} />
+            <Route path="voucher-register/sales-return" element={<SalesReturnRegister />} />
 
            //Accounting Routes
            <Route path="accounting" element={<AccountingModule />} />
@@ -255,14 +290,14 @@ function App() {
             <Route path="accounting/balance-sheet" element={<BalanceSheet />} />
             <Route path="accounting/cash-flow" element={<CashFlow />} />
 
-
+           //inventory Routes
+           <Route path="inventory/stock-summary" element={<StockSummary />} />
+            <Route path="inventory/movement-analysis" element={<MovementAnalysis />} />
+            <Route path="inventory/ageing-analysis" element={<AgeingAnalysis />} />
+             <Route path="inventory/godown-summary" element={<GodownSummary />} />
             
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
-            <Route path="reports/stock-summary" element={<StockSummary />} />
-            <Route path="reports/movement-analysis" element={<MovementAnalysis />} />
-            <Route path="reports/ageing-analysis" element={<AgeingAnalysis />} />
-            <Route path="reports/godown-summary" element={<GodownSummary />} />
             <Route path="reports/trading-account" element={<TradingAccount />} />
             
 
@@ -295,7 +330,7 @@ function App() {
                <Route path="tds/tan" element={<TANRegistration />} />
 
             {/* Audit Module Routes */}
-            <Route path="audit" element={<AuditModule />} />
+                <Route path="audit" element={<AuditModule />} />
                 <Route path='audit/summary' element={<AuditSummary />} />
                 <Route path='audit/transaction-log' element={<TransactionLog />} />
                 <Route path='audit/user-activity'   element= {<UserActivity />} />

@@ -3,7 +3,8 @@ import { useAppContext } from '../../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Home, BarChart2, BookOpen, FileText, Settings, 
-  Database, Package, ShoppingCart, DollarSign, Truck 
+  Database, Package, ShoppingCart, DollarSign, Truck, 
+  BookKey
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -19,6 +20,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     { icon: <Home size={18} />, title: 'Dashboard', path: '/app', shortcut: 'Alt+F1' },
     { icon: <Database size={18} />, title: 'Masters', path: '/app/masters', shortcut: 'Alt+F3' },
     { icon: <FileText size={18} />, title: 'Vouchers', path: '/app/vouchers', shortcut: 'Alt+F5' },
+    { icon: <BookKey  size={18} />, title: 'Vouchers Register', path: '/app/voucher-register' },
     { icon: <BarChart2 size={18} />, title: 'Reports', path: '/app/reports', shortcut: 'Alt+F9' },
     { icon: <DollarSign size={18} />, title: 'Accounting', path: '/app/accounting', shortcut: 'Alt+F10' },
     { icon: <Package size={18} />, title: 'Inventory', path: '/app/inventory', shortcut: 'Alt+F11' },

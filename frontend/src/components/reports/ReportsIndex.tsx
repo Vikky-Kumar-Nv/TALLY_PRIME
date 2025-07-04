@@ -2,8 +2,8 @@ import React from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { 
-  BookOpen, BarChart2, Activity, Calendar 
-} from 'lucide-react';
+  BarChart2,  
+} from 'lucide-react';   // BookOpen,Activity, Calendar
 
 const ReportsIndex: React.FC = () => {
   const { theme } = useAppContext();
@@ -25,10 +25,10 @@ const ReportsIndex: React.FC = () => {
     {
       title: 'Inventory Reports',
       items: [
-        { icon: <BookOpen size={20} />, name: 'Stock Summary', path: '/app/reports/stock-summary' },
-        { icon: <Activity size={20} />, name: 'Movement Analysis', path: '/app/reports/movement-analysis' },
-        { icon: <Calendar size={20} />, name: 'Ageing Analysis', path: '/app/reports/ageing-analysis' },
-        { icon: <BarChart2 size={20} />, name: 'Godown Summary', path: '/app/reports/godown-summary' },
+        // { icon: <BookOpen size={20} />, name: 'Stock Summary', path: '/app/reports/stock-summary' },
+        // { icon: <Activity size={20} />, name: 'Movement Analysis', path: '/app/reports/movement-analysis' },
+        // { icon: <Calendar size={20} />, name: 'Ageing Analysis', path: '/app/reports/ageing-analysis' },
+        // { icon: <BarChart2 size={20} />, name: 'Godown Summary', path: '/app/reports/godown-summary' },
          { icon: <BarChart2 size={20} />, name: 'Bills Receivable', path: '/app/reports/bill-receivable' },
          { icon: <BarChart2 size={20} />, name: 'Bills Payable', path: '/app/reports/bill-payable' }
       ]
