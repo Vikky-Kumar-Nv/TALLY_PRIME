@@ -14,17 +14,13 @@ const GroupList: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [groupsRes, classificationsRes] = await Promise.all([
+        const [groupsRes] = await Promise.all([
           fetch('http://localhost:5000/api/ledger-groups'),
-          fetch('http://localhost:5000/api/gst-classifications'),
         ]);
         const groups = await groupsRes.json();
-        const classifications = await classificationsRes.json();
         setGroups(groups);
-        setGstClassifications(classifications);
       } catch (err) {
         console.error('Failed to fetch data:', err);
-        alert('Failed to fetch groups or classifications');
       }
     };
 

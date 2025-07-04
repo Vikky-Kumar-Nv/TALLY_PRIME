@@ -1,19 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, ArrowLeft } from 'lucide-react';
 
 const CostCenterList: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Placeholder data - replace with actual cost center data from context
-  const costCenters = [
-    { id: '1', name: 'Production', category: 'Manufacturing' },
-    { id: '2', name: 'Sales', category: 'Marketing' },
-    { id: '3', name: 'Administration', category: 'General' }
-  ];
+  const [costCenters, setCostCenters] = useState<{ id: string; name: string; category: string }[]>([]);
+
+ useEffect(() => {
+  fetch('http://localhost:5000/api/cost-centers/list/all')
+    .then((res) => res.json())
+    .then((data) => setCostCenters(data))
+    .catch((err) => console.error('Error loading cost centers:', err));
+}, []);
+
 
   const filteredCostCenters = costCenters.filter(center =>
     center.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -22,8 +25,18 @@ const CostCenterList: React.FC = () => {
 
   return (
     <div className='pt-[56px] px-4 '>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Cost Center List</h1>
+      <div className="flex items-center mb-6">
+         <button title="Back to Dashboard"
+                  onClick={() => navigate('/app/masters')}
+                  className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
+                >
+                  <ArrowLeft size={20} />
+                </button>
+                <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
+                  Cost Center List
+                </h1>
+            <div className="ml-auto flex space-x-2">
+
         <button
         title='Create New Cost Center'
           onClick={() => navigate('/app/masters/cost-center/create')}
@@ -37,7 +50,8 @@ const CostCenterList: React.FC = () => {
           Create Cost Center
         </button>
       </div>
-      
+          </div>
+
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
         <div className="flex items-center mb-4">
           <div className={`flex items-center w-full max-w-md px-3 py-2 rounded-md ${
@@ -119,6 +133,7 @@ const CostCenterList: React.FC = () => {
         </p>
       </div>
     </div>
+    
   );
 };
 

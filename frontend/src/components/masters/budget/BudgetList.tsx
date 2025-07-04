@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, ArrowLeft } from 'lucide-react';
 
 interface Budget {
   id: number;
@@ -30,8 +30,16 @@ const BudgetList: React.FC = () => {
 
   return (
     <div className='pt-[56px] px-4 '>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex items-center mb-6">
+        <button title="Back to Dashboard"
+                  onClick={() => navigate('/app/masters')}
+                  className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
+                >
+                  <ArrowLeft size={20} />
+                </button>
         <h1 className="text-2xl font-bold">Budget List</h1>
+        <div className="ml-auto flex space-x-2">
+
         <button
           title='Create New Budget'
           onClick={() => navigate('/app/masters/budget/create')}
@@ -44,6 +52,7 @@ const BudgetList: React.FC = () => {
           <Plus size={18} className="mr-1" />
           Create Budget
         </button>
+      </div>
       </div>
 
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>

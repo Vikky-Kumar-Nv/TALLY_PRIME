@@ -3,6 +3,7 @@ import { useAppContext } from '../../../context/AppContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 import type { LedgerGroup, GstClassification, LedgerType } from '../../../types';
+import Swal from 'sweetalert2';
 
 interface FormData {
   name: string;
@@ -56,28 +57,28 @@ const GroupForm: React.FC = () => {
   });
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [groupsRes, classificationsRes] = await Promise.all([
-          fetch('http://localhost:5000/api/ledger-groups'),
-          fetch('http://localhost:5000/api/gst-classifications'),
-        ]);
-        if (!groupsRes.ok || !classificationsRes.ok) {
-          throw new Error('Failed to fetch data');
-        }
-        const groups = await groupsRes.json();
-        const classifications = await classificationsRes.json();
-        setLedgerGroups(groups);
-        setGstClassifications(classifications);
-      } catch (err) {
-        console.error('Failed to load data', err);
-        alert('Failed to load groups or classifications');
-      }
-    };
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const [groupsRes, classificationsRes] = await Promise.all([
+  //         fetch('http://localhost:5000/api/ledger-groups'),
+  //         fetch('http://localhost:5000/api/gst-classifications'),
+  //       ]);
+  //       if (!groupsRes.ok || !classificationsRes.ok) {
+  //         throw new Error('Failed to fetch data');
+  //       }
+  //       const groups = await groupsRes.json();
+  //       const classifications = await classificationsRes.json();
+  //       setLedgerGroups(groups);
+  //       setGstClassifications(classifications);
+  //     } catch (err) {
+  //       console.error('Failed to load data', err);
+  //       alert('Failed to load groups or classifications');
+  //     }
+  //   };
 
-    fetchData();
-  }, []);
+  //   fetchData();
+  // }, []);
 
   useEffect(() => {
     if (isEditMode && id) {
@@ -160,60 +161,82 @@ const GroupForm: React.FC = () => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      alert('Please fix the errors before submitting.');
-      return;
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!validateForm()) {
+  //     alert('Please fix the errors before submitting.');
+  //     return;
+  //   }
+
+  //   const groupData: LedgerGroup = {
+  //     id: isEditMode && id ? id : (ledgerGroups.length + 1).toString(),
+  //     name: formData.name,
+  //     alias: formData.alias || undefined,
+  //     parent: formData.under === 'Primary' ? undefined : formData.under,
+  //     type: formData.under === 'Primary' ? formData.type as LedgerType : ledgerGroups.find(g => g.id === formData.under)?.type || 'current-assets',
+  //     behavesLikeSubLedger: formData.behavesLikeSubLedger === 'yes',
+  //     nettBalancesForReporting: formData.nettBalancesForReporting === 'yes',
+  //     usedForCalculation: formData.usedForCalculation === 'yes',
+  //     allocationMethod: formData.allocationMethod || undefined,
+  //     gstDetails: {
+  //       setAlterHSNSAC: formData.setAlterHSNSAC === 'yes',
+  //       hsnSacClassificationId: formData.setAlterHSNSAC === 'yes' ? formData.hsnSacClassificationId : undefined,
+  //       hsnCode: formData.setAlterHSNSAC === 'yes' ? formData.hsnCode : undefined,
+  //       setAlterGST: formData.setAlterGST === 'yes',
+  //       gstClassificationId: formData.setAlterGST === 'yes' ? formData.gstClassificationId : undefined,
+  //       typeOfSupply: formData.setAlterGST === 'yes' ? formData.typeOfSupply as 'Goods' | 'Services' : undefined,
+  //       taxability: formData.setAlterGST === 'yes' ? formData.taxability as 'Taxable' | 'Exempt' | 'Nil-rated' : undefined,
+  //       integratedTaxRate: formData.setAlterGST === 'yes' && formData.integratedTaxRate ? parseFloat(formData.integratedTaxRate) : undefined,
+  //       cess: formData.setAlterGST === 'yes' && formData.cess ? parseFloat(formData.cess) : undefined,
+  //     },
+  //   };
+
+  //   try {
+  //     const url = isEditMode && id ? `http://localhost:5000/api/ledger-groups/${id}` : 'http://localhost:5000/api/ledger-groups';
+  //     const method = isEditMode ? 'PUT' : 'POST';
+  //     const res = await fetch(url, {
+  //       method,
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(groupData),
+  //     });
+
+  //     const data = await res.json();
+
+  //     if (res.ok) {
+  //       if (!isEditMode) addLedgerGroup(groupData);
+  //       alert(data.message || `Group ${isEditMode ? 'updated' : 'created'} successfully!`);
+  //       navigate('/app/masters/group');
+  //     } else {
+  //       alert(data.message || `Failed to ${isEditMode ? 'update' : 'create'} group`);
+  //     }
+  //   } catch (err) {
+  //     console.error(`Group ${isEditMode ? 'update' : 'create'} error:`, err);
+  //     alert('Something went wrong!');
+  //   }
+  // };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const res = await fetch('http://localhost:5000/api/group', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      Swal.fire("Success", data.message, "success"); // Use sweetalert2
+      navigate('/app/masters/group');
+    } else {
+      Swal.fire("Error", data.message || "Failed to create Group", "error");
     }
-
-    const groupData: LedgerGroup = {
-      id: isEditMode && id ? id : (ledgerGroups.length + 1).toString(),
-      name: formData.name,
-      alias: formData.alias || undefined,
-      parent: formData.under === 'Primary' ? undefined : formData.under,
-      type: formData.under === 'Primary' ? formData.type as LedgerType : ledgerGroups.find(g => g.id === formData.under)?.type || 'current-assets',
-      behavesLikeSubLedger: formData.behavesLikeSubLedger === 'yes',
-      nettBalancesForReporting: formData.nettBalancesForReporting === 'yes',
-      usedForCalculation: formData.usedForCalculation === 'yes',
-      allocationMethod: formData.allocationMethod || undefined,
-      gstDetails: {
-        setAlterHSNSAC: formData.setAlterHSNSAC === 'yes',
-        hsnSacClassificationId: formData.setAlterHSNSAC === 'yes' ? formData.hsnSacClassificationId : undefined,
-        hsnCode: formData.setAlterHSNSAC === 'yes' ? formData.hsnCode : undefined,
-        setAlterGST: formData.setAlterGST === 'yes',
-        gstClassificationId: formData.setAlterGST === 'yes' ? formData.gstClassificationId : undefined,
-        typeOfSupply: formData.setAlterGST === 'yes' ? formData.typeOfSupply as 'Goods' | 'Services' : undefined,
-        taxability: formData.setAlterGST === 'yes' ? formData.taxability as 'Taxable' | 'Exempt' | 'Nil-rated' : undefined,
-        integratedTaxRate: formData.setAlterGST === 'yes' && formData.integratedTaxRate ? parseFloat(formData.integratedTaxRate) : undefined,
-        cess: formData.setAlterGST === 'yes' && formData.cess ? parseFloat(formData.cess) : undefined,
-      },
-    };
-
-    try {
-      const url = isEditMode && id ? `http://localhost:5000/api/ledger-groups/${id}` : 'http://localhost:5000/api/ledger-groups';
-      const method = isEditMode ? 'PUT' : 'POST';
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(groupData),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        if (!isEditMode) addLedgerGroup(groupData);
-        alert(data.message || `Group ${isEditMode ? 'updated' : 'created'} successfully!`);
-        navigate('/app/masters/group');
-      } else {
-        alert(data.message || `Failed to ${isEditMode ? 'update' : 'create'} group`);
-      }
-    } catch (err) {
-      console.error(`Group ${isEditMode ? 'update' : 'create'} error:`, err);
-      alert('Something went wrong!');
-    }
-  };
-
+  } catch (err) {
+    console.error('Group create error:', err);
+    Swal.fire("Error", 'Something went wrong!', "error");
+  }
+};
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       navigate('/app/masters/group');

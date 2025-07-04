@@ -12,31 +12,64 @@ const ScenarioList: React.FC = () => {
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+const [scenarios, setScenarios] = useState<Scenario[]>([]);
+const [loading, setLoading] = useState(true);
+
+// Fetch from API
+useEffect(() => {
+  const fetchScenarios = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/scenario/list');
+      const rawData = await response.json();
+
+      const formatted = rawData.map((s: any) => ({
+        id: s.id,
+        name: s.name,
+        includeActuals: s.include_actuals,
+        includedVoucherTypes: s.included_voucher_types || [],
+        excludedVoucherTypes: s.excluded_voucher_types || [],
+        fromDate: s.from_date,
+        toDate: s.to_date,
+        createdAt: s.created_at,
+        updatedAt: s.updated_at
+      }));
+
+      setScenarios(formatted);
+    } catch (err) {
+      console.error('Error fetching scenarios:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  fetchScenarios();
+}, []);
 
   // Mock scenarios - in a real app, this would come from an API or context
-  const [mockScenarios] = useState<Scenario[]>([
-    {
-      id: 'SCN-001',
-      name: 'Budget Q1 2025',
-      includeActuals: true,
-      includedVoucherTypes: ['sales', 'purchase'],
-      excludedVoucherTypes: ['journal'],
-      fromDate: '2025-04-01',
-      toDate: '2025-06-30',
-      createdAt: '2025-06-01T10:00:00Z',
-    },
-    {
-      id: 'SCN-002',
-      name: 'Forecast H2 2025',
-      includeActuals: false,
-      includedVoucherTypes: ['journal'],
-      excludedVoucherTypes: ['sales', 'purchase'],
-      fromDate: '2025-07-01',
-      toDate: '2025-12-31',
-      createdAt: '2025-06-15T12:00:00Z',
-      updatedAt: '2025-06-20T14:00:00Z',
-    },
-  ]);
+  // const [mockScenarios] = useState<Scenario[]>([
+  //   {
+  //     id: 'SCN-001',
+  //     name: 'Budget Q1 2025',
+  //     includeActuals: true,
+  //     includedVoucherTypes: ['sales', 'purchase'],
+  //     excludedVoucherTypes: ['journal'],
+  //     fromDate: '2025-04-01',
+  //     toDate: '2025-06-30',
+  //     createdAt: '2025-06-01T10:00:00Z',
+  //   },
+  //   {
+  //     id: 'SCN-002',
+  //     name: 'Forecast H2 2025',
+  //     includeActuals: false,
+  //     includedVoucherTypes: ['journal'],
+  //     excludedVoucherTypes: ['sales', 'purchase'],
+  //     fromDate: '2025-07-01',
+  //     toDate: '2025-12-31',
+  //     createdAt: '2025-06-15T12:00:00Z',
+  //     updatedAt: '2025-06-20T14:00:00Z',
+  //   },
+  // ]);
 
   // Mock delete function
   const deleteScenario = useCallback((id: string) => {
@@ -45,9 +78,10 @@ const ScenarioList: React.FC = () => {
     alert('Scenario deletion would be implemented here');
   }, []);
 
-  const filteredScenarios = mockScenarios.filter(
-    (s: Scenario) => s.name.toLowerCase().includes(filterName.toLowerCase())
-  );
+const filteredScenarios = scenarios.filter(
+  (s: Scenario) => s.name.toLowerCase().includes(filterName.toLowerCase())
+);
+
 
   const paginatedScenarios = filteredScenarios.slice(
     (currentPage - 1) * itemsPerPage,

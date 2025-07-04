@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, Plus, Search } from 'lucide-react';
+import { Edit, Trash2, Plus, Search, ArrowLeft } from 'lucide-react';
 
 interface Currency {
   id: number;
@@ -39,8 +39,16 @@ const CurrencyList: React.FC = () => {
 
   return (
     <div className='pt-[56px] px-4 '>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex items-center mb-6">
+        <button title="Back to Dashboard"
+                  onClick={() => navigate('/app/masters')}
+                  className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
+                >
+                  <ArrowLeft size={20} />
+                </button>
         <h1 className="text-2xl font-bold">Currency List</h1>
+        <div className="ml-auto flex space-x-2">
+
         <button
           title='Create New Currency'
           onClick={() => navigate('/app/masters/currency/create')}
@@ -53,6 +61,7 @@ const CurrencyList: React.FC = () => {
           <Plus size={18} className="mr-1" />
           Create Currency
         </button>
+      </div>
       </div>
 
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>

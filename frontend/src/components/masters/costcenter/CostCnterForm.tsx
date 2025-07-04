@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 interface CostCenterFormData {
   name: string;
@@ -22,34 +23,80 @@ const CostCenterForm: React.FC = () => {
   });
 
   useEffect(() => {
-    if (isEditMode && id) {
-      // Fetch cost center data by id and set form data
-      // This is just mock data for demonstration
-      const mockCostCenter = {
-        id: '1',
-        name: 'Production',
-        category: 'Manufacturing',
-        description: 'Main production department cost center'
-      };
-      
-      setFormData({
-        name: mockCostCenter.name,
-        category: mockCostCenter.category,
-        description: mockCostCenter.description
-      });
-    }
-  }, [id, isEditMode]);
+  if (isEditMode && id) {
+    fetch(`http://localhost:5000/api/cost-centers/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        setFormData({
+          name: data.name,
+          category: data.category,
+          description: data.description
+        });
+      })
+      .catch(err => console.error('Error fetching cost center:', err));
+  }
+}, [id, isEditMode]);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+ const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    navigate('/app/masters/cost-center');
+  
+    try {
+      const response = await fetch('http://localhost:5000/api/cost-centers/save', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData), // your state
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: data.message,
+        }).then(() => {
+          navigate('/app/masters/cost-centers'); // or your route to go back
+        });
+      } else {
+        Swal.fire('Error', data.message || 'Something went wrong', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      Swal.fire('Network Error', 'Failed to connect to the server.', 'error');
+    }
   };
+
+
+//   const handleSubmit = async (e: React.FormEvent) => {
+//   e.preventDefault();
+// try {
+//     const response = await fetch('http://localhost:5000/api/cost-centers/save', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ ...formData, id }),
+//     });
+//     const result = await response.json();
+
+//     if (result.success) {
+//       alert(result.message);
+//       navigate('/app/masters/cost-centers');
+//     } else {
+//       alert('Error: ' + (result.error || 'Something went wrong'));
+//     }
+//   } catch (err) {
+//     console.error('Failed to save cost center:', err);
+//     alert('Network or server error');
+//   }
+// };
+
 
   return (
     <div className='pt-[56px] px-4 '>

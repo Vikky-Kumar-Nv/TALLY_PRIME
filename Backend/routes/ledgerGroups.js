@@ -5,7 +5,7 @@ const db = require('../db');
 // GET /api/ledger-groups
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await db.execute('SELECT id, name, type, parent FROM ledger_groups');
+    const [rows] = await db.execute('SELECT * FROM ledger_groups');
     res.json(rows);
   } catch (err) {
     console.error('Error fetching ledger groups:', err);

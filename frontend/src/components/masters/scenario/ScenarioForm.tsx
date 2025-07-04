@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
 import { ArrowLeft, Save, Printer } from 'lucide-react';
 import type { Scenario, VoucherType } from '../../../types';
+import Swal from 'sweetalert2';
 
 const ScenarioForm: React.FC = () => {
   const { theme, companyInfo } = useAppContext();
@@ -95,20 +96,55 @@ const ScenarioForm: React.FC = () => {
       };
     });
   };
-
-  const handleSubmit = useCallback(() => {
-    if (validateForm()) {
-      const scenarioData = {
-        ...formData,
-        id: isEditMode ? formData.id : `SCN-${Date.now()}`,
-        updatedAt: isEditMode ? new Date().toISOString() : undefined,
-      };
-      // In a real app, this would save to an API or context
-      console.log(isEditMode ? 'Updating scenario:' : 'Creating scenario:', scenarioData);
-      alert(`Scenario ${isEditMode ? 'updated' : 'created'} successfully!`);
-      navigate('/app/scenarios');
+ const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    if (!validateForm()) {
+      Swal.fire('Validation Error', 'Please fix the errors before submitting.', 'warning');
+      return;
     }
-  }, [formData, isEditMode, navigate, validateForm]);
+  
+    try {
+      const response = await fetch('http://localhost:5000/api/scenario/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData), // your state
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: data.message,
+        }).then(() => {
+          navigate('/app/scenarios'); // or your route to go back
+        });
+      } else {
+        Swal.fire('Error', data.message || 'Something went wrong', 'error');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      Swal.fire('Network Error', 'Failed to connect to the server.', 'error');
+    }
+  };
+  
+  // const handleSubmit = useCallback(() => {
+  //   if (validateForm()) {
+  //     const scenarioData = {
+  //       ...formData,
+  //       id: isEditMode ? formData.id : `SCN-${Date.now()}`,
+  //       updatedAt: isEditMode ? new Date().toISOString() : undefined,
+  //     };
+  //     // In a real app, this would save to an API or context
+  //     console.log(isEditMode ? 'Updating scenario:' : 'Creating scenario:', scenarioData);
+  //     alert(`Scenario ${isEditMode ? 'updated' : 'created'} successfully!`);
+  //     navigate('/app/scenarios');
+  //   }
+  // }, [formData, isEditMode, navigate, validateForm]);
 
   const handlePrint = useCallback(() => {
     const printWindow = window.open('', '_blank');
@@ -146,7 +182,7 @@ const ScenarioForm: React.FC = () => {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.ctrlKey && e.key === 's') {
       e.preventDefault();
-      handleSubmit();
+      handleSubmit({ preventDefault: () => {} } as React.FormEvent);
     } else if (e.ctrlKey && e.key === 'p') {
       e.preventDefault();
       handlePrint();

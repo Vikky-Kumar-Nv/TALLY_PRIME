@@ -40,7 +40,7 @@ const LedgerList: React.FC = () => {
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>Group List</h1>
+        <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>Ledger List</h1>
       </div>
         
         <button

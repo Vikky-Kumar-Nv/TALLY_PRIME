@@ -34,6 +34,12 @@ app.use('/api/sale-vouchers', saleVoucherRoutes);
 // Routes for purchase vouchers
 const purchaseVoucherRoutes = require('./routes/purchasevoucher');  
 app.use('/api/purchase-vouchers', purchaseVoucherRoutes);
+const scenarioRoutes = require('./routes/scenarioRoutes');
+app.use('/api/scenario', scenarioRoutes);
+// Routes for cost centers
+const costCenterRoutes = require('./routes/costCenterRoutes');  
+app.use('/api/cost-centers', costCenterRoutes);
+
 
 // MySQL Connection
 const db = mysql.createConnection({
