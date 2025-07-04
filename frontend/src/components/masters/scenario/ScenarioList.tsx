@@ -13,7 +13,7 @@ const ScenarioList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 const [scenarios, setScenarios] = useState<Scenario[]>([]);
-const [loading, setLoading] = useState(true);
+const [_, setLoading] = useState(true);
 
 // Fetch from API
 useEffect(() => {
@@ -38,8 +38,7 @@ useEffect(() => {
     } catch (err) {
       console.error('Error fetching scenarios:', err);
     } finally {
-      setLoading(false);
-    }
+        setLoading(false);}
   };
 
 

@@ -9,7 +9,7 @@ const GroupList: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [groups, setGroups] = useState<LedgerGroup[]>([]);
-  const [gstClassifications, setGstClassifications] = useState<GstClassification[]>([]);
+  const [gstClassifications] = useState<GstClassification[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {

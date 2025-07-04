@@ -28,12 +28,12 @@ interface FormData {
 }
 
 const GroupForm: React.FC = () => {
-  const { theme, addLedgerGroup } = useAppContext();
+  const { theme} = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
-  const [ledgerGroups, setLedgerGroups] = useState<LedgerGroup[]>([]);
-  const [gstClassifications, setGstClassifications] = useState<GstClassification[]>([]);
+  const [ledgerGroups] = useState<LedgerGroup[]>([]);
+  const [gstClassifications] = useState<GstClassification[]>([]);
   const [formData, setFormData] = useState<FormData>({
     name: '',
     alias: '',
@@ -216,7 +216,10 @@ const GroupForm: React.FC = () => {
   // };
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
-
+if (!validateForm()) {
+      alert('Please fix the errors before submitting.');
+       return;
+    }
   try {
     const res = await fetch('http://localhost:5000/api/group', {
       method: 'POST',
