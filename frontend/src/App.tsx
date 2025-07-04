@@ -91,8 +91,7 @@ import GodownSummary from './components/inventory/GodownSummary';
 // // Reports Components
 import ReportsIndex from './components/reports/ReportsIndex';
 
-import GSTR1 from './components/reports/GSTR1';
-import GSTR3B from './components/reports/GSTR3B';
+
 import GSTAnalysis from './components/reports/GSTAnalysis';
 
 
@@ -103,6 +102,8 @@ import GSTModule from './components/modules/gst/GSTModul';
 import GSTCalculator from './components/modules/gst/GSTCalculator';
 import GSTRates from './components/modules/gst/GSTRates';
 import HSNCodes from './components/modules/gst/HSNCode';
+import GSTR1 from './components/modules/gst/GSTR1';
+import GSTR3B from './components/modules/gst/GSTR3B';
 import GSTRegistration from './components/modules/gst/GSTRegistration';
 import ComplianceCheck from './components/modules/gst/ComplianceCheck';
 import ImportData from './components/modules/gst/ImportData';
