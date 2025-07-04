@@ -67,9 +67,25 @@ const EWayBill: React.FC = () => {
   const [errors, setErrors] = useState<string[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('ewayBills');
-    if (saved) setSavedBills(JSON.parse(saved));
+    const loadSavedBills = () => {
+      try {
+        const saved = localStorage.getItem('ewayBills');
+        if (saved) {
+          const parsedBills = JSON.parse(saved);
+          setSavedBills(parsedBills);
+        } else {
+          setSavedBills([]);
+        }
+      } catch (error) {
+        console.error('Error loading saved bills:', error);
+        setSavedBills([]);
+      }
+    };
+
+    loadSavedBills();
   }, []);
+
+
 
   const parseEWayBillText = (text: string): EWayBillData | null => {
     try {
@@ -220,8 +236,20 @@ const EWayBill: React.FC = () => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = (shouldStayOnCurrentView = false) => {
     if (!data) return;
+    
+    // Check if already saved to prevent duplicates
+    const existingBill = savedBills.find(bill => bill.ewayBillNo === data.ewayBillNo);
+    if (existingBill) {
+      if (!shouldStayOnCurrentView) {
+        alert('E-Way Bill already saved!');
+        setData(null);
+        setView('list');
+      }
+      return;
+    }
+    
     const newBill: SavedEWayBill = {
       ...data,
       id: Date.now().toString(),
@@ -231,17 +259,21 @@ const EWayBill: React.FC = () => {
     const updatedList = [...savedBills, newBill];
     setSavedBills(updatedList);
     localStorage.setItem('ewayBills', JSON.stringify(updatedList));
-    alert('E-Way Bill saved successfully!');
-    setData(null);
-    setView('list');
+    console.log('E-Way Bill saved. New list:', updatedList);
+    
+    if (!shouldStayOnCurrentView) {
+      alert('E-Way Bill saved successfully!');
+      setData(null);
+      setView('list');
+    }
   };
 
   const generatePDF = (billData = data, shouldPrint = false) => {
     if (!billData) return;
     
-    // Auto-save when printing (if it's current data, not already saved)
+    // Auto-save when printing (if it's current data, not already saved) but stay on current view
     if (shouldPrint && billData === data && !savedBills.find(bill => bill.ewayBillNo === billData.ewayBillNo)) {
-      handleSave();
+      handleSave(true); // true = stay on current view, don't redirect to list
     }
     
     const doc = new jsPDF();
@@ -486,10 +518,16 @@ const EWayBill: React.FC = () => {
           <h1 className="text-2xl font-bold">E-Way Bill Management</h1>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => setView('upload')} className={`px-4 py-2 rounded-md ${view === 'upload' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+          <button 
+            onClick={() => setView('upload')} 
+            className={`px-4 py-2 rounded-md ${view === 'upload' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          >
             <Upload size={16} className="inline mr-2" />Upload
           </button>
-          <button onClick={() => setView('list')} className={`px-4 py-2 rounded-md ${view === 'list' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+          <button 
+            onClick={() => setView('list')} 
+            className={`px-4 py-2 rounded-md ${view === 'list' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
+          >
             <FileText size={16} className="inline mr-2" />List ({savedBills.length})
           </button>
         </div>
@@ -526,7 +564,7 @@ const EWayBill: React.FC = () => {
                 <div className="flex justify-between mb-4">
                   <h2 className="text-xl font-semibold">E-Way Bill Details</h2>
                   <div className="flex gap-2">
-                    <button onClick={handleSave} className="bg-green-600 text-white px-6 py-2 rounded-md"><Save size={16} className="inline mr-2" />Save</button>
+                    <button onClick={() => handleSave()} className="bg-green-600 text-white px-6 py-2 rounded-md"><Save size={16} className="inline mr-2" />Save</button>
                     <button onClick={() => generatePDF(data, true)} className="bg-blue-600 text-white px-6 py-2 rounded-md"><Printer size={16} className="inline mr-2" />Print</button>
                   </div>
                 </div>
@@ -676,46 +714,103 @@ const EWayBill: React.FC = () => {
         </div>
       ) : (
         <div className="max-w-6xl mx-auto p-6 rounded-lg bg-white shadow">
-          <h2 className="text-xl font-semibold mb-1">Saved E-Way Bills</h2>
-          {savedBills.length === 0 ? (
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Saved E-Way Bills</h2>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => {
+                  console.log('Refresh button clicked');
+                  const saved = localStorage.getItem('ewayBills');
+                  console.log('Raw localStorage on refresh:', saved);
+                  if (saved) {
+                    const parsedBills = JSON.parse(saved);
+                    console.log('Refreshed bills:', parsedBills);
+                    setSavedBills(parsedBills);
+                  } else {
+                    setSavedBills([]);
+                  }
+                }} 
+                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
+              >
+                🔄 Refresh
+              </button>
+              {savedBills && savedBills.length > 0 && (
+                <button                onClick={() => {
+                  localStorage.removeItem('ewayBills');
+                  setSavedBills([]);
+                  alert('All E-Way Bills cleared!');
+                }}
+                  className="bg-red-600 text-white px-4 py-2 rounded-md text-sm"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
+          </div>
+          
+          {(!savedBills || savedBills.length === 0) ? (
             <div className="p-8 text-center">
               <FileText size={48} className="mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-medium">No E-Way Bills Found</h3>
+              <h3 className="text-lg font-medium mb-2">No E-Way Bills Found</h3>
+              <p className="text-gray-600 mb-4">Upload and save an E-Way Bill first to see it in the list</p>
+              <button 
+                onClick={() => setView('upload')} 
+                className="bg-blue-600 text-white px-6 py-2 rounded-md"
+              >
+                <Upload size={16} className="inline mr-2" />
+                Upload E-Way Bill
+              </button>
             </div>
           ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="border-b-2">
-                  <th className="px-6 py-4 text-left">E-Way Bill No</th>
-                  <th className="px-6 py-4 text-left">From</th>
-                  <th className="px-6 py-4 text-left">To</th>
-                  <th className="px-6 py-4 text-right">Amount</th>
-                  <th className="px-6 py-4 text-left">Status</th>
-                  <th className="px-6 py-4 text-left">Valid Upto</th>
-                  <th className="px-6 py-4 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {savedBills.map((bill) => (
-                  <tr key={bill.id} className="border-b">
-                    <td className="px-6 py-4">{bill.ewayBillNo}</td>
-                    <td className="px-6 py-4">{bill.from.name}</td>
-                    <td className="px-6 py-4">{bill.to.name}</td>
-                    <td className="px-6 py-4 text-right">₹{bill.amounts.totalInvAmt.toLocaleString()}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs ${bill.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                        {bill.status.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">{bill.validUpto}</td>
-                    <td className="px-6 py-4 text-center">
-                      <button onClick={() => { setData(bill); setView('upload'); }} className="p-2 text-blue-600">View</button>
-                      <button onClick={() => generatePDF(bill, true)} className="p-2 text-green-600">Print</button>
-                    </td>
+            <div>
+              <table className="w-full border-collapse border border-gray-300">
+                <thead>
+                  <tr className="border-b-2 bg-gray-50">
+                    <th className="px-6 py-4 text-left border border-gray-300">E-Way Bill No</th>
+                    <th className="px-6 py-4 text-left border border-gray-300">From</th>
+                    <th className="px-6 py-4 text-left border border-gray-300">To</th>
+                    <th className="px-6 py-4 text-right border border-gray-300">Amount</th>
+                    <th className="px-6 py-4 text-left border border-gray-300">Status</th>
+                    <th className="px-6 py-4 text-left border border-gray-300">Valid Upto</th>
+                    <th className="px-6 py-4 text-center border border-gray-300">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {savedBills.map((bill) => (
+                    <tr key={bill.id} className="border-b hover:bg-gray-50">
+                      <td className="px-6 py-4 border border-gray-300">{bill.ewayBillNo}</td>
+                      <td className="px-6 py-4 border border-gray-300">{bill.from.name}</td>
+                      <td className="px-6 py-4 border border-gray-300">{bill.to.name}</td>
+                      <td className="px-6 py-4 text-right border border-gray-300">₹{bill.amounts.totalInvAmt.toLocaleString()}</td>
+                      <td className="px-6 py-4 border border-gray-300">
+                        <span className={`px-3 py-1 rounded-full text-xs ${bill.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {bill.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 border border-gray-300">{bill.validUpto}</td>
+                      <td className="px-6 py-4 text-center border border-gray-300">
+                        <button 
+                          onClick={() => { 
+                            console.log('View button clicked for bill:', bill.ewayBillNo);
+                            setData(bill); 
+                            setView('upload'); 
+                          }} 
+                          className="p-2 text-blue-600 hover:bg-blue-100 rounded mr-2"
+                        >
+                          View
+                        </button>
+                        <button 
+                          onClick={() => generatePDF(bill, true)} 
+                          className="p-2 text-green-600 hover:bg-green-100 rounded"
+                        >
+                          Print
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       )}
