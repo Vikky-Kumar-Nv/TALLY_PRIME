@@ -359,7 +359,7 @@ function App() {
 
                {/* Other Module Routes */}
             
-            <Route path="inventory" element={<InventoryModule />} />
+            {/* <Route path="inventory" element={<InventoryModule />} /> */}
             <Route path="gst" element={<GSTModule />} />
             
             {/* Config Module Routes */}
