@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { ArrowLeft, Printer, Download, Filter } from 'lucide-react';
-import FilterPanel from './FilterPanel';
+import FilterPanel from '../reports/FilterPanel';
 import ReportTable from './ReportTable';
 import type { StockItem, StockGroup, VoucherEntry } from '../../types';
 
@@ -227,7 +227,7 @@ const StockSummary: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
           title="Back to Reports"
-          onClick={() => navigate('/app/inventory')}
+          onClick={() => navigate('/app/reports')}
           className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
         >
           <ArrowLeft size={20} />

@@ -34,7 +34,7 @@ const ProfitLoss: React.FC = () => {
         <button
         title='Back to Reports'
           type="button"
-          onClick={() => navigate('/app/accounting')}
+          onClick={() => navigate('/app/reports')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}

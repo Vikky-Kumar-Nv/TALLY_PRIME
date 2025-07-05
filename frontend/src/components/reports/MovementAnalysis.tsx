@@ -3,7 +3,7 @@ import { useAppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Printer, Download, Filter } from 'lucide-react';
 
-const GodownSummary: React.FC = () => {
+const MovementAnalysis: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
   const [showFilterPanel, setShowFilterPanel] = useState(false);
@@ -13,18 +13,18 @@ const GodownSummary: React.FC = () => {
       <div className="flex items-center mb-6">
         <button
             type="button"
-            title='Back to Reports'
-          onClick={() => navigate('/app/inventory')}
+            title="Back to Reports"
+          onClick={() => navigate('/app/reports')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold">Godown Summary</h1>
+        <h1 className="text-2xl font-bold">Movement Analysis</h1>
         <div className="ml-auto flex space-x-2">
           <button
-          title='Toggle Filters'
+            title="Toggle Filters"
             type='button'
             onClick={() => setShowFilterPanel(!showFilterPanel)}
             className={`p-2 rounded-md ${
@@ -35,7 +35,7 @@ const GodownSummary: React.FC = () => {
           </button>
           <button
           title='Print Report'
-             type='button'
+          type='button'
             className={`p-2 rounded-md ${
               theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
             }`}
@@ -43,8 +43,8 @@ const GodownSummary: React.FC = () => {
             <Printer size={18} />
           </button>
           <button
-          title='Download Report'
-             type='button'
+            title='Download Report'
+            type='button'
             className={`p-2 rounded-md ${
               theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
             }`}
@@ -62,33 +62,36 @@ const GodownSummary: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">
-                Godown
+                Period
               </label>
               <select
-              title='Select Godown'
+              title='Select Period'
                 className={`w-full p-2 rounded border ${
                   theme === 'dark' 
                     ? 'bg-gray-700 border-gray-600' 
                     : 'bg-white border-gray-300'
                 }`}
               >
-                <option value="">All Godowns</option>
+                <option value="current-month">Current Month</option>
+                <option value="current-quarter">Current Quarter</option>
+                <option value="current-year">Current Financial Year</option>
+                <option value="custom">Custom Period</option>
               </select>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">
-                As on Date
+                Stock Item
               </label>
-              <input
-                title='Select Date'
-                type="date"
-                defaultValue={new Date().toISOString().split('T')[0]}
+              <select
+                title='Select Stock Item'
                 className={`w-full p-2 rounded border ${
                   theme === 'dark' 
                     ? 'bg-gray-700 border-gray-600' 
                     : 'bg-white border-gray-300'
                 }`}
-              />
+              >
+                <option value="">All Items</option>
+              </select>
             </div>
           </div>
         </div>
@@ -96,8 +99,8 @@ const GodownSummary: React.FC = () => {
       
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
         <div className="mb-4 text-center">
-          <h2 className="text-xl font-bold">Godown-wise Stock Summary</h2>
-          <p className="text-sm opacity-75">As on {new Date().toLocaleDateString()}</p>
+          <h2 className="text-xl font-bold">Stock Movement Analysis</h2>
+          <p className="text-sm opacity-75">Movement details for selected period</p>
         </div>
         
         <div className="overflow-x-auto">
@@ -106,18 +109,20 @@ const GodownSummary: React.FC = () => {
               <tr className={`${
                 theme === 'dark' ? 'border-b border-gray-700' : 'border-b-2 border-gray-300'
               }`}>
-                <th className="px-4 py-3 text-left">Godown</th>
+                <th className="px-4 py-3 text-left">Date</th>
                 <th className="px-4 py-3 text-left">Stock Item</th>
-                <th className="px-4 py-3 text-left">Unit</th>
-                <th className="px-4 py-3 text-right">Quantity</th>
+                <th className="px-4 py-3 text-left">Voucher Type</th>
+                <th className="px-4 py-3 text-left">Voucher No.</th>
+                <th className="px-4 py-3 text-right">Inward Qty</th>
+                <th className="px-4 py-3 text-right">Outward Qty</th>
                 <th className="px-4 py-3 text-right">Rate</th>
                 <th className="px-4 py-3 text-right">Value</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center opacity-70">
-                  No stock found in godowns
+                <td colSpan={8} className="px-4 py-8 text-center opacity-70">
+                  No stock movements found for selected period
                 </td>
               </tr>
             </tbody>
@@ -136,4 +141,4 @@ const GodownSummary: React.FC = () => {
   );
 };
 
-export default GodownSummary;
+export default MovementAnalysis;

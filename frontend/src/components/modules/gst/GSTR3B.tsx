@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, Printer, Filter, Upload, Save, Calculator, FileText } from 'lucide-react';
+import { ArrowLeft, Download, Printer, Filter, Upload, Save, Calculator, FileText, X } from 'lucide-react';
 
 // Helper function to get month name
 const getMonthName = (month: string): string => {
@@ -39,6 +39,8 @@ interface GSTR3BData {
     gstin: string;
     legalName: string;
     tradeName: string;
+    arn: string;
+    dateOfArn: string;
   };
   returnPeriod: {
     month: string;
@@ -103,9 +105,12 @@ const GSTR3B: React.FC = () => {
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [isCalculating, setIsCalculating] = useState(false);
   
-  // State for saved returns
-  const [savedReturns, setSavedReturns] = useState<(GSTR3BData & { id: string; savedDate: string })[]>([]);
-  const [showListView, setShowListView] = useState(false);
+  // New state variables for enhanced features
+  const [showDraftPreview, setShowDraftPreview] = useState(false);
+  const [showPreviewMode, setShowPreviewMode] = useState(false);
+  const [showArnModal, setShowArnModal] = useState(false);
+  const [generatedArn, setGeneratedArn] = useState('');
+  const [draftData, setDraftData] = useState<GSTR3BData | null>(null);
 
   // Default empty tax entry
   const emptyTaxEntry = (): TaxEntry => ({ igst: 0, cgst: 0, sgst: 0, cess: 0 });
@@ -117,6 +122,8 @@ const GSTR3B: React.FC = () => {
       gstin: '',
       legalName: '',
       tradeName: '',
+      arn: '',
+      dateOfArn: '',
     },
     returnPeriod: {
       month: (new Date().getMonth() + 1).toString().padStart(2, '0'),
@@ -296,37 +303,71 @@ const GSTR3B: React.FC = () => {
     return true;
   };
 
-  // Simple save function
-  const handleSave = () => {
+  const handleValidateAndPreview = () => {
     if (validateForm()) {
-      const savedData = localStorage.getItem('gstr3b_returns');
-      const returns = savedData ? JSON.parse(savedData) : [];
-      const newReturn = {
-        ...gstr3bData,
-        id: Date.now().toString(),
-        savedDate: new Date().toISOString()
-      };
-      returns.push(newReturn);
-      localStorage.setItem('gstr3b_returns', JSON.stringify(returns));
-      setSavedReturns(returns);
-      alert('GSTR-3B saved successfully!');
+      setShowPreviewMode(true);
     }
   };
 
-  // Simple print function
-  const handlePrint = () => {
+  const handleSubmitReturn = () => {
     if (validateForm()) {
-      window.print();
+      const totals = calculateTotals();
+      const confirmSubmit = window.confirm(
+        `Are you sure you want to submit GSTR-3B for ${getMonthName(gstr3bData.returnPeriod.month)} ${gstr3bData.returnPeriod.year}?\n\nNet Tax Liability: ₹${totals.netTaxLiability.toFixed(2)}`
+      );
+      
+      if (confirmSubmit) {
+        // Generate ARN (Acknowledgement Reference Number)
+        const currentDate = new Date();
+        const formattedDate = currentDate.getFullYear().toString() + 
+                              (currentDate.getMonth() + 1).toString().padStart(2, '0') + 
+                              currentDate.getDate().toString().padStart(2, '0');
+        const randomNum = Math.floor(Math.random() * 900000) + 100000;
+        const arn = `AB${formattedDate}${randomNum}`;
+        
+        console.log('Submitting GSTR-3B:', gstr3bData);
+        setGeneratedArn(arn);
+        setShowArnModal(true);
+        
+        // Clear preview mode if it was active
+        setShowPreviewMode(false);
+      }
     }
   };
 
-  // Load saved returns
-  useEffect(() => {
-    const savedData = localStorage.getItem('gstr3b_returns');
-    if (savedData) {
-      setSavedReturns(JSON.parse(savedData));
+  const saveDraft = () => {
+    localStorage.setItem('gstr3b_draft', JSON.stringify(gstr3bData));
+    alert('Draft saved successfully!');
+  };
+
+  const loadDraft = () => {
+    const saved = localStorage.getItem('gstr3b_draft');
+    if (saved) {
+      try {
+        const parsedData = JSON.parse(saved);
+        setDraftData(parsedData);
+        setShowDraftPreview(true);
+      } catch {
+        alert('Error loading draft: Invalid data format');
+      }
+    } else {
+      alert('No saved draft found');
     }
-  }, []);
+  };
+
+  const confirmLoadDraft = () => {
+    if (draftData) {
+      setGstr3bData(draftData);
+      setShowDraftPreview(false);
+      setDraftData(null);
+      alert('Draft loaded successfully!');
+    }
+  };
+
+  const cancelLoadDraft = () => {
+    setShowDraftPreview(false);
+    setDraftData(null);
+  };
 
   // Reusable Number Input Component
   const NumberInput: React.FC<{
@@ -411,23 +452,23 @@ const GSTR3B: React.FC = () => {
         </button>
         <h1 className="text-2xl font-bold">GSTR-3B Return</h1>
         <div className="ml-auto flex space-x-2">
-          <button title='List Returns' onClick={() => setShowListView(!showListView)} className={`p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
+          <button title='Load Draft' onClick={loadDraft} className={`p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
             <FileText size={18} />
           </button>
-          <button title='Save Return' onClick={handleSave} className={`p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
+          <button title='Save Draft' type='button' onClick={saveDraft} className={`p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
             <Save size={18} />
           </button>
-          <button title='Print Return' onClick={handlePrint} className={`p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
-            <Printer size={18} />
-          </button>
-          <button title='Calculate' className={`p-2 rounded-md ${isCalculating ? 'animate-pulse' : ''} ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
+          <button title='Calculate'  className={`p-2 rounded-md ${isCalculating ? 'animate-pulse' : ''} ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
             <Calculator size={18} />
           </button>
-          <button title='Toggle Filters' onClick={() => setShowFilterPanel(!showFilterPanel)} className={`p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
+          <button title='Toggle Filters' type='button' onClick={() => setShowFilterPanel(!showFilterPanel)} className={`p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
             <Filter size={18} />
           </button>
-          <button title='Upload Report' className={`p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
+          <button title='Upload Report' type='button' className={`p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
             <Upload size={18} />
+          </button>
+          <button title='Print Report' type='button' className={`p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
+            <Printer size={18} />
           </button>
           <button title='Download Report' type='button' className={`p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
             <Download size={18} />
@@ -493,6 +534,7 @@ const GSTR3B: React.FC = () => {
             <div>
               <label className="block text-sm font-medium mb-2">GSTIN of Supplier *</label>
               <input
+              title='Enter GSTIN'
                 type="text"
                 value={gstr3bData.basicInfo.gstin}
                 onChange={(e) => updateBasicInfo('gstin', e.target.value.toUpperCase())}
@@ -504,6 +546,7 @@ const GSTR3B: React.FC = () => {
             <div>
               <label className="block text-sm font-medium mb-2">Legal Name of Registered Person *</label>
               <input
+              title='Enter Legal Name'
                 type="text"
                 value={gstr3bData.basicInfo.legalName}
                 onChange={(e) => updateBasicInfo('legalName', e.target.value)}
@@ -514,11 +557,32 @@ const GSTR3B: React.FC = () => {
             <div>
               <label className="block text-sm font-medium mb-2">Trade Name (if any)</label>
               <input
+              title='Enter Trade Name'
                 type="text"
                 value={gstr3bData.basicInfo.tradeName}
                 onChange={(e) => updateBasicInfo('tradeName', e.target.value)}
                 placeholder="Enter Trade Name"
                 className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">ARN</label>
+              <input
+                type="text"
+                value={gstr3bData.basicInfo.arn}
+                readOnly
+                placeholder="Auto-generated after submission"
+                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-600 border-gray-600 text-gray-400' : 'bg-gray-100 border-gray-300 text-gray-500'}`}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Date of ARN</label>
+              <input
+                title='Date of ARN'
+                type="date"
+                value={gstr3bData.basicInfo.dateOfArn}
+                readOnly
+                className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-600 border-gray-600 text-gray-400' : 'bg-gray-100 border-gray-300 text-gray-500'}`}
               />
             </div>
           </div>
@@ -944,98 +1008,34 @@ const GSTR3B: React.FC = () => {
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-4 mt-8 justify-center">
         <button
-          onClick={handleSave}
+          onClick={saveDraft}
           className={`px-6 py-3 rounded-lg flex items-center gap-2 ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
         >
           <Save size={20} />
-          Save Return
+          Save Draft
         </button>
         <button
-          onClick={handlePrint}
-          className={`px-6 py-3 rounded-lg flex items-center gap-2 ${theme === 'dark' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}
-        >
-          <Printer size={20} />
-          Print Return
-        </button>
-        <button
-          onClick={() => setShowListView(!showListView)}
-          className={`px-6 py-3 rounded-lg flex items-center gap-2 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
+          onClick={loadDraft}
+          className={`px-6 py-3 rounded-lg flex items-center gap-2 ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-700 text-white' : 'bg-gray-600 hover:bg-gray-700 text-white'}`}
         >
           <FileText size={20} />
-          {showListView ? 'Hide List' : 'Show List'}
+          Load Draft
+        </button>
+        <button
+          onClick={handleValidateAndPreview}
+          className={`px-6 py-3 rounded-lg flex items-center gap-2 ${theme === 'dark' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-green-600 hover:bg-green-700 text-white'}`}
+        >
+          <Calculator size={20} />
+          Validate & Preview
+        </button>
+        <button
+          onClick={handleSubmitReturn}
+          className={`px-6 py-3 rounded-lg flex items-center gap-2 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-600 hover:bg-purple-700 text-white'}`}
+        >
+          <Upload size={20} />
+          Submit Return
         </button>
       </div>
-      
-      {/* List View */}
-      {showListView && (
-        <div className={`mt-6 p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
-          <h3 className="text-lg font-semibold mb-4">Saved GSTR-3B Returns</h3>
-          {savedReturns.length === 0 ? (
-            <p className="text-gray-500">No saved returns found.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className={`${theme === 'dark' ? 'border-b border-gray-700' : 'border-b-2 border-gray-300'}`}>
-                    <th className="px-4 py-3 text-left">GSTIN</th>
-                    <th className="px-4 py-3 text-left">Legal Name</th>
-                    <th className="px-4 py-3 text-left">Return Period</th>
-                    <th className="px-4 py-3 text-right">Net Tax Liability</th>
-                    <th className="px-4 py-3 text-left">Saved Date</th>
-                    <th className="px-4 py-3 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {savedReturns.map((returnData: GSTR3BData & { id: string; savedDate: string }, index) => {
-                    const returnTotals = {
-                      totalOutwardTax: Object.values(returnData.outwardSupplies || {}).reduce((sum: number, entry: TaxableSupplyEntry) => 
-                        sum + (entry?.igst || 0) + (entry?.cgst || 0) + (entry?.sgst || 0) + (entry?.cess || 0), 0),
-                      totalInwardTax: Object.values(returnData.inwardSupplies || {}).reduce((sum: number, entry: TaxableSupplyEntry) => 
-                        sum + (entry?.igst || 0) + (entry?.cgst || 0) + (entry?.sgst || 0) + (entry?.cess || 0), 0),
-                      totalEligibleItc: Object.values(returnData.eligibleItc || {}).reduce((sum: number, itc: TaxEntry) => 
-                        sum + (itc?.igst || 0) + (itc?.cgst || 0) + (itc?.sgst || 0) + (itc?.cess || 0), 0),
-                      totalItcReversed: Object.values(returnData.itcReversed || {}).reduce((sum: number, itc: TaxEntry) => 
-                        sum + (itc?.igst || 0) + (itc?.cgst || 0) + (itc?.sgst || 0) + (itc?.cess || 0), 0)
-                    };
-                    const netTaxLiability = Math.max(0, returnTotals.totalOutwardTax + returnTotals.totalInwardTax - returnTotals.totalEligibleItc + returnTotals.totalItcReversed);
-                    
-                    return (
-                      <tr key={index} className={`${theme === 'dark' ? 'border-b border-gray-700' : 'border-b border-gray-200'}`}>
-                        <td className="px-4 py-3">{returnData.basicInfo?.gstin || '-'}</td>
-                        <td className="px-4 py-3">{returnData.basicInfo?.legalName || '-'}</td>
-                        <td className="px-4 py-3">{getMonthName(returnData.returnPeriod?.month || '01')} {returnData.returnPeriod?.year || new Date().getFullYear()}</td>
-                        <td className="px-4 py-3 text-right font-mono">₹{netTaxLiability.toFixed(2)}</td>
-                        <td className="px-4 py-3">{new Date(returnData.savedDate).toLocaleDateString('en-IN')}</td>
-                        <td className="px-4 py-3 text-center">
-                          <button
-                            onClick={() => {
-                              setGstr3bData(returnData);
-                              setShowListView(false);
-                            }}
-                            className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 mr-2"
-                          >
-                            Load
-                          </button>
-                          <button
-                            onClick={() => {
-                              const updatedReturns = savedReturns.filter((_, i) => i !== index);
-                              setSavedReturns(updatedReturns);
-                              localStorage.setItem('gstr3b_returns', JSON.stringify(updatedReturns));
-                            }}
-                            className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
       
       <div className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-orange-50'}`}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1054,6 +1054,177 @@ const GSTR3B: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Draft Preview Modal */}
+      {showDraftPreview && draftData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className={`sticky top-0 px-6 py-4 border-b ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+              <h3 className="text-lg font-semibold">Draft Preview</h3>
+              <p className="text-sm text-gray-500">Review the draft before loading</p>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-medium mb-2">Basic Information</h4>
+                  <p><span className="font-medium">GSTIN:</span> {draftData.basicInfo.gstin || 'Not provided'}</p>
+                  <p><span className="font-medium">Legal Name:</span> {draftData.basicInfo.legalName || 'Not provided'}</p>
+                  <p><span className="font-medium">Return Period:</span> {getMonthName(draftData.returnPeriod.month)} {draftData.returnPeriod.year}</p>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Tax Summary</h4>
+                  {(() => {
+                    const draftTotals = {
+                      totalTaxable: Object.values(draftData.outwardSupplies).reduce((sum, entry) => sum + (entry.taxableValue || 0), 0) +
+                                   Object.values(draftData.inwardSupplies).reduce((sum, entry) => sum + (entry.taxableValue || 0), 0),
+                      totalTax: Object.values(draftData.outwardSupplies).reduce((sum, entry) => sum + (entry.igst || 0) + (entry.cgst || 0) + (entry.sgst || 0) + (entry.cess || 0), 0)
+                    };
+                    return (
+                      <>
+                        <p><span className="font-medium">Total Taxable Value:</span> ₹{draftTotals.totalTaxable.toFixed(2)}</p>
+                        <p><span className="font-medium">Total Tax:</span> ₹{draftTotals.totalTax.toFixed(2)}</p>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+            <div className={`sticky bottom-0 px-6 py-4 border-t flex justify-end gap-3 ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+              <button
+                onClick={cancelLoadDraft}
+                className={`px-4 py-2 rounded-md ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-300 hover:bg-gray-400'}`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLoadDraft}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Load Draft
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Mode Modal */}
+      {showPreviewMode && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`max-w-6xl w-full mx-4 max-h-[90vh] overflow-y-auto rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className={`sticky top-0 px-6 py-4 border-b flex justify-between items-center ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+              <div>
+                <h3 className="text-lg font-semibold">GSTR-3B Preview</h3>
+                <p className="text-sm text-gray-500">{getMonthName(gstr3bData.returnPeriod.month)} {gstr3bData.returnPeriod.year}</p>
+              </div>
+              <button
+                title="Close Preview"
+                onClick={() => setShowPreviewMode(false)}
+                className={`p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* Basic Info Preview */}
+              <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                <h4 className="font-semibold mb-3">Basic Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <p><span className="font-medium">GSTIN:</span> {gstr3bData.basicInfo.gstin}</p>
+                  <p><span className="font-medium">Legal Name:</span> {gstr3bData.basicInfo.legalName}</p>
+                  <p><span className="font-medium">Trade Name:</span> {gstr3bData.basicInfo.tradeName}</p>
+                  <p><span className="font-medium">Return Period:</span> {getMonthName(gstr3bData.returnPeriod.month)} {gstr3bData.returnPeriod.year}</p>
+                </div>
+              </div>
+
+              {/* Tax Summary Preview */}
+              <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                <h4 className="font-semibold mb-3">Tax Liability Summary</h4>
+                {(() => {
+                  const totals = calculateTotals();
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <p><span className="font-medium">IGST:</span> ₹{totals.totalIgst.toFixed(2)}</p>
+                      <p><span className="font-medium">CGST:</span> ₹{totals.totalCgst.toFixed(2)}</p>
+                      <p><span className="font-medium">SGST:</span> ₹{totals.totalSgst.toFixed(2)}</p>
+                      <p><span className="font-medium">CESS:</span> ₹{totals.totalCess.toFixed(2)}</p>
+                      <p className="font-bold text-lg col-span-full"><span className="font-medium">Net Tax Liability:</span> ₹{totals.netTaxLiability.toFixed(2)}</p>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Verification Preview */}
+              <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                <h4 className="font-semibold mb-3">Verification</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <p><span className="font-medium">Date:</span> {gstr3bData.verification.date}</p>
+                  <p><span className="font-medium">Authorized Signatory:</span> {gstr3bData.verification.authorizedSignatoryName}</p>
+                  <p><span className="font-medium">Designation:</span> {gstr3bData.verification.designation}</p>
+                  <p><span className="font-medium">Place:</span> {gstr3bData.verification.place}</p>
+                </div>
+              </div>
+            </div>
+            <div className={`sticky bottom-0 px-6 py-4 border-t flex justify-end gap-3 ${theme === 'dark' ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+              <button
+                onClick={() => setShowPreviewMode(false)}
+                className={`px-4 py-2 rounded-md ${theme === 'dark' ? 'bg-gray-600 hover:bg-gray-700' : 'bg-gray-300 hover:bg-gray-400'}`}
+              >
+                Back to Edit
+              </button>
+              <button
+                onClick={handleSubmitReturn}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+              >
+                Submit Return
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ARN Display Modal */}
+      {showArnModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className={`max-w-md w-full mx-4 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className={`px-6 py-4 border-b ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+              <h3 className="text-lg font-semibold text-green-600">GSTR-3B Submitted Successfully!</h3>
+            </div>
+            <div className="p-6">
+              <div className="text-center">
+                <div className="mb-4">
+                  <svg className="w-16 h-16 text-green-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h4 className="text-lg font-semibold mb-2">Return Filed Successfully</h4>
+                <p className="text-sm text-gray-600 mb-4">Your GSTR-3B return has been submitted to the GST portal.</p>
+                
+                <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'} mb-4`}>
+                  <p className="text-sm font-medium mb-2">Acknowledgement Reference Number (ARN)</p>
+                  <p className="text-xl font-mono font-bold text-blue-600">{generatedArn}</p>
+                </div>
+                
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p><span className="font-medium">Return Period:</span> {getMonthName(gstr3bData.returnPeriod.month)} {gstr3bData.returnPeriod.year}</p>
+                  <p><span className="font-medium">Filed Date:</span> {new Date().toLocaleDateString('en-IN')}</p>
+                  <p><span className="font-medium">Filed Time:</span> {new Date().toLocaleTimeString('en-IN')}</p>
+                </div>
+              </div>
+            </div>
+            <div className={`px-6 py-4 border-t flex justify-center ${theme === 'dark' ? 'border-gray-700' : 'border-gray-200'}`}>
+              <button
+                onClick={() => {
+                  setShowArnModal(false);
+                  setGeneratedArn('');
+                }}
+                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

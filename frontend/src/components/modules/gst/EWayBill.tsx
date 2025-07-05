@@ -67,25 +67,9 @@ const EWayBill: React.FC = () => {
   const [errors, setErrors] = useState<string[]>([]);
 
   useEffect(() => {
-    const loadSavedBills = () => {
-      try {
-        const saved = localStorage.getItem('ewayBills');
-        if (saved) {
-          const parsedBills = JSON.parse(saved);
-          setSavedBills(parsedBills);
-        } else {
-          setSavedBills([]);
-        }
-      } catch (error) {
-        console.error('Error loading saved bills:', error);
-        setSavedBills([]);
-      }
-    };
-
-    loadSavedBills();
+    const saved = localStorage.getItem('ewayBills');
+    if (saved) setSavedBills(JSON.parse(saved));
   }, []);
-
-
 
   const parseEWayBillText = (text: string): EWayBillData | null => {
     try {
@@ -236,20 +220,8 @@ const EWayBill: React.FC = () => {
     }
   };
 
-  const handleSave = (shouldStayOnCurrentView = false) => {
+  const handleSave = () => {
     if (!data) return;
-    
-    // Check if already saved to prevent duplicates
-    const existingBill = savedBills.find(bill => bill.ewayBillNo === data.ewayBillNo);
-    if (existingBill) {
-      if (!shouldStayOnCurrentView) {
-        alert('E-Way Bill already saved!');
-        setData(null);
-        setView('list');
-      }
-      return;
-    }
-    
     const newBill: SavedEWayBill = {
       ...data,
       id: Date.now().toString(),
@@ -259,23 +231,13 @@ const EWayBill: React.FC = () => {
     const updatedList = [...savedBills, newBill];
     setSavedBills(updatedList);
     localStorage.setItem('ewayBills', JSON.stringify(updatedList));
-    console.log('E-Way Bill saved. New list:', updatedList);
-    
-    if (!shouldStayOnCurrentView) {
-      alert('E-Way Bill saved successfully!');
-      setData(null);
-      setView('list');
-    }
+    alert('E-Way Bill saved successfully!');
+    setData(null);
+    setView('list');
   };
 
   const generatePDF = (billData = data, shouldPrint = false) => {
     if (!billData) return;
-    
-    // Auto-save when printing (if it's current data, not already saved) but stay on current view
-    if (shouldPrint && billData === data && !savedBills.find(bill => bill.ewayBillNo === billData.ewayBillNo)) {
-      handleSave(true); // true = stay on current view, don't redirect to list
-    }
-    
     const doc = new jsPDF();
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(12);
@@ -320,88 +282,61 @@ const EWayBill: React.FC = () => {
     const tableStartY = 145;
     const rowHeight = 12;
     
-    // Header row - Fixed column widths to prevent text overlap
-    doc.setFontSize(7).setFont('helvetica', 'bold');
-    doc.rect(20, tableStartY, 16, rowHeight); // HSN Code
-    doc.text('HSN Code', 21, tableStartY + 8);
+    // Header row
+    doc.setFontSize(8).setFont('helvetica', 'bold');
+    doc.rect(20, tableStartY, 25, rowHeight); // HSN Code
+    doc.text('HSN Code', 22, tableStartY + 8);
     
-    doc.rect(36, tableStartY, 28, rowHeight); // Product Name & Desc.
-    doc.text('Product Name & Desc.', 37, tableStartY + 4);
+    doc.rect(45, tableStartY, 40, rowHeight); // Product Name & Desc.
+    doc.text('Product Name & Desc.', 47, tableStartY + 8);
     
-    doc.rect(64, tableStartY, 16, rowHeight); // Quantity
-    doc.text('Quantity', 65, tableStartY + 8);
+    doc.rect(85, tableStartY, 25, rowHeight); // Quantity
+    doc.text('Quantity', 87, tableStartY + 8);
     
-    doc.rect(80, tableStartY, 28, rowHeight); // Taxable Amount Rs. - Made wider
-    doc.text('Taxable Amount Rs.', 81, tableStartY + 4);
+    doc.rect(110, tableStartY, 30, rowHeight); // Taxable Amount Rs.
+    doc.text('Taxable Amount Rs.', 112, tableStartY + 4);
     
-    doc.rect(108, tableStartY, 35, rowHeight); // Tax Rate - Adjusted width
-    doc.text('Tax Rate (C+S+I+Cess+Cess', 109, tableStartY + 4);
-    doc.text('Non.Advol)', 109, tableStartY + 8);
-    
-    doc.rect(143, tableStartY, 27, rowHeight); // Other Amt - Made wider
-    doc.text('Other Amt', 144, tableStartY + 8);
+    doc.rect(140, tableStartY, 50, rowHeight); // Tax Rate
+    doc.text('Tax Rate (C+S+I+Cess+Cess', 142, tableStartY + 4);
+    doc.text('Non.Advol)', 142, tableStartY + 8);
 
     // Data row
     const dataY = tableStartY + rowHeight;
     doc.setFont('helvetica', 'normal');
-    doc.rect(20, dataY, 16, rowHeight);
-    doc.text(billData.goods[0].hsnCode, 21, dataY + 8);
+    doc.rect(20, dataY, 25, rowHeight);
+    doc.text(billData.goods[0].hsnCode, 22, dataY + 8);
     
-    doc.rect(36, dataY, 28, rowHeight);
-    // Truncate long product names to fit
-    const productName = billData.goods[0].productNameDesc;
-    const maxProductLength = 24;
-    const truncatedProduct = productName.length > maxProductLength ? 
-      productName.substring(0, maxProductLength) + '...' : productName;
-    doc.text(truncatedProduct, 37, dataY + 8);
+    doc.rect(45, dataY, 40, rowHeight);
+    doc.text(billData.goods[0].productNameDesc, 47, dataY + 8);
     
-    doc.rect(64, dataY, 16, rowHeight);
-    doc.text(billData.goods[0].quantity, 65, dataY + 8);
+    doc.rect(85, dataY, 25, rowHeight);
+    doc.text(billData.goods[0].quantity, 87, dataY + 8);
     
-    doc.rect(80, dataY, 28, rowHeight);
-    // Format amount to fit in wider column
-    const formattedAmount = `₹ ${billData.goods[0].taxableAmountRs.toLocaleString('en-IN')}`;
-    doc.text(formattedAmount, 81, dataY + 8);
+    doc.rect(110, dataY, 30, rowHeight);
+    doc.text(`₹ ${billData.goods[0].taxableAmountRs.toLocaleString('en-IN')}`, 112, dataY + 8);
     
-    doc.rect(108, dataY, 35, rowHeight);
-    // Truncate tax rate if too long
-    const taxRate = billData.goods[0].taxRate;
-    const maxTaxRateLength = 30;
-    const truncatedTaxRate = taxRate.length > maxTaxRateLength ? 
-      taxRate.substring(0, maxTaxRateLength) + '...' : taxRate;
-    doc.text(truncatedTaxRate, 109, dataY + 8);
-    
-    doc.rect(143, dataY, 27, rowHeight);
-    doc.text('₹ 0.00', 144, dataY + 8);
+    doc.rect(140, dataY, 50, rowHeight);
+    doc.text(billData.goods[0].taxRate, 142, dataY + 8);
 
-    // Amount summary row (matching PDF exactly) - Fixed column widths to prevent text overlap
+    // Amount summary row (matching PDF exactly)
     const amountY = dataY + rowHeight;
-    doc.setFontSize(5).setFont('helvetica', 'bold'); // Reduced font size to fit text better
+    doc.setFontSize(7).setFont('helvetica', 'bold');
     
-    // Amount headers with adjusted widths to prevent "CESS Non.Advol Amt" overlap
+    // Amount headers
     const amountHeaders = ['Tot. Tax\'ble Amt', 'CGST Amt', 'SGST Amt', 'IGST Amt', 'CESS Amt', 'CESS Non.Advol Amt', 'Other Amt', 'Total Inv.Amt'];
-    const amountColWidths = [20, 16, 16, 16, 16, 24, 17, 20]; // Increased CESS Non.Advol Amt column width
+    const amountColWidths = [24, 20, 20, 20, 20, 24, 20, 22];
     let xPos = 20;
     
     amountHeaders.forEach((header, i) => {
       doc.rect(xPos, amountY, amountColWidths[i], rowHeight);
-      // Use smaller font and better positioning for headers
-      if (header === 'CESS Non.Advol Amt') {
-        doc.text('CESS Non.Advol', xPos + 1, amountY + 6);
-        doc.text('Amt', xPos + 1, amountY + 10);
-      } else if (header === 'Tot. Tax\'ble Amt') {
-        doc.text('Tot. Tax\'ble', xPos + 1, amountY + 6);
-        doc.text('Amt', xPos + 1, amountY + 10);
-      } else {
-        doc.text(header, xPos + 1, amountY + 8);
-      }
+      doc.text(header, xPos + 1, amountY + 8);
       xPos += amountColWidths[i];
     });
 
     // Amount values
     const amountDataY = amountY + rowHeight;
     xPos = 20;
-    doc.setFontSize(6).setFont('helvetica', 'normal'); // Slightly larger for values
+    doc.setFont('helvetica', 'normal');
     const amountValues = [
       `₹ ${billData.amounts.totTaxbleAmt.toLocaleString('en-IN')}`,
       `₹ ${billData.amounts.cgstAmt.toLocaleString('en-IN')}`,
@@ -431,64 +366,59 @@ const EWayBill: React.FC = () => {
     const vehicleY = transportY + 35;
     doc.setFontSize(12).setFont('helvetica', 'bold').text('5.Vehicle Details', 20, vehicleY);
     
-    // Vehicle details table (matching PDF exactly) - Fixed column widths
+    // Vehicle details table (matching PDF exactly)
     const vehicleTableY = vehicleY + 15;
-    doc.setFontSize(7).setFont('helvetica', 'bold');
+    doc.setFontSize(8).setFont('helvetica', 'bold');
     
-    // Table headers with proper column widths to prevent overflow
-    doc.rect(20, vehicleTableY, 18, rowHeight);
-    doc.text('Mode', 21, vehicleTableY + 8);
+    // Table headers
+    doc.rect(20, vehicleTableY, 20, rowHeight);
+    doc.text('Mode', 22, vehicleTableY + 8);
     
-    doc.rect(38, vehicleTableY, 32, rowHeight);
-    doc.text('Vehicle / Trans', 39, vehicleTableY + 4);
-    doc.text('Doc No & Dt.', 39, vehicleTableY + 8);
+    doc.rect(40, vehicleTableY, 35, rowHeight);
+    doc.text('Vehicle / Trans', 42, vehicleTableY + 4);
+    doc.text('Doc No & Dt.', 42, vehicleTableY + 8);
     
-    doc.rect(70, vehicleTableY, 18, rowHeight);
-    doc.text('From', 71, vehicleTableY + 8);
+    doc.rect(75, vehicleTableY, 25, rowHeight);
+    doc.text('From', 77, vehicleTableY + 8);
     
-    doc.rect(88, vehicleTableY, 22, rowHeight);
-    doc.text('Entered Date', 89, vehicleTableY + 8);
+    doc.rect(100, vehicleTableY, 30, rowHeight);
+    doc.text('Entered Date', 102, vehicleTableY + 8);
     
-    doc.rect(110, vehicleTableY, 20, rowHeight);
-    doc.text('Entered By', 111, vehicleTableY + 8);
+    doc.rect(130, vehicleTableY, 25, rowHeight);
+    doc.text('Entered By', 132, vehicleTableY + 8);
     
-    doc.rect(130, vehicleTableY, 18, rowHeight);
-    doc.text('CEWB No.', 131, vehicleTableY + 4);
-    doc.text('(If any)', 131, vehicleTableY + 8);
+    doc.rect(155, vehicleTableY, 20, rowHeight);
+    doc.text('CEWB No.', 157, vehicleTableY + 4);
+    doc.text('(If any)', 157, vehicleTableY + 8);
     
-    doc.rect(148, vehicleTableY, 22, rowHeight);
-    doc.text('Multi Veh.Info', 149, vehicleTableY + 4);
-    doc.text('(If any)', 149, vehicleTableY + 8);
+    doc.rect(175, vehicleTableY, 15, rowHeight);
+    doc.text('Multi Veh.Info', 177, vehicleTableY + 4);
+    doc.text('(If any)', 177, vehicleTableY + 8);
 
     // Table data
     const vehicleDataY = vehicleTableY + rowHeight;
     doc.setFont('helvetica', 'normal');
     
-    doc.rect(20, vehicleDataY, 18, rowHeight);
-    doc.text(billData.transport.mode, 21, vehicleDataY + 8);
+    doc.rect(20, vehicleDataY, 20, rowHeight);
+    doc.text(billData.transport.mode, 22, vehicleDataY + 8);
     
-    doc.rect(38, vehicleDataY, 32, rowHeight);
-    // Truncate long vehicle/trans doc numbers to prevent overflow
-    const vehicleDoc = billData.transport.vehicleTransDocNo;
-    const maxVehicleDocLength = 28;
-    const truncatedVehicleDoc = vehicleDoc.length > maxVehicleDocLength ? 
-      vehicleDoc.substring(0, maxVehicleDocLength) + '...' : vehicleDoc;
-    doc.text(truncatedVehicleDoc, 39, vehicleDataY + 8);
+    doc.rect(40, vehicleDataY, 35, rowHeight);
+    doc.text(billData.transport.vehicleTransDocNo, 42, vehicleDataY + 8);
     
-    doc.rect(70, vehicleDataY, 18, rowHeight);
-    doc.text(billData.transport.from, 71, vehicleDataY + 8);
+    doc.rect(75, vehicleDataY, 25, rowHeight);
+    doc.text(billData.transport.from, 77, vehicleDataY + 8);
     
-    doc.rect(88, vehicleDataY, 22, rowHeight);
-    doc.text(billData.transport.enteredDate, 89, vehicleDataY + 8);
+    doc.rect(100, vehicleDataY, 30, rowHeight);
+    doc.text(billData.transport.enteredDate, 102, vehicleDataY + 8);
     
-    doc.rect(110, vehicleDataY, 20, rowHeight);
-    doc.text(billData.transport.enteredBy, 111, vehicleDataY + 8);
+    doc.rect(130, vehicleDataY, 25, rowHeight);
+    doc.text(billData.transport.enteredBy, 132, vehicleDataY + 8);
     
-    doc.rect(130, vehicleDataY, 18, rowHeight);
-    doc.text(billData.transport.gewbNo || '-', 131, vehicleDataY + 8);
+    doc.rect(155, vehicleDataY, 20, rowHeight);
+    doc.text('-', 157, vehicleDataY + 8);
     
-    doc.rect(148, vehicleDataY, 22, rowHeight);
-    doc.text(billData.transport.multiVehInfo || '-', 149, vehicleDataY + 8);
+    doc.rect(175, vehicleDataY, 15, rowHeight);
+    doc.text('-', 177, vehicleDataY + 8);
 
     // Footer
     doc.setFontSize(8);
@@ -518,16 +448,10 @@ const EWayBill: React.FC = () => {
           <h1 className="text-2xl font-bold">E-Way Bill Management</h1>
         </div>
         <div className="flex gap-2">
-          <button 
-            onClick={() => setView('upload')} 
-            className={`px-4 py-2 rounded-md ${view === 'upload' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-          >
+          <button onClick={() => setView('upload')} className={`px-4 py-2 rounded-md ${view === 'upload' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
             <Upload size={16} className="inline mr-2" />Upload
           </button>
-          <button 
-            onClick={() => setView('list')} 
-            className={`px-4 py-2 rounded-md ${view === 'list' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-          >
+          <button onClick={() => setView('list')} className={`px-4 py-2 rounded-md ${view === 'list' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
             <FileText size={16} className="inline mr-2" />List ({savedBills.length})
           </button>
         </div>
@@ -564,7 +488,7 @@ const EWayBill: React.FC = () => {
                 <div className="flex justify-between mb-4">
                   <h2 className="text-xl font-semibold">E-Way Bill Details</h2>
                   <div className="flex gap-2">
-                    <button onClick={() => handleSave()} className="bg-green-600 text-white px-6 py-2 rounded-md"><Save size={16} className="inline mr-2" />Save</button>
+                    <button onClick={handleSave} className="bg-green-600 text-white px-6 py-2 rounded-md"><Save size={16} className="inline mr-2" />Save</button>
                     <button onClick={() => generatePDF(data, true)} className="bg-blue-600 text-white px-6 py-2 rounded-md"><Printer size={16} className="inline mr-2" />Print</button>
                   </div>
                 </div>
@@ -605,28 +529,26 @@ const EWayBill: React.FC = () => {
                   </div>
                 </div>
               </div>
-              {/* Goods Details Section - Fixed to prevent text overflow */}
+              {/* Goods Details Section - matching PDF exactly */}
               <div className="p-6 rounded-lg bg-white shadow">
                 <h3 className="text-lg font-semibold mb-4">3. Goods Details</h3>
-                <div className="border border-gray-300 overflow-x-auto">
-                  {/* Headers - Balanced column widths to prevent overflow */}
-                  <div className="flex bg-gray-50 text-xs font-bold min-w-max">
-                    <div className="w-16 p-3 border-r border-gray-300 text-center">HSN Code</div>
-                    <div className="w-32 p-3 border-r border-gray-300 text-center">Product Name & Desc.</div>
-                    <div className="w-20 p-3 border-r border-gray-300 text-center">Quantity</div>
-                    <div className="w-32 p-3 border-r border-gray-300 text-center">Taxable Amount Rs.</div>
-                    <div className="w-44 p-3 border-r border-gray-300 text-center">Tax Rate (C+S+I+Cess+Cess Non.Advol)</div>
-                    <div className="w-24 p-3 text-center">Other Amt</div>
+                <div className="border border-gray-300">
+                  {/* Headers */}
+                  <div className="grid grid-cols-12 bg-gray-50 text-xs font-bold">
+                    <div className="col-span-2 p-3 border-r border-gray-300 text-center">HSN Code</div>
+                    <div className="col-span-3 p-3 border-r border-gray-300 text-center">Product Name & Desc.</div>
+                    <div className="col-span-2 p-3 border-r border-gray-300 text-center">Quantity</div>
+                    <div className="col-span-2 p-3 border-r border-gray-300 text-center">Taxable Amount Rs.</div>
+                    <div className="col-span-3 p-3 text-center">Tax Rate (C+S+I+Cess+Cess Non.Advol)</div>
                   </div>
                   {/* Data Rows */}
                   {data.goods.map((good, index) => (
-                    <div key={index} className="flex border-t border-gray-300 text-sm min-w-max">
-                      <div className="w-16 p-3 border-r border-gray-300 truncate">{good.hsnCode}</div>
-                      <div className="w-32 p-3 border-r border-gray-300 truncate" title={good.productNameDesc}>{good.productNameDesc}</div>
-                      <div className="w-20 p-3 border-r border-gray-300 truncate">{good.quantity}</div>
-                      <div className="w-32 p-3 border-r border-gray-300 text-right truncate">₹ {good.taxableAmountRs.toLocaleString('en-IN')}</div>
-                      <div className="w-44 p-3 border-r border-gray-300 truncate" title={good.taxRate}>{good.taxRate}</div>
-                      <div className="w-24 p-3 text-center truncate">₹ 0.00</div>
+                    <div key={index} className="grid grid-cols-12 border-t border-gray-300 text-sm">
+                      <div className="col-span-2 p-3 border-r border-gray-300">{good.hsnCode}</div>
+                      <div className="col-span-3 p-3 border-r border-gray-300">{good.productNameDesc}</div>
+                      <div className="col-span-2 p-3 border-r border-gray-300">{good.quantity}</div>
+                      <div className="col-span-2 p-3 border-r border-gray-300 text-right">₹ {good.taxableAmountRs.toLocaleString('en-IN')}</div>
+                      <div className="col-span-3 p-3">{good.taxRate}</div>
                     </div>
                   ))}
                 </div>
@@ -681,31 +603,25 @@ const EWayBill: React.FC = () => {
                   </div>
                 </div>
               </div>
-              {/* Vehicle Details Section - Fixed to prevent text overflow */}
+              {/* Vehicle Details Section - matching PDF exactly */}
               <div className="p-6 rounded-lg bg-white shadow">
                 <h3 className="text-lg font-semibold mb-4">5. Vehicle Details</h3>
-                <div className="border border-gray-300 overflow-x-auto">
-                  {/* Vehicle Details Headers - Balanced column widths */}
-                  <div className="flex bg-gray-50 text-xs font-bold min-w-max">
-                    <div className="w-16 p-3 border-r border-gray-300 text-center">Mode</div>
-                    <div className="w-32 p-3 border-r border-gray-300 text-center">Vehicle / Trans Doc No & Dt.</div>
-                    <div className="w-20 p-3 border-r border-gray-300 text-center">From</div>
-                    <div className="w-28 p-3 border-r border-gray-300 text-center">Entered Date</div>
-                    <div className="w-24 p-3 border-r border-gray-300 text-center">Entered By</div>
-                    <div className="w-20 p-3 border-r border-gray-300 text-center">CEWB No.</div>
-                    <div className="w-24 p-3 text-center">Multi Veh.Info (If any)</div>
+                <div className="border border-gray-300">
+                  {/* Vehicle Details Headers */}
+                  <div className="grid grid-cols-6 bg-gray-50 text-xs font-bold">
+                    <div className="p-3 border-r border-gray-300 text-center">Mode</div>
+                    <div className="col-span-2 p-3 border-r border-gray-300 text-center">Vehicle / Trans Doc No & Dt.</div>
+                    <div className="p-3 border-r border-gray-300 text-center">From</div>
+                    <div className="p-3 border-r border-gray-300 text-center">Entered Date</div>
+                    <div className="p-3 text-center">Entered By</div>
                   </div>
                   {/* Vehicle Details Data */}
-                  <div className="flex border-t border-gray-300 text-sm min-w-max">
-                    <div className="w-16 p-3 border-r border-gray-300 truncate">{data.transport.mode}</div>
-                    <div className="w-32 p-3 border-r border-gray-300 truncate" title={`${data.transport.vehicleTransDocNo} & ${data.transport.transporterDocDate}`}>
-                      {data.transport.vehicleTransDocNo} & {data.transport.transporterDocDate}
-                    </div>
-                    <div className="w-20 p-3 border-r border-gray-300 truncate">{data.transport.from}</div>
-                    <div className="w-28 p-3 border-r border-gray-300 truncate">{data.transport.enteredDate}</div>
-                    <div className="w-24 p-3 border-r border-gray-300 truncate">{data.transport.enteredBy}</div>
-                    <div className="w-20 p-3 border-r border-gray-300 truncate">{data.transport.gewbNo || '-'}</div>
-                    <div className="w-24 p-3 truncate">{data.transport.multiVehInfo || '-'}</div>
+                  <div className="grid grid-cols-6 border-t border-gray-300 text-sm">
+                    <div className="p-3 border-r border-gray-300">{data.transport.mode}</div>
+                    <div className="col-span-2 p-3 border-r border-gray-300">{data.transport.vehicleTransDocNo} & {data.transport.transporterDocDate}</div>
+                    <div className="p-3 border-r border-gray-300">{data.transport.from}</div>
+                    <div className="p-3 border-r border-gray-300">{data.transport.enteredDate}</div>
+                    <div className="p-3">{data.transport.enteredBy}</div>
                   </div>
                 </div>
               </div>
@@ -714,103 +630,46 @@ const EWayBill: React.FC = () => {
         </div>
       ) : (
         <div className="max-w-6xl mx-auto p-6 rounded-lg bg-white shadow">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Saved E-Way Bills</h2>
-            <div className="flex gap-2">
-              <button 
-                onClick={() => {
-                  console.log('Refresh button clicked');
-                  const saved = localStorage.getItem('ewayBills');
-                  console.log('Raw localStorage on refresh:', saved);
-                  if (saved) {
-                    const parsedBills = JSON.parse(saved);
-                    console.log('Refreshed bills:', parsedBills);
-                    setSavedBills(parsedBills);
-                  } else {
-                    setSavedBills([]);
-                  }
-                }} 
-                className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm"
-              >
-                🔄 Refresh
-              </button>
-              {savedBills && savedBills.length > 0 && (
-                <button                onClick={() => {
-                  localStorage.removeItem('ewayBills');
-                  setSavedBills([]);
-                  alert('All E-Way Bills cleared!');
-                }}
-                  className="bg-red-600 text-white px-4 py-2 rounded-md text-sm"
-                >
-                  Clear All
-                </button>
-              )}
-            </div>
-          </div>
-          
-          {(!savedBills || savedBills.length === 0) ? (
+          <h2 className="text-xl font-semibold mb-1">Saved E-Way Bills</h2>
+          {savedBills.length === 0 ? (
             <div className="p-8 text-center">
               <FileText size={48} className="mx-auto mb-4 text-gray-400" />
-              <h3 className="text-lg font-medium mb-2">No E-Way Bills Found</h3>
-              <p className="text-gray-600 mb-4">Upload and save an E-Way Bill first to see it in the list</p>
-              <button 
-                onClick={() => setView('upload')} 
-                className="bg-blue-600 text-white px-6 py-2 rounded-md"
-              >
-                <Upload size={16} className="inline mr-2" />
-                Upload E-Way Bill
-              </button>
+              <h3 className="text-lg font-medium">No E-Way Bills Found</h3>
             </div>
           ) : (
-            <div>
-              <table className="w-full border-collapse border border-gray-300">
-                <thead>
-                  <tr className="border-b-2 bg-gray-50">
-                    <th className="px-6 py-4 text-left border border-gray-300">E-Way Bill No</th>
-                    <th className="px-6 py-4 text-left border border-gray-300">From</th>
-                    <th className="px-6 py-4 text-left border border-gray-300">To</th>
-                    <th className="px-6 py-4 text-right border border-gray-300">Amount</th>
-                    <th className="px-6 py-4 text-left border border-gray-300">Status</th>
-                    <th className="px-6 py-4 text-left border border-gray-300">Valid Upto</th>
-                    <th className="px-6 py-4 text-center border border-gray-300">Actions</th>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b-2">
+                  <th className="px-6 py-4 text-left">E-Way Bill No</th>
+                  <th className="px-6 py-4 text-left">From</th>
+                  <th className="px-6 py-4 text-left">To</th>
+                  <th className="px-6 py-4 text-right">Amount</th>
+                  <th className="px-6 py-4 text-left">Status</th>
+                  <th className="px-6 py-4 text-left">Valid Upto</th>
+                  <th className="px-6 py-4 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {savedBills.map((bill) => (
+                  <tr key={bill.id} className="border-b">
+                    <td className="px-6 py-4">{bill.ewayBillNo}</td>
+                    <td className="px-6 py-4">{bill.from.name}</td>
+                    <td className="px-6 py-4">{bill.to.name}</td>
+                    <td className="px-6 py-4 text-right">₹{bill.amounts.totalInvAmt.toLocaleString()}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-3 py-1 rounded-full text-xs ${bill.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                        {bill.status.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">{bill.validUpto}</td>
+                    <td className="px-6 py-4 text-center">
+                      <button onClick={() => { setData(bill); setView('upload'); }} className="p-2 text-blue-600">View</button>
+                      <button onClick={() => generatePDF(bill, true)} className="p-2 text-green-600">Print</button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {savedBills.map((bill) => (
-                    <tr key={bill.id} className="border-b hover:bg-gray-50">
-                      <td className="px-6 py-4 border border-gray-300">{bill.ewayBillNo}</td>
-                      <td className="px-6 py-4 border border-gray-300">{bill.from.name}</td>
-                      <td className="px-6 py-4 border border-gray-300">{bill.to.name}</td>
-                      <td className="px-6 py-4 text-right border border-gray-300">₹{bill.amounts.totalInvAmt.toLocaleString()}</td>
-                      <td className="px-6 py-4 border border-gray-300">
-                        <span className={`px-3 py-1 rounded-full text-xs ${bill.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {bill.status.toUpperCase()}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 border border-gray-300">{bill.validUpto}</td>
-                      <td className="px-6 py-4 text-center border border-gray-300">
-                        <button 
-                          onClick={() => { 
-                            console.log('View button clicked for bill:', bill.ewayBillNo);
-                            setData(bill); 
-                            setView('upload'); 
-                          }} 
-                          className="p-2 text-blue-600 hover:bg-blue-100 rounded mr-2"
-                        >
-                          View
-                        </button>
-                        <button 
-                          onClick={() => generatePDF(bill, true)} 
-                          className="p-2 text-green-600 hover:bg-green-100 rounded"
-                        >
-                          Print
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
       )}

@@ -68,21 +68,11 @@ import QuotationRegister from './components/voucherRegister/QuotationRegister';
 import SalesReturnRegister from './components/voucherRegister/SalesReturnRegister';
 
 //Accounting
-import DayBook from './components/accounting/DayBook';
-import LedgerReport from './components/accounting/LedgerReport';
-import TrialBalance from './components/accounting/TrialBalance';
-import TradingAccount from './components/accounting/TradingAccount';
-// import ProfitLoss from './components/accounting/ProfitLoss';
-import ProfitLoss from './components/accounting/ProfitLoss';
-import BalanceSheet from './components/accounting/BalanceSheet';
-import CashFlow from './components/accounting/CashFlow';
+
 
 
 //inventry 
-import StockSummary from './components/inventory/StockSummary';
-import MovementAnalysis from './components/inventory/MovementAnalysis';
-import AgeingAnalysis from './components/inventory/AgeingAnalysis';
-import GodownSummary from './components/inventory/GodownSummary';
+
 
 
 
@@ -90,8 +80,18 @@ import GodownSummary from './components/inventory/GodownSummary';
 
 // // Reports Components
 import ReportsIndex from './components/reports/ReportsIndex';
-
-
+import DayBook from './components/reports/DayBook';
+import LedgerReport from './components/reports/LedgerReport';
+import TrialBalance from './components/reports/TrialBalance';
+import TradingAccount from './components/reports/TradingAccount';
+// import ProfitLoss from './components/accounting/ProfitLoss';
+import ProfitLoss from './components/reports/ProfitLoss';
+import BalanceSheet from './components/reports/BalanceSheet';
+import CashFlow from './components/reports/CashFlow';
+import StockSummary from './components/reports/StockSummary';
+import MovementAnalysis from './components/reports/MovementAnalysis';
+import AgeingAnalysis from './components/reports/AgeingAnalysis';
+import GodownSummary from './components/reports/GodownSummary';
 import GSTAnalysis from './components/reports/GSTAnalysis';
 
 
@@ -284,19 +284,19 @@ function App() {
 
            //Accounting Routes
            <Route path="accounting" element={<AccountingModule />} />
-            <Route path="accounting/day-book" element={<DayBook />} />
-            <Route path="accounting/ledger" element={<LedgerReport />} />
-            <Route path="accounting/trial-balance" element={<TrialBalance />} />
-             <Route path="accounting/trading-account" element={<TradingAccount />} />
-            <Route path="accounting/profit-loss" element={<ProfitLoss />} />
-            <Route path="accounting/balance-sheet" element={<BalanceSheet />} />
-            <Route path="accounting/cash-flow" element={<CashFlow />} />
+            <Route path="reports/day-book" element={<DayBook />} />
+            <Route path="reports/ledger" element={<LedgerReport />} />
+            <Route path="reports/trial-balance" element={<TrialBalance />} />
+             <Route path="reports/trading-account" element={<TradingAccount />} />
+            <Route path="reports/profit-loss" element={<ProfitLoss />} />
+            <Route path="reports/balance-sheet" element={<BalanceSheet />} />
+            <Route path="reports/cash-flow" element={<CashFlow />} />
 
            //inventory Routes
-           <Route path="inventory/stock-summary" element={<StockSummary />} />
-            <Route path="inventory/movement-analysis" element={<MovementAnalysis />} />
-            <Route path="inventory/ageing-analysis" element={<AgeingAnalysis />} />
-             <Route path="inventory/godown-summary" element={<GodownSummary />} />
+           <Route path="reports/stock-summary" element={<StockSummary />} />
+            <Route path="reports/movement-analysis" element={<MovementAnalysis />} />
+            <Route path="reports/ageing-analysis" element={<AgeingAnalysis />} />
+             <Route path="reports/godown-summary" element={<GodownSummary />} />
             
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
