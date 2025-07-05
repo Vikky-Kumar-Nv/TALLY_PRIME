@@ -456,8 +456,8 @@ const LedgerReport: React.FC = () => {
                   From Date
                 </label>
                 <input
-                  type="date"
                   title="From Date"
+                  type="date"
                   value={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
                   className={`w-full p-2 rounded border ${
@@ -472,8 +472,8 @@ const LedgerReport: React.FC = () => {
                   To Date
                 </label>
                 <input
-                  type="date"
                   title="To Date"
+                  type="date"
                   value={toDate}
                   onChange={(e) => setToDate(e.target.value)}
                   className={`w-full p-2 rounded border ${

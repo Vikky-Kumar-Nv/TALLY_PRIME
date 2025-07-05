@@ -2,16 +2,27 @@ import React, { useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Printer, Download, Filter } from 'lucide-react';
+import type { Ledger } from '../../types';
 
 const TrialBalance: React.FC = () => {
   const { theme, ledgers, ledgerGroups } = useAppContext();
   const navigate = useNavigate();
   const [showFilterPanel, setShowFilterPanel] = useState(false);
 
+  // Navigation handlers
+  const handleLedgerClick = (ledger: Ledger) => {
+    navigate(`/app/reports/ledger?ledgerId=${ledger.id}`);
+  };
+
+  const handleGroupClick = (groupType: string) => {
+    navigate(`/app/reports/group-summary/${groupType}`);
+  };
+
   const getGroupName = (groupId: string) => {
     return ledgerGroups.find(group => group.id === groupId)?.name || '';
   };
 
+  // Balance calculation functions - moved before usage
   const getBalanceForDisplay = (amount: number, type: 'debit' | 'credit') => {
     return type === 'debit' ? amount : 0;
   };
@@ -19,6 +30,32 @@ const TrialBalance: React.FC = () => {
   const getCreditBalanceForDisplay = (amount: number, type: 'debit' | 'credit') => {
     return type === 'credit' ? amount : 0;
   };
+
+  // Group ledgers by their group types for better organization
+  const groupedLedgers = () => {
+    const groups: { [key: string]: { groupName: string; groupType: string; ledgers: Ledger[]; total: { debit: number; credit: number } } } = {};
+    
+    ledgers.forEach(ledger => {
+      const group = ledgerGroups.find(g => g.id === ledger.groupId);
+      if (group) {
+        if (!groups[group.type]) {
+          groups[group.type] = {
+            groupName: group.name,
+            groupType: group.type,
+            ledgers: [],
+            total: { debit: 0, credit: 0 }
+          };
+        }
+        groups[group.type].ledgers.push(ledger);
+        groups[group.type].total.debit += getBalanceForDisplay(ledger.openingBalance, ledger.balanceType);
+        groups[group.type].total.credit += getCreditBalanceForDisplay(ledger.openingBalance, ledger.balanceType);
+      }
+    });
+    
+    return groups;
+  };
+
+  const groupedData = groupedLedgers();
 
   const totalDebit = ledgers.reduce((sum, ledger) => {
     return sum + getBalanceForDisplay(ledger.openingBalance, ledger.balanceType);
@@ -167,22 +204,49 @@ const TrialBalance: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {ledgers.map((ledger) => (
-                <tr 
-                  key={ledger.id}
-                  className={`${
-                    theme === 'dark' ? 'border-b border-gray-700' : 'border-b border-gray-200'
-                  }`}
-                >
-                  <td className="px-4 py-3 font-medium">{ledger.name}</td>
-                  <td className="px-4 py-3">{getGroupName(ledger.groupId)}</td>
-                  <td className="px-4 py-3 text-right font-mono">
-                    {getBalanceForDisplay(ledger.openingBalance, ledger.balanceType).toLocaleString()}
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono">
-                    {getCreditBalanceForDisplay(ledger.openingBalance, ledger.balanceType).toLocaleString()}
-                  </td>
-                </tr>
+              {Object.entries(groupedData).map(([groupType, groupData]) => (
+                <React.Fragment key={groupType}>
+                  {/* Group Header Row */}
+                  <tr 
+                    className={`${
+                      theme === 'dark' ? 'bg-gray-700 border-b border-gray-600' : 'bg-gray-100 border-b border-gray-300'
+                    } cursor-pointer hover:opacity-80`}
+                    onClick={() => handleGroupClick(groupType)}
+                    title={`Click to view ${groupData.groupName} group summary`}
+                  >
+                    <td className="px-4 py-3 font-bold text-blue-600 dark:text-blue-400">
+                      {groupData.groupName}
+                    </td>
+                    <td className="px-4 py-3 text-sm opacity-75">Group Total</td>
+                    <td className="px-4 py-3 text-right font-mono font-bold">
+                      {groupData.total.debit.toLocaleString()}
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono font-bold">
+                      {groupData.total.credit.toLocaleString()}
+                    </td>
+                  </tr>
+                  
+                  {/* Individual Ledger Rows */}
+                  {groupData.ledgers.map((ledger) => (
+                    <tr 
+                      key={ledger.id}
+                      className={`${
+                        theme === 'dark' ? 'border-b border-gray-700 hover:bg-gray-750' : 'border-b border-gray-200 hover:bg-gray-50'
+                      } cursor-pointer transition-colors`}
+                      onClick={() => handleLedgerClick(ledger)}
+                      title={`Click to view ${ledger.name} ledger details`}
+                    >
+                      <td className="px-8 py-2 text-sm">{ledger.name}</td>
+                      <td className="px-4 py-2 text-sm opacity-75">{getGroupName(ledger.groupId)}</td>
+                      <td className="px-4 py-2 text-right font-mono text-sm">
+                        {getBalanceForDisplay(ledger.openingBalance, ledger.balanceType).toLocaleString()}
+                      </td>
+                      <td className="px-4 py-2 text-right font-mono text-sm">
+                        {getCreditBalanceForDisplay(ledger.openingBalance, ledger.balanceType).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                </React.Fragment>
               ))}
             </tbody>
             <tfoot>
