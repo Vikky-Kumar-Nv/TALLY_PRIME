@@ -129,6 +129,34 @@ export const defaultLedgerGroups: LedgerGroup[] = [
     nettBalancesForReporting: true,
     usedForCalculation: false
   },
+  // Stock-related groups
+  { 
+    id: '16', 
+    name: 'Stock-in-Hand', 
+    parent: '5', 
+    type: 'stock',
+    behavesLikeSubLedger: false,
+    nettBalancesForReporting: true,
+    usedForCalculation: false
+  },
+  { 
+    id: '17', 
+    name: 'Opening Stock', 
+    parent: '8', 
+    type: 'opening-stock',
+    behavesLikeSubLedger: false,
+    nettBalancesForReporting: true,
+    usedForCalculation: false
+  },
+  { 
+    id: '18', 
+    name: 'Closing Stock', 
+    parent: '8', 
+    type: 'closing-stock',
+    behavesLikeSubLedger: false,
+    nettBalancesForReporting: true,
+    usedForCalculation: false
+  },
 ];
 
 export const defaultLedgers: Ledger[] = [
@@ -217,6 +245,67 @@ export const defaultLedgers: Ledger[] = [
     balanceType: 'credit',
     type: 'capital'
   },
+  
+  // Loan Accounts (groupId: '2' - Loans Liability)
+  {
+    id: '21',
+    name: 'Bank Loan - SBI',
+    groupId: '2',
+    openingBalance: 200000,
+    balanceType: 'credit',
+    type: 'loans'
+  },
+  {
+    id: '22',
+    name: 'Vehicle Loan - HDFC',
+    groupId: '2',
+    openingBalance: 150000,
+    balanceType: 'credit',
+    type: 'loans'
+  },
+  {
+    id: '23',
+    name: 'Machinery Loan',
+    groupId: '2',
+    openingBalance: 300000,
+    balanceType: 'credit',
+    type: 'loans'
+  },
+  
+  // Current Liabilities (groupId: '3')
+  {
+    id: '24',
+    name: 'Outstanding Expenses',
+    groupId: '3',
+    openingBalance: 45000,
+    balanceType: 'credit',
+    type: 'current-liabilities'
+  },
+  {
+    id: '25',
+    name: 'Salary Payable',
+    groupId: '3',
+    openingBalance: 85000,
+    balanceType: 'credit',
+    type: 'current-liabilities'
+  },
+  {
+    id: '26',
+    name: 'GST Payable',
+    groupId: '3',
+    openingBalance: 35000,
+    balanceType: 'credit',
+    type: 'current-liabilities'
+  },
+  {
+    id: '27',
+    name: 'TDS Payable',
+    groupId: '3',
+    openingBalance: 12000,
+    balanceType: 'credit',
+    type: 'current-liabilities'
+  },
+  
   {
     id: '11',
     name: 'Sales Account',
@@ -312,6 +401,40 @@ export const defaultLedgers: Ledger[] = [
     openingBalance: 0,
     balanceType: 'debit',
     type: 'direct-expenses'
+  },
+
+  // Stock Ledgers
+  {
+    id: '31',
+    name: 'Opening Stock',
+    groupId: '17',
+    openingBalance: 125000,
+    balanceType: 'debit',
+    type: 'opening-stock'
+  },
+  {
+    id: '32',
+    name: 'Closing Stock',
+    groupId: '18', 
+    openingBalance: 150000,
+    balanceType: 'credit',
+    type: 'closing-stock'
+  },
+  {
+    id: '33',
+    name: 'Raw Materials',
+    groupId: '16',
+    openingBalance: 85000,
+    balanceType: 'debit',
+    type: 'stock'
+  },
+  {
+    id: '34',
+    name: 'Finished Goods',
+    groupId: '16',
+    openingBalance: 65000,
+    balanceType: 'debit',
+    type: 'stock'
   }
 ];
 

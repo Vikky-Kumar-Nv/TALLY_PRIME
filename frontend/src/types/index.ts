@@ -798,7 +798,10 @@ export type LedgerType =
   | 'bank'
   | 'cgst'
   | 'sgst'
-  | 'igst';
+  | 'igst'
+  | 'stock'
+  | 'opening-stock'
+  | 'closing-stock';
 
 export type GroupNature = 'Assets' | 'Liabilities' | 'Income' | 'Expenses';
 

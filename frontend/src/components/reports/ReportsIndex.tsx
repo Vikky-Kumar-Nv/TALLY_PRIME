@@ -22,7 +22,7 @@ const ReportsIndex: React.FC = () => {
       items: [
         { icon: <BookOpen size={20} />, name: 'Day Book', path: '/app/reports/day-book' },
         { icon: <FileText size={20} />, name: 'Ledger', path: '/app/reports/ledger' },
-        { icon: <FileText size={20} />, name: 'Groups', path: '/app/masters/group' },
+        { icon: <FileText size={20} />, name: 'Group Summary', path: '/app/masters/group' },
         { icon: <BarChart2 size={20} />, name: 'Trial Balance', path: '/app/reports/trial-balance' },
         { icon: <TrendingUp size={20} />, name: 'Trading Account', path: '/app/reports/trading-account' },
         { icon: <TrendingUp size={20} />, name: 'Profit & Loss', path: '/app/reports/profit-loss' },

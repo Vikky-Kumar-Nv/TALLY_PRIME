@@ -87,6 +87,7 @@ import TradingAccount from './components/reports/TradingAccount';
 // import ProfitLoss from './components/accounting/ProfitLoss';
 import ProfitLoss from './components/reports/ProfitLoss';
 import BalanceSheet from './components/reports/BalanceSheet';
+import GroupSummary from './components/reports/GroupSummary';
 import CashFlow from './components/reports/CashFlow';
 import StockSummary from './components/reports/StockSummary';
 import MovementAnalysis from './components/reports/MovementAnalysis';
@@ -290,6 +291,7 @@ function App() {
              <Route path="reports/trading-account" element={<TradingAccount />} />
             <Route path="reports/profit-loss" element={<ProfitLoss />} />
             <Route path="reports/balance-sheet" element={<BalanceSheet />} />
+            <Route path="reports/group-summary/:groupType" element={<GroupSummary />} />
             <Route path="reports/cash-flow" element={<CashFlow />} />
 
            //inventory Routes
