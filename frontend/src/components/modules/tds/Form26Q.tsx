@@ -581,19 +581,19 @@ const Form26Q: React.FC = () => {
   }), [deducteeDetails, challanDetails]);
 
   return (
-    <div className="min-h-screen pt-14 px-4 bg-gray-50">
+    <div className="min-h-screen pt-14 px-4 ">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center">
-            <ActionButton
+            <button
               onClick={() => navigate('/app/tds')}
-              icon={ArrowLeft}
-              label="Back to TDS"
-              variant="secondary"
-              size="sm"
-            />
-            <div className="ml-4">
+              className="mr-4 p-2"
+              title="Back to TDS"
+            >
+              <ArrowLeft className="h-5 w-5 text-gray-600" />
+            </button>
+            <div>
               <h1 className="text-2xl font-bold text-gray-900">Form 26Q</h1>
               <p className="text-gray-600">TDS Quarterly Return (Non-Salary)</p>
             </div>
