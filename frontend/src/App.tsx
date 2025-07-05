@@ -283,7 +283,7 @@ function App() {
             <Route path="voucher-register/sales-return" element={<SalesReturnRegister />} />
 
            //Accounting Routes
-           <Route path="accounting" element={<AccountingModule />} />
+           {/* <Route path="accounting" element={<AccountingModule />} /> */}
             <Route path="reports/day-book" element={<DayBook />} />
             <Route path="reports/ledger" element={<LedgerReport />} />
             <Route path="reports/trial-balance" element={<TrialBalance />} />
