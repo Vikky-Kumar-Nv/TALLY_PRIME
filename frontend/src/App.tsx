@@ -46,6 +46,7 @@ import DebitNoteVoucher from './components/vouchers/debitnote/DebitNoteVoucher';
 import DeliveryNoteVoucher from './components/vouchers/deliverynote/DeliveryNoteVoucher';
 import JournalVoucher from './components/vouchers/journal/JournalVoucher';
 import SalesVoucher1 from './components/vouchers/sales/SalesVoucher1';
+import SalesOrder from './components/vouchers/salesOrder/SalesOrder';
 import PurchaseVoucher1 from './components/vouchers/purches/PurcheseVoucher1';
 import StockJournalVoucher1 from './components/vouchers/stockjournal/StockJournalVoucher1';
 import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
@@ -143,6 +144,17 @@ import RiskAssessment from './components/audit/RiskAssessment';
 import ExceptionReports from './components/audit/ExceptionReports';
 import PeriodAnalysis from './components/audit/PeriodAnalysis';
 import UserReports from './components/audit/UserReports';
+
+// Income Tax Modules
+import IncomeTaxIndex from './components/incometax/IncomeTaxIndex';
+import ITRFiling from './components/incometax/ITRFiling';
+import TaxCalculator from './components/incometax/TaxCalculator';
+import AssesseeManagement from './components/incometax/AssesseeManagement';
+import BusinessIncomeManagement from './components/incometax/BusinessIncomeManagement';
+import InvestmentManagement from './components/incometax/InvestmentManagement';
+import CapitalGainsManagement from './components/incometax/CapitalGainsManagement';
+import TDSManagement from './components/incometax/TDSManagement';
+import IncomeTaxReports from './components/incometax/IncomeTaxReports';
 
 // Other Modules
 // import AccountingModule from './components/accounting/AccountingModule';
@@ -275,6 +287,8 @@ function App() {
             <Route path="vouchers/stock-journal/edit/:id" element={<StockJournalVoucher1 />} />
             <Route path="vouchers/sales/create" element={<SalesVoucher1 />} />
             <Route path="vouchers/sales/edit/:id" element={<SalesVoucher1 />} />
+            <Route path="vouchers/sales-order/create" element={<SalesOrder />} />
+            <Route path="vouchers/sales-order/edit/:id" element={<SalesOrder />} />
            
             {/* Voucher Register Routes */}
             <Route path="voucher-register" element={<VoucherRegisterIndex />} />
@@ -360,6 +374,20 @@ function App() {
                 <Route path='audit/period-analysis' element={<PeriodAnalysis />} />
                 <Route path='audit/user-reports' element={<UserReports />} />
 
+            {/* Income Tax Module Routes */}
+            <Route path="income-tax" element={<IncomeTaxIndex />} />
+            <Route path="income-tax/itr-filing" element={<ITRFiling />} />
+            <Route path="income-tax/calculator" element={<TaxCalculator />} />
+            <Route path="income-tax/assessee" element={<AssesseeManagement />} />
+            <Route path="income-tax/business-income" element={<BusinessIncomeManagement />} />
+            <Route path="income-tax/investment" element={<InvestmentManagement />} />
+            <Route path="income-tax/capital-gains" element={<CapitalGainsManagement />} />
+            <Route path="income-tax/tds" element={<TDSManagement />} />
+            <Route path="income-tax/reports" element={<IncomeTaxReports />} />
+            
+            {/* Legacy route aliases for backward compatibility */}
+            <Route path="income-tax/business" element={<BusinessIncomeManagement />} />
+            <Route path="income-tax/deductions" element={<InvestmentManagement />} />
 
 
 

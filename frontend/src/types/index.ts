@@ -530,7 +530,7 @@
 //   phoneNumber: string;
 //   email: string;
 //   panNumber: string;
-//   gstNumber: string;
+//   gstNumber: string; 
 //   vatNumber: string;
 //   state?: string;
 //   country?: string;
@@ -902,7 +902,7 @@ export type VoucherEntry = {
   number: string;
   narration?: string;
   entries: VoucherEntryLine[];
-  mode?: 'item-invoice' | 'accounting-invoice' | 'as-voucher' | 'transfer' | 'adjustment' | 'double-entry' | 'single-entry';
+  mode?: 'item-invoice' | 'accounting-invoice' | 'as-voucher' | 'transfer' | 'adjustment' | 'double-entry' | 'single-entry' | 'sales-order';
   referenceNo?: string;
   supplierInvoiceDate?: string;
   purchaseLedgerId?: string;
@@ -982,40 +982,52 @@ export type Godown = {
   name: string;
 };
 
-export type LedgerEntry = {
+// export type LedgerEntry = {
+//   id: string;
+//   ledgerId: string;
+//   amount: number;
+//   type: 'debit' | 'credit';
+//   voucherId: string;
+//   date: string;
+// };
+
+// Capital Gains Management Types
+export type CapitalAsset = 'equity' | 'mutual_fund' | 'real_estate' | 'gold' | 'bonds' | 'other';
+
+export type CapitalGain = {
   id: string;
-  ledgerId: string;
-  amount: number;
-  type: 'debit' | 'credit';
-  voucherId: string;
-  date: string;
-};
-
-// Added for convenience in reports
-export type StockTransaction = {
-  id: string;
-  stockItemId: string;
-  voucherId: string;
-  voucherType: VoucherType;
-  voucherNo: string;
-  date: string;
-  quantity: number; // Positive for inward, negative for outward
-  rate: number;
-  value: number;
-  godownId?: string;
-  batchId?: string;
-};
-
-
-
-export type Scenario = {
-  id: string;
-  name: string;
-  includeActuals: boolean; // Yes/No for actuals
-  includedVoucherTypes: VoucherType[];
-  excludedVoucherTypes: VoucherType[];
-  fromDate: string;
-  toDate: string;
+  assetType: CapitalAsset;
+  gainType: 'short' | 'long';
+  purchaseDate: string;
+  saleDate: string;
+  purchaseValue: number;
+  saleValue: number;
+  indexationBenefit: number;
+  exemptionClaimed: number;
+  gainAmount: number;
+  taxableGain: number;
+  description: string;
   createdAt: string;
-  updatedAt?: string;
+  updatedAt: string;
+};
+
+// TDS Management Types
+export type TDSSection = '194A' | '194B' | '194C' | '194D' | '194G' | '194H' | '194I' | '194J' | '194K' | '194LA' | '194M' | '194N' | '194O' | '194P' | '194Q' | '194R' | '194S';
+
+export type TDSEntry = {
+  id: string;
+  type: 'deducted' | 'collected';
+  section: TDSSection;
+  deductorName: string;
+  deductorPAN: string;
+  amount: number;
+  tdsAmount: number;
+  rate: number;
+  assessmentYear: string;
+  quarter: 'Q1' | 'Q2' | 'Q3' | 'Q4';
+  dateOfDeduction: string;
+  challanNumber: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
 };

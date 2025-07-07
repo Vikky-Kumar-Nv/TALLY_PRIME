@@ -329,7 +329,7 @@
 
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { CompanyInfo, Ledger, LedgerGroup, VoucherEntry, StockItem, UnitOfMeasurement, Godown, StockGroup, GstClassification } from '../types';
+import type { CompanyInfo, Ledger, LedgerGroup, VoucherEntry, StockItem, UnitOfMeasurement, Godown, StockGroup, GstClassification, CapitalGain, TDSEntry } from '../types';
 import { defaultLedgerGroups, defaultLedgers } from '../data/defaultData';
 
 type ThemeMode = 'light' | 'dark';
@@ -347,6 +347,8 @@ interface AppContextProps {
   gstClassifications: GstClassification[];
   units: UnitOfMeasurement[];
   godowns: Godown[];
+  capitalGains: CapitalGain[];
+  tdsEntries: TDSEntry[];
   addLedgerGroup: (group: LedgerGroup) => void;
   addLedger: (ledger: Ledger) => void;
   addVoucher: (voucher: VoucherEntry) => void;
@@ -357,6 +359,12 @@ interface AppContextProps {
   addUnit: (unit: UnitOfMeasurement) => void;
   addGodown: (godown: Godown) => void;
   updateStockItem: (id: string, updates: Partial<StockItem>) => void;
+  addCapitalGain: (gain: CapitalGain) => void;
+  updateCapitalGain: (gain: CapitalGain) => void;
+  deleteCapitalGain: (id: string) => void;
+  addTDSEntry: (entry: TDSEntry) => void;
+  updateTDSEntry: (entry: TDSEntry) => void;
+  deleteTDSEntry: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextProps | undefined>(undefined);
@@ -595,6 +603,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     { id: 'g1', name: 'Main Godown' },
     { id: 'g2', name: 'Secondary Godown' }
   ]);
+  const [capitalGains, setCapitalGains] = useState<CapitalGain[]>([]);
+  const [tdsEntries, setTdsEntries] = useState<TDSEntry[]>([]);
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
@@ -644,6 +654,36 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     );
   };
 
+  // Capital Gains methods
+  const addCapitalGain = (gain: CapitalGain) => {
+    setCapitalGains(prev => [...prev, gain]);
+  };
+
+  const updateCapitalGain = (gain: CapitalGain) => {
+    setCapitalGains(prev =>
+      prev.map(g => (g.id === gain.id ? gain : g))
+    );
+  };
+
+  const deleteCapitalGain = (id: string) => {
+    setCapitalGains(prev => prev.filter(g => g.id !== id));
+  };
+
+  // TDS methods
+  const addTDSEntry = (entry: TDSEntry) => {
+    setTdsEntries(prev => [...prev, entry]);
+  };
+
+  const updateTDSEntry = (entry: TDSEntry) => {
+    setTdsEntries(prev =>
+      prev.map(e => (e.id === entry.id ? entry : e))
+    );
+  };
+
+  const deleteTDSEntry = (id: string) => {
+    setTdsEntries(prev => prev.filter(e => e.id !== id));
+  };
+
   return (
     <AppContext.Provider value={{
       theme,
@@ -658,6 +698,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       gstClassifications,
       units,
       godowns,
+      capitalGains,
+      tdsEntries,
       addLedgerGroup,
       addLedger,
       addVoucher,
@@ -667,7 +709,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addGstClassification,
       addUnit,
       addGodown,
-      updateStockItem
+      updateStockItem,
+      addCapitalGain,
+      updateCapitalGain,
+      deleteCapitalGain,
+      addTDSEntry,
+      updateTDSEntry,
+      deleteTDSEntry
     }}>
       {children}
     </AppContext.Provider>
