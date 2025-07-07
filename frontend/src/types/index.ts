@@ -906,6 +906,7 @@ export type VoucherEntry = {
   referenceNo?: string;
   supplierInvoiceDate?: string;
   purchaseLedgerId?: string;
+  salesLedgerId?: string; // Add sales ledger field
   partyId?: string;
   dispatchDetails?: {
     docNo: string;
@@ -934,6 +935,7 @@ export type VoucherEntryLine = {
   costCentreId?: string;
   bankName?: string;
   chequeNumber?: string;
+  hsnCode?: string; // Add HSN code field
 };
 
 export type StockItem = {

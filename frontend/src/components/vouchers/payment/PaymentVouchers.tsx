@@ -10,7 +10,7 @@ interface Ledgers {
   groupName: string;
 }
 const PaymentVoucher: React.FC = () => {
-  const { theme, vouchers, companyInfo } = useAppContext();
+  const { theme, vouchers, companyInfo, addVoucher, updateVoucher } = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
@@ -54,6 +54,18 @@ const [cashBankLedgers, setCashBankLedgers] = useState<Ledgers[]>([]);
     { id: 'CC1', name: 'Washing Department' },
     { id: 'CC2', name: 'Polishing Department' },
   ], []);
+
+  // Load existing voucher data in edit mode
+  useEffect(() => {
+    if (isEditMode && id) {
+      const existingVoucher = vouchers.find(v => v.id === id);
+      if (existingVoucher) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id: _, ...voucherData } = existingVoucher;
+        setFormData(voucherData);
+      }
+    }
+  }, [isEditMode, id, vouchers]);
 
   // Auto-generate voucher number
   useEffect(() => {
@@ -158,7 +170,7 @@ useEffect(() => {
     fetchLedgers();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
   
     if (!validateForm()) {
@@ -167,32 +179,36 @@ useEffect(() => {
     }
   
     try {
-      const response = await fetch('http://localhost:5000/api/vouchers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData), // your state
-      });
-  
-      const data = await response.json();
-  
-      if (response.ok) {
+      if (isEditMode && id) {
+        // Update existing voucher
+        updateVoucher(id, formData);
         Swal.fire({
           icon: 'success',
           title: 'Success',
-          text: data.message,
+          text: 'Payment voucher updated successfully!',
         }).then(() => {
-          navigate('/app/vouchers'); // or your route to go back
+          navigate('/app/vouchers');
         });
       } else {
-        Swal.fire('Error', data.message || 'Something went wrong', 'error');
+        // Create new voucher
+        const newVoucher: VoucherEntry = {
+          ...formData,
+          id: Math.random().toString(36).substring(2, 9)
+        };
+        addVoucher(newVoucher);
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Payment voucher saved successfully!',
+        }).then(() => {
+          navigate('/app/vouchers');
+        });
       }
     } catch (error) {
       console.error('Error:', error);
-      Swal.fire('Network Error', 'Failed to connect to the server.', 'error');
+      Swal.fire('Error', 'Failed to save voucher.', 'error');
     }
-  };
+  }, [formData, validateForm, isEditMode, id, updateVoucher, addVoucher, navigate]);
   
   
   const handlePrint = useCallback(() => {

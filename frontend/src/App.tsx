@@ -256,15 +256,25 @@ function App() {
             {/* Vouchers Routes */}
             <Route path="vouchers" element={<VouchersIndex />} />
             <Route path="vouchers/payment/create" element={<PaymentVoucher />} />
+            <Route path="vouchers/payment/edit/:id" element={<PaymentVoucher />} />
             <Route path="vouchers/receipt/create" element={<ReceiptVoucher />} />
+            <Route path="vouchers/receipt/edit/:id" element={<ReceiptVoucher />} />
             <Route path="vouchers/contra/create" element={<ContraVoucher />} />
+            <Route path="vouchers/contra/edit/:id" element={<ContraVoucher />} />
             <Route path="vouchers/credit-note/create" element={<CreditNoteVoucher />} />
+            <Route path="vouchers/credit-note/edit/:id" element={<CreditNoteVoucher />} />
             <Route path="vouchers/debit-note/create" element={<DebitNoteVoucher />} />
+            <Route path="vouchers/debit-note/edit/:id" element={<DebitNoteVoucher />} />
             <Route path="vouchers/delivery-note/create" element={<DeliveryNoteVoucher />} />
+            <Route path="vouchers/delivery-note/edit/:id" element={<DeliveryNoteVoucher />} />
             <Route path="vouchers/journal/create" element={<JournalVoucher />} />
+            <Route path="vouchers/journal/edit/:id" element={<JournalVoucher />} />
             <Route path="vouchers/purchase/create" element={<PurchaseVoucher1 />} />
+            <Route path="vouchers/purchase/edit/:id" element={<PurchaseVoucher1 />} />
             <Route path="vouchers/stock-journal/create" element={<StockJournalVoucher1 />} />
+            <Route path="vouchers/stock-journal/edit/:id" element={<StockJournalVoucher1 />} />
             <Route path="vouchers/sales/create" element={<SalesVoucher1 />} />
+            <Route path="vouchers/sales/edit/:id" element={<SalesVoucher1 />} />
            
             {/* Voucher Register Routes */}
             <Route path="voucher-register" element={<VoucherRegisterIndex />} />

@@ -366,7 +366,213 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
   const [ledgerGroups, setLedgerGroups] = useState<LedgerGroup[]>(defaultLedgerGroups);
   const [ledgers, setLedgers] = useState<Ledger[]>(defaultLedgers);
-  const [vouchers, setVouchers] = useState<VoucherEntry[]>([]);
+  const [vouchers, setVouchers] = useState<VoucherEntry[]>([
+    {
+      id: 'v1',
+      date: new Date().toISOString().split('T')[0],
+      type: 'sales',
+      number: 'S001',
+      narration: 'Sales to customer A',
+      mode: 'item-invoice',
+      partyId: '15', // PQR Enterprises
+      salesLedgerId: '11', // Sales Account
+      entries: [
+        // Item entries
+        {
+          id: 'e1',
+          itemId: 'i1', // Item A (Electronics)
+          quantity: 2,
+          rate: 5000,
+          amount: 10000,
+          type: 'debit',
+          cgstRate: 9,
+          sgstRate: 9,
+          igstRate: 0,
+          godownId: 'g1',
+          hsnCode: '8471',
+          narration: 'Sales of Item A'
+        },
+        {
+          id: 'e2',
+          itemId: 'i2', // Item B (Clothing)
+          quantity: 1,
+          rate: 2000,
+          amount: 2000,
+          type: 'debit',
+          cgstRate: 6,
+          sgstRate: 6,
+          igstRate: 0,
+          godownId: 'g1',
+          hsnCode: '6201',
+          narration: 'Sales of Item B'
+        },
+        // Accounting entries
+        {
+          id: 'e3',
+          ledgerId: '15', // PQR Enterprises (Sundry Debtors)
+          amount: 14280, // 12000 + 1080 CGST + 1200 SGST
+          type: 'debit',
+          narration: 'Total invoice amount including GST'
+        },
+        {
+          id: 'e4',
+          ledgerId: '11', // Sales Account
+          amount: 12000,
+          type: 'credit',
+          narration: 'Total sales amount'
+        },
+        {
+          id: 'e5',
+          ledgerId: '23', // Output CGST (assuming exists)
+          amount: 1080, // (10000 * 9% + 2000 * 6%)
+          type: 'credit',
+          narration: 'CGST on sales'
+        },
+        {
+          id: 'e6',
+          ledgerId: '24', // Output SGST (assuming exists)
+          amount: 1200, // (10000 * 9% + 2000 * 6%)
+          type: 'credit',
+          narration: 'SGST on sales'
+        }
+      ]
+    },
+    {
+      id: 'v2',
+      date: new Date().toISOString().split('T')[0],
+      type: 'purchase',
+      number: 'P001',
+      narration: 'Purchase from supplier B',
+      mode: 'item-invoice',
+      partyId: '13', // ABC Suppliers
+      entries: [
+        // Item entries
+        {
+          id: 'e7',
+          itemId: 'i1', // Item A (Electronics)
+          quantity: 5,
+          rate: 4000,
+          amount: 20000,
+          type: 'debit',
+          cgstRate: 9,
+          sgstRate: 9,
+          igstRate: 0,
+          godownId: 'g1',
+          narration: 'Purchase of Item A'
+        },
+        // Accounting entries
+        {
+          id: 'e8',
+          ledgerId: '12', // Purchase Account
+          amount: 20000,
+          type: 'debit',
+          narration: 'Purchase amount'
+        },
+        {
+          id: 'e9',
+          ledgerId: '25', // Input CGST (assuming exists)
+          amount: 1800, // 20000 * 9%
+          type: 'debit',
+          narration: 'CGST on purchase'
+        },
+        {
+          id: 'e10',
+          ledgerId: '26', // Input SGST (assuming exists)
+          amount: 1800, // 20000 * 9%
+          type: 'debit',
+          narration: 'SGST on purchase'
+        },
+        {
+          id: 'e11',
+          ledgerId: '13', // ABC Suppliers (Sundry Creditors)
+          amount: 23600, // 20000 + 1800 + 1800
+          type: 'credit',
+          narration: 'Total purchase amount including GST'
+        }
+      ]
+    },
+    {
+      id: 'v3',
+      date: new Date(Date.now() - 86400000).toISOString().split('T')[0], // Yesterday
+      type: 'payment',
+      number: 'PAY001',
+      narration: 'Payment to supplier',
+      mode: 'double-entry',
+      entries: [
+        {
+          id: 'e12',
+          ledgerId: '13', // ABC Suppliers (Sundry Creditors)
+          amount: 23600,
+          type: 'debit',
+          narration: 'Payment to ABC Suppliers'
+        },
+        {
+          id: 'e13',
+          ledgerId: '5', // State Bank of India - Current A/c
+          amount: 23600,
+          type: 'credit',
+          bankName: 'State Bank of India',
+          chequeNumber: 'CHQ001',
+          narration: 'Payment by cheque'
+        }
+      ]
+    },
+    {
+      id: 'v4',
+      date: new Date(Date.now() - 86400000).toISOString().split('T')[0], // Yesterday
+      type: 'receipt',
+      number: 'REC001',
+      narration: 'Receipt from customer',
+      mode: 'double-entry',
+      entries: [
+        {
+          id: 'e14',
+          ledgerId: '5', // State Bank of India - Current A/c
+          amount: 14280,
+          type: 'debit',
+          bankName: 'State Bank of India',
+          narration: 'Receipt by bank transfer'
+        },
+        {
+          id: 'e15',
+          ledgerId: '15', // PQR Enterprises (Sundry Debtors)
+          amount: 14280,
+          type: 'credit',
+          narration: 'Receipt from PQR Enterprises'
+        }
+      ]
+    },
+    {
+      id: 'v5',
+      date: new Date(Date.now() - 172800000).toISOString().split('T')[0], // 2 days ago
+      type: 'stock-journal',
+      number: 'SJ001',
+      narration: 'Stock transfer between godowns',
+      mode: 'transfer',
+      entries: [
+        {
+          id: 'e16',
+          itemId: 'i1', // Item A
+          quantity: 2,
+          rate: 4000,
+          amount: 8000,
+          type: 'source',
+          godownId: 'g1', // Main Godown
+          narration: 'Transfer from Main Godown'
+        },
+        {
+          id: 'e17',
+          itemId: 'i1', // Item A
+          quantity: 2,
+          rate: 4000,
+          amount: 8000,
+          type: 'destination',
+          godownId: 'g2', // Secondary Godown
+          narration: 'Transfer to Secondary Godown'
+        }
+      ]
+    }
+  ]);
   const [stockItems, setStockItems] = useState<StockItem[]>([
     { id: 'i1', name: 'Item A', unit: '1', stockGroupId: 'sg1', openingBalance: 100, openingValue: 1000, gstRate: 18, hsnCode: '8517' },
     { id: 'i2', name: 'Item B', unit: '2', stockGroupId: 'sg2', openingBalance: 50, openingValue: 500, gstRate: 12, hsnCode: '6204' }
