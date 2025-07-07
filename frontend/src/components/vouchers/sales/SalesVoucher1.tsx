@@ -508,7 +508,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           hsnCode: stockItem.hsnCode || '-',
           unit: stockItem.unit,
           gstRate: stockItem.gstRate || 0,
-          rate: stockItem.rate || 0
+          rate: stockItem.standardSaleRate || 0
         };
       }
     }
@@ -770,7 +770,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   onChange={handleChange}
                   title="Select Sales Ledger"
                   required
-                  className={FORM_STYLES.select(theme, errors.salesLedgerId)}
+                  className={FORM_STYLES.select(theme, !!errors.salesLedgerId)}
                 >
                   <option value="">-- Select Sales Ledger --</option>
                   {safeLedgers
