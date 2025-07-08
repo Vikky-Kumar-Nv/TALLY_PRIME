@@ -467,7 +467,7 @@ const BusinessIncomeManagement: React.FC = () => {
                   <label className="block text-sm font-medium mb-1">Business Type</label>
                   <select
                     value={formData.businessType}
-                    onChange={(e) => handleInputChange('businessType', e.target.value as 'profession' | 'business' | 'commission' | 'other')}
+                    onChange={(e) => handleInputChange('businessType', e.target.value as 'business' | 'profession')}
                     className={inputClass}
                     title="Select Business Type"
                   >
@@ -587,7 +587,7 @@ const BusinessIncomeManagement: React.FC = () => {
                       <label className="block text-sm font-medium mb-1">Business Type *</label>
                       <select
                         value={formData.businessType}
-                        onChange={(e) => handleInputChange('businessType', e.target.value as 'profession' | 'business' | 'commission' | 'other')}
+                        onChange={(e) => handleInputChange('businessType', e.target.value as 'business' | 'profession')}
                         className={inputClass}
                         required
                         title="Select Business Type"

@@ -165,13 +165,19 @@ const ITRFiling: React.FC = () => {
   });
 
   const handleInputChange = (section: keyof ITRData, field: string, value: string | number | boolean) => {
-    setFormData(prev => ({
-      ...prev,
-      [section]: {
-        ...(prev[section] as object),
-        [field]: value
+    setFormData(prev => {
+      const currentSection = prev[section];
+      if (typeof currentSection === 'object' && currentSection !== null && !Array.isArray(currentSection)) {
+        return {
+          ...prev,
+          [section]: {
+            ...currentSection,
+            [field]: value
+          }
+        };
       }
-    }));
+      return prev;
+    });
   };
 
   const addPolicy = () => {
@@ -587,6 +593,7 @@ const ITRFiling: React.FC = () => {
               onChange={(e) => handleInputChange('capitalGain', 'saleConsideration', parseFloat(e.target.value) || 0)}
               className={inputClass()}
               placeholder="0.00"
+              title="Sale Consideration Amount"
             />
           </div>
           <div>
@@ -596,7 +603,7 @@ const ITRFiling: React.FC = () => {
               value={formData.capitalGain.saleDate}
               onChange={(e) => handleInputChange('capitalGain', 'saleDate', e.target.value)}
               className={inputClass()}
-              title="Enter sale date"
+              title="Sale Date"
             />
           </div>
           <div></div>
@@ -824,7 +831,7 @@ const ITRFiling: React.FC = () => {
                         value={policy.date}
                         onChange={(e) => updatePolicy(index, 'date', e.target.value)}
                         className={inputClass()}
-                        title="Enter policy date"
+                        title="Policy Date"
                       />
                     </td>
                     <td className="px-4 py-2">
@@ -953,7 +960,7 @@ const ITRFiling: React.FC = () => {
                       value={payment.date}
                       onChange={(e) => updateTaxPayment(index, 'date', e.target.value)}
                       className={inputClass()}
-                      title="Enter payment date"
+                      title="Payment Date"
                     />
                   </td>
                   <td className="px-4 py-2">

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import type { VoucherEntry, Ledger } from '../../../types';
+import type { VoucherEntry, Ledger, VoucherEntryLine } from '../../../types';
 import { Save, Plus, Trash2, ArrowLeft } from 'lucide-react';
 
 const DebitNoteVoucher: React.FC = () => {
@@ -163,16 +163,16 @@ const DebitNoteVoucher: React.FC = () => {
   // Calculate totals based on mode
   const calculateTotals = () => {
     if (formData.mode === 'item-invoice') {
-      const total = formData.entries.reduce((sum, entry) => sum + (entry.amount || 0), 0);
+      const total = formData.entries.reduce((sum: number, entry: VoucherEntryLine) => sum + (entry.amount || 0), 0);
       return { total, totalDebit: 0, totalCredit: 0, isBalanced: true };
     } else {
       const totalDebit = formData.entries
-        .filter(entry => entry.type === 'debit')
-        .reduce((sum, entry) => sum + entry.amount, 0);
+        .filter((entry: VoucherEntryLine) => entry.type === 'debit')
+        .reduce((sum: number, entry: VoucherEntryLine) => sum + entry.amount, 0);
         
       const totalCredit = formData.entries
-        .filter(entry => entry.type === 'credit')
-        .reduce((sum, entry) => sum + entry.amount, 0);
+        .filter((entry: VoucherEntryLine) => entry.type === 'credit')
+        .reduce((sum: number, entry: VoucherEntryLine) => sum + entry.amount, 0);
         
       const isBalanced = Math.abs(totalDebit - totalCredit) < 0.01;
       return { totalDebit, totalCredit, isBalanced, total: totalDebit };
@@ -194,7 +194,7 @@ const DebitNoteVoucher: React.FC = () => {
         alert('Please select a sales ledger');
         return;
       }
-      if (!formData.entries.some(entry => entry.itemId)) {
+      if (!formData.entries.some((entry: VoucherEntryLine) => entry.itemId)) {
         alert('Please add at least one item');
         return;
       }
@@ -428,7 +428,7 @@ const DebitNoteVoucher: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {formData.entries.map((entry, index) => {
+                    {formData.entries.map((entry: VoucherEntryLine, index: number) => {
                       const itemDetails = getItemDetails(entry.itemId || '');
                       return (
                         <tr 
@@ -552,7 +552,7 @@ const DebitNoteVoucher: React.FC = () => {
                     }`}>
                       <td className="px-4 py-2 text-right" colSpan={7}>Total:</td>
                       <td className="px-4 py-2 text-right">
-                        ₹{formData.entries.reduce((sum, entry) => sum + (entry.amount || 0), 0).toLocaleString()}
+                        ₹{formData.entries.reduce((sum: number, entry: VoucherEntryLine) => sum + (entry.amount || 0), 0).toLocaleString()}
                       </td>
                       <td className="px-4 py-2"></td>
                     </tr>
@@ -572,7 +572,7 @@ const DebitNoteVoucher: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {formData.entries.map((entry, index) => (
+                    {formData.entries.map((entry: VoucherEntryLine, index: number) => (
                       <tr 
                         key={index}
                         className={`${

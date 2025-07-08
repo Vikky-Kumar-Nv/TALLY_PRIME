@@ -75,8 +75,8 @@ const ScenarioForm: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: '' }));
+    setFormData((prev: Scenario) => ({ ...prev, [name]: value }));
+    setErrors((prev: { [key: string]: string }) => ({ ...prev, [name]: '' }));
   };
 
   const handleCheckboxChange = (
@@ -85,18 +85,19 @@ const ScenarioForm: React.FC = () => {
     voucherType: VoucherType
   ) => {
     const { checked } = e.target;
-    setFormData(prev => {
+    setFormData((prev: Scenario) => {
       const otherField = field === 'includedVoucherTypes' ? 'excludedVoucherTypes' : 'includedVoucherTypes';
       return {
         ...prev,
         [field]: checked
           ? [...prev[field], voucherType]
-          : prev[field].filter(vt => vt !== voucherType),
-        [otherField]: prev[otherField].filter(vt => vt !== voucherType)
+          : prev[field].filter((vt: VoucherType) => vt !== voucherType),
+        [otherField]: prev[otherField].filter((vt: VoucherType) => vt !== voucherType)
       };
     });
   };
- const handleSubmit = async (e: React.FormEvent) => {
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
   
     if (!validateForm()) {
@@ -130,7 +131,7 @@ const ScenarioForm: React.FC = () => {
       console.error('Error:', error);
       Swal.fire('Network Error', 'Failed to connect to the server.', 'error');
     }
-  };
+  }, [formData, navigate, validateForm]);
   
   // const handleSubmit = useCallback(() => {
   //   if (validateForm()) {
@@ -251,7 +252,7 @@ const ScenarioForm: React.FC = () => {
             title='Include Actuals'
               name="includeActuals"
               value={formData.includeActuals ? 'Yes' : 'No'}
-              onChange={(e) => setFormData(prev => ({ ...prev, includeActuals: e.target.value === 'Yes' }))}
+              onChange={(e) => setFormData((prev: Scenario) => ({ ...prev, includeActuals: e.target.value === 'Yes' }))}
               className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'}`}
             >
               <option value="Yes">Yes</option>

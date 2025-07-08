@@ -588,7 +588,7 @@ const InvestmentManagement: React.FC = () => {
                         onChange={(e) => handleInputChange('dateOfInvestment', e.target.value)}
                         className={inputClass}
                         required
-                        title="Enter date of investment"
+                        title="Date of Investment"
                       />
                     </div>
                     <div>
@@ -598,7 +598,7 @@ const InvestmentManagement: React.FC = () => {
                         value={formData.maturityDate}
                         onChange={(e) => handleInputChange('maturityDate', e.target.value)}
                         className={inputClass}
-                        title="Enter maturity date"
+                        title="Maturity Date"
                       />
                     </div>
                     <div>

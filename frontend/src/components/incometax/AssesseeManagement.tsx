@@ -433,7 +433,7 @@ const AssesseeManagement: React.FC = () => {
                         onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
                         className={inputClass}
                         required
-                        title="Enter date of birth"
+                        title="Date of Birth"
                       />
                     </div>
                     <div>
