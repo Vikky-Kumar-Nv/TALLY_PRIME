@@ -9,8 +9,9 @@ import {
   DollarSign,
   FileText,
   PieChart,
-  TrendingUp,  
-} from 'lucide-react';   // BookOpen,Activity, Calendar
+  TrendingUp,
+  AlertTriangle
+} from 'lucide-react';
 
 const ReportsIndex: React.FC = () => {
   const { theme } = useAppContext();
@@ -27,7 +28,8 @@ const ReportsIndex: React.FC = () => {
         { icon: <TrendingUp size={20} />, name: 'Trading Account', path: '/app/reports/trading-account' },
         { icon: <TrendingUp size={20} />, name: 'Profit & Loss', path: '/app/reports/profit-loss' },
         { icon: <DollarSign size={20} />, name: 'Balance Sheet', path: '/app/reports/balance-sheet' },
-        { icon: <PieChart size={20} />, name: 'Cash/Funds Flow', path: '/app/reports/cash-flow' }
+        { icon: <PieChart size={20} />, name: 'Cash/Funds Flow', path: '/app/reports/cash-flow' },
+        { icon: <AlertTriangle size={20} />, name: 'Outstanding', path: '/app/reports/outstanding' }
       ]
     },
     {

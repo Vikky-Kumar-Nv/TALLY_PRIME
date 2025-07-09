@@ -95,6 +95,7 @@ import MovementAnalysis from './components/reports/MovementAnalysis';
 import AgeingAnalysis from './components/reports/AgeingAnalysis';
 import GodownSummary from './components/reports/GodownSummary';
 import GSTAnalysis from './components/reports/GSTAnalysis';
+import OutstandingReports from './components/reports/outstanding/OutstandingReports';
 
 
 
@@ -317,6 +318,7 @@ function App() {
             <Route path="reports/balance-sheet" element={<BalanceSheet />} />
             <Route path="reports/group-summary/:groupType" element={<GroupSummary />} />
             <Route path="reports/cash-flow" element={<CashFlow />} />
+            <Route path="reports/outstanding" element={<OutstandingReports />} />
 
            //inventory Routes
            <Route path="reports/stock-summary" element={<StockSummary />} />
