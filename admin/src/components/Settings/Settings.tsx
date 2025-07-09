@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Settings as SettingsIcon, Users, Database, Shield, Bell, Globe, Save } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import RoleManagement from './RoleManagement';
 
 const Settings: React.FC = () => {
   const { theme } = useTheme();
@@ -8,7 +9,7 @@ const Settings: React.FC = () => {
 
   const tabs = [
     { id: 'general', label: 'General', icon: SettingsIcon },
-    { id: 'users', label: 'User Management', icon: Users },
+    { id: 'users', label: 'Role Management', icon: Users },
     { id: 'integrations', label: 'Integrations', icon: Database },
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -97,54 +98,7 @@ const Settings: React.FC = () => {
         );
         
       case 'users':
-        return (
-          <div className="space-y-6">
-            <div>
-              <h3 className={`text-lg font-semibold mb-4 ${
-                theme === 'dark' ? 'text-white' : 'text-gray-900'
-              }`}>Role Management</h3>
-              <div className={`rounded-lg p-4 ${
-                theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
-              }`}>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className={`font-medium ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                      }`}>Super Admin</h4>
-                      <p className={`text-sm ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Full access to all features</p>
-                    </div>
-                    <button className="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className={`font-medium ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                      }`}>Admin</h4>
-                      <p className={`text-sm ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Manage users and subscriptions</p>
-                    </div>
-                    <button className="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className={`font-medium ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                      }`}>Support</h4>
-                      <p className={`text-sm ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                      }`}>Handle support tickets only</p>
-                    </div>
-                    <button className="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <RoleManagement />;
 
       case 'integrations':
         return (
