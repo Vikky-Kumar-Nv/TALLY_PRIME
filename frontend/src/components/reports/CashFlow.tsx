@@ -1,19 +1,65 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Printer, Download, Filter } from 'lucide-react';
+import { ArrowLeft, Printer, Download, Filter, TrendingUp, TrendingDown } from 'lucide-react';
+
+interface MonthlyCashFlow {
+  month: string;
+  monthCode: string;
+  inflow: number;
+  outflow: number;
+  netFlow: number;
+}
 
 const CashFlow: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
   const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [selectedYear, setSelectedYear] = useState('2024-25');
+
+  // Mock cash flow data for each month
+  const cashFlowData: MonthlyCashFlow[] = [
+    { month: 'April', monthCode: 'Apr-24', inflow: 2500000, outflow: 1800000, netFlow: 700000 },
+    { month: 'May', monthCode: 'May-24', inflow: 2200000, outflow: 2100000, netFlow: 100000 },
+    { month: 'June', monthCode: 'Jun-24', inflow: 2800000, outflow: 2300000, netFlow: 500000 },
+    { month: 'July', monthCode: 'Jul-24', inflow: 3100000, outflow: 2600000, netFlow: 500000 },
+    { month: 'August', monthCode: 'Aug-24', inflow: 2900000, outflow: 2700000, netFlow: 200000 },
+    { month: 'September', monthCode: 'Sep-24', inflow: 3200000, outflow: 2400000, netFlow: 800000 },
+    { month: 'October', monthCode: 'Oct-24', inflow: 2700000, outflow: 2800000, netFlow: -100000 },
+    { month: 'November', monthCode: 'Nov-24', inflow: 3500000, outflow: 2900000, netFlow: 600000 },
+    { month: 'December', monthCode: 'Dec-24', inflow: 4100000, outflow: 3200000, netFlow: 900000 },
+    { month: 'January', monthCode: 'Jan-25', inflow: 2800000, outflow: 2500000, netFlow: 300000 },
+    { month: 'February', monthCode: 'Feb-25', inflow: 3000000, outflow: 2700000, netFlow: 300000 },
+    { month: 'March', monthCode: 'Mar-25', inflow: 3600000, outflow: 3100000, netFlow: 500000 }
+  ];
+
+  // Calculate totals
+  const totalInflow = cashFlowData.reduce((sum, month) => sum + month.inflow, 0);
+  const totalOutflow = cashFlowData.reduce((sum, month) => sum + month.outflow, 0);
+  const totalNetFlow = totalInflow - totalOutflow;
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(Math.abs(amount));
+  };
+
+  const handleMonthClick = (monthData: MonthlyCashFlow) => {
+    // Navigate to detailed cash flow summary for the month
+    navigate(`/app/reports/cash-flow-summary/${monthData.monthCode}`, {
+      state: { monthData }
+    });
+  };
 
   return (
     <div className='pt-[56px] px-4 '>
       <div className="flex items-center mb-6">
         <button
-            type="button"
-            title='Back to Reports'
+          type="button"
+          title='Back to Reports'
           onClick={() => navigate('/app/reports')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
@@ -21,7 +67,7 @@ const CashFlow: React.FC = () => {
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold">Cash Flow Statement</h1>
+        <h1 className="text-2xl font-bold">Cash Flow</h1>
         <div className="ml-auto flex space-x-2">
           <button
             title='Toggle Filters'
@@ -62,109 +108,266 @@ const CashFlow: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">
-                Period
+                Financial Year
               </label>
               <select
-              title='Select Period'
+                title='Select Financial Year'
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
                 className={`w-full p-2 rounded border ${
                   theme === 'dark' 
                     ? 'bg-gray-700 border-gray-600' 
                     : 'bg-white border-gray-300'
                 }`}
               >
-                <option value="current-month">Current Month</option>
-                <option value="current-quarter">Current Quarter</option>
-                <option value="current-year">Current Financial Year</option>
-                <option value="custom">Custom Period</option>
+                <option value="2024-25">2024-25</option>
+                <option value="2023-24">2023-24</option>
+                <option value="2022-23">2022-23</option>
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                From Date
+              </label>
+              <input
+                type="date"
+                title='From Date'
+                className={`w-full p-2 rounded border ${
+                  theme === 'dark' 
+                    ? 'bg-gray-700 border-gray-600' 
+                    : 'bg-white border-gray-300'
+                }`}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                To Date
+              </label>
+              <input
+                type="date"
+                title='To Date'
+                className={`w-full p-2 rounded border ${
+                  theme === 'dark' 
+                    ? 'bg-gray-700 border-gray-600' 
+                    : 'bg-white border-gray-300'
+                }`}
+              />
             </div>
           </div>
         </div>
       )}
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className={`rounded-xl border p-6 ${
+          theme === 'dark'
+            ? 'bg-gray-800 border-gray-700'
+            : 'bg-white border-gray-200'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className={`text-lg font-semibold ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
+                Total Inflow
+              </h3>
+              <p className={`text-2xl font-bold mt-2 ${
+                theme === 'dark' ? 'text-green-400' : 'text-green-600'
+              }`}>
+                {formatCurrency(totalInflow)}
+              </p>
+            </div>
+            <TrendingUp className={`w-8 h-8 ${
+              theme === 'dark' ? 'text-green-400' : 'text-green-600'
+            }`} />
+          </div>
+        </div>
+
+        <div className={`rounded-xl border p-6 ${
+          theme === 'dark'
+            ? 'bg-gray-800 border-gray-700'
+            : 'bg-white border-gray-200'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className={`text-lg font-semibold ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
+                Total Outflow
+              </h3>
+              <p className={`text-2xl font-bold mt-2 ${
+                theme === 'dark' ? 'text-red-400' : 'text-red-600'
+              }`}>
+                {formatCurrency(totalOutflow)}
+              </p>
+            </div>
+            <TrendingDown className={`w-8 h-8 ${
+              theme === 'dark' ? 'text-red-400' : 'text-red-600'
+            }`} />
+          </div>
+        </div>
+
+        <div className={`rounded-xl border p-6 ${
+          theme === 'dark'
+            ? 'bg-gray-800 border-gray-700'
+            : 'bg-white border-gray-200'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className={`text-lg font-semibold ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>
+                Net Flow
+              </h3>
+              <p className={`text-2xl font-bold mt-2 ${
+                totalNetFlow >= 0
+                  ? theme === 'dark' ? 'text-green-400' : 'text-green-600'
+                  : theme === 'dark' ? 'text-red-400' : 'text-red-600'
+              }`}>
+                {totalNetFlow >= 0 ? '+' : '-'}{formatCurrency(totalNetFlow)}
+              </p>
+            </div>
+            <TrendingUp className={`w-8 h-8 ${
+              totalNetFlow >= 0
+                ? theme === 'dark' ? 'text-green-400' : 'text-green-600'
+                : theme === 'dark' ? 'text-red-400' : 'text-red-600'
+            }`} />
+          </div>
+        </div>
+      </div>
       
-      <div className="space-y-6">
-        {/* Operating Activities */}
-        <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
-          <h2 className="text-xl font-bold mb-4">Cash Flow from Operating Activities</h2>
-          <div className="space-y-2">
-            <div className="flex justify-between py-2">
-              <span>Net Income</span>
-              <span className="font-mono">0.00</span>
-            </div>
-            <div className="flex justify-between py-2">
-              <span>Depreciation</span>
-              <span className="font-mono">0.00</span>
-            </div>
-            <div className="flex justify-between py-2">
-              <span>Changes in Working Capital</span>
-              <span className="font-mono">0.00</span>
-            </div>
-            <div className="flex justify-between py-2 font-bold border-t border-gray-300 dark:border-gray-600">
-              <span>Net Cash from Operating Activities</span>
-              <span className="font-mono">0.00</span>
-            </div>
-          </div>
+      {/* Monthly Cash Flow Table */}
+      <div className={`rounded-xl border ${
+        theme === 'dark'
+          ? 'bg-gray-800 border-gray-700'
+          : 'bg-white border-gray-200'
+      }`}>
+        <div className={`px-6 py-4 border-b ${
+          theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+        }`}>
+          <h3 className={`text-lg font-semibold ${
+            theme === 'dark' ? 'text-white' : 'text-gray-900'
+          }`}>
+            Monthly Cash Movement - {selectedYear}
+          </h3>
         </div>
 
-        {/* Investing Activities */}
-        <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
-          <h2 className="text-xl font-bold mb-4">Cash Flow from Investing Activities</h2>
-          <div className="space-y-2">
-            <div className="flex justify-between py-2">
-              <span>Purchase of Fixed Assets</span>
-              <span className="font-mono">0.00</span>
-            </div>
-            <div className="flex justify-between py-2">
-              <span>Sale of Fixed Assets</span>
-              <span className="font-mono">0.00</span>
-            </div>
-            <div className="flex justify-between py-2 font-bold border-t border-gray-300 dark:border-gray-600">
-              <span>Net Cash from Investing Activities</span>
-              <span className="font-mono">0.00</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Financing Activities */}
-        <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
-          <h2 className="text-xl font-bold mb-4">Cash Flow from Financing Activities</h2>
-          <div className="space-y-2">
-            <div className="flex justify-between py-2">
-              <span>Proceeds from Loans</span>
-              <span className="font-mono">0.00</span>
-            </div>
-            <div className="flex justify-between py-2">
-              <span>Repayment of Loans</span>
-              <span className="font-mono">0.00</span>
-            </div>
-            <div className="flex justify-between py-2">
-              <span>Capital Contributions</span>
-              <span className="font-mono">0.00</span>
-            </div>
-            <div className="flex justify-between py-2 font-bold border-t border-gray-300 dark:border-gray-600">
-              <span>Net Cash from Financing Activities</span>
-              <span className="font-mono">0.00</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Net Change in Cash */}
-        <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
-          <h2 className="text-xl font-bold mb-4">Net Change in Cash</h2>
-          <div className="space-y-2">
-            <div className="flex justify-between py-2">
-              <span>Beginning Cash Balance</span>
-              <span className="font-mono">0.00</span>
-            </div>
-            <div className="flex justify-between py-2">
-              <span>Net Change in Cash</span>
-              <span className="font-mono">0.00</span>
-            </div>
-            <div className="flex justify-between py-2 font-bold text-lg border-t-2 border-gray-400 dark:border-gray-500">
-              <span>Ending Cash Balance</span>
-              <span className="font-mono">0.00</span>
-            </div>
-          </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className={`${
+              theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+            }`}>
+              <tr>
+                <th className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
+                }`}>
+                  Month
+                </th>
+                <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
+                }`}>
+                  Inflow
+                </th>
+                <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
+                }`}>
+                  Outflow
+                </th>
+                <th className={`px-6 py-3 text-right text-xs font-medium uppercase tracking-wider ${
+                  theme === 'dark' ? 'text-gray-300' : 'text-gray-500'
+                }`}>
+                  Net Flow
+                </th>
+              </tr>
+            </thead>
+            <tbody className={`divide-y ${
+              theme === 'dark' ? 'divide-gray-700' : 'divide-gray-200'
+            }`}>
+              {cashFlowData.map((monthData, index) => (
+                <tr 
+                  key={index} 
+                  onClick={() => handleMonthClick(monthData)}
+                  className={`cursor-pointer transition-colors ${
+                    theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className={`text-sm font-medium ${
+                      theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
+                    }`}>
+                      {monthData.month}
+                    </div>
+                    <div className={`text-xs ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
+                      {monthData.monthCode}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <div className={`text-sm font-medium ${
+                      theme === 'dark' ? 'text-green-400' : 'text-green-600'
+                    }`}>
+                      {formatCurrency(monthData.inflow)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <div className={`text-sm font-medium ${
+                      theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                    }`}>
+                      {formatCurrency(monthData.outflow)}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <div className={`text-sm font-bold ${
+                      monthData.netFlow >= 0
+                        ? theme === 'dark' ? 'text-green-400' : 'text-green-600'
+                        : theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                    }`}>
+                      {monthData.netFlow >= 0 ? '+' : '-'}{formatCurrency(monthData.netFlow)}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              
+              {/* Grand Total Row */}
+              <tr className={`border-t-2 font-bold ${
+                theme === 'dark' 
+                  ? 'border-gray-600 bg-gray-700' 
+                  : 'border-gray-400 bg-gray-100'
+              }`}>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className={`text-sm font-bold ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
+                    Grand Total
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <div className={`text-sm font-bold ${
+                    theme === 'dark' ? 'text-green-400' : 'text-green-600'
+                  }`}>
+                    {formatCurrency(totalInflow)}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <div className={`text-sm font-bold ${
+                    theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                  }`}>
+                    {formatCurrency(totalOutflow)}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <div className={`text-sm font-bold ${
+                    totalNetFlow >= 0
+                      ? theme === 'dark' ? 'text-green-400' : 'text-green-600'
+                      : theme === 'dark' ? 'text-red-400' : 'text-red-600'
+                  }`}>
+                    {totalNetFlow >= 0 ? '+' : '-'}{formatCurrency(totalNetFlow)}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
       
@@ -172,7 +375,7 @@ const CashFlow: React.FC = () => {
         theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'
       }`}>
         <p className="text-sm">
-          <span className="font-semibold">Pro Tip:</span> Press F5 to refresh, F12 to configure display options.
+          <span className="font-semibold">Pro Tip:</span> Click on any month to view detailed cash flow summary. Press F5 to refresh, F12 to configure display options.
         </p>
       </div>
     </div>

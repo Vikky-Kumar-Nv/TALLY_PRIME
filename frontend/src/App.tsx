@@ -84,12 +84,16 @@ import ReportsIndex from './components/reports/ReportsIndex';
 import DayBook from './components/reports/DayBook';
 import LedgerReport from './components/reports/LedgerReport';
 import TrialBalance from './components/reports/TrialBalance';
-import TradingAccount from './components/reports/TradingAccount';
+// import TradingAccount from './components/reports/TradingAccount';
 // import ProfitLoss from './components/accounting/ProfitLoss';
 import ProfitLoss from './components/reports/ProfitLoss';
 import BalanceSheet from './components/reports/BalanceSheet';
 import GroupSummary from './components/reports/GroupSummary';
 import CashFlow from './components/reports/CashFlow';
+import CashFlowSummary from './components/reports/CashFlowSummary';
+import GroupCashFlow from './components/reports/GroupCashFlow';
+import LedgerVouchers from './components/reports/LedgerVouchers';
+import VoucherView from './components/vouchers/view/VoucherView';
 import StockSummary from './components/reports/StockSummary';
 import MovementAnalysis from './components/reports/MovementAnalysis';
 import AgeingAnalysis from './components/reports/AgeingAnalysis';
@@ -290,6 +294,7 @@ function App() {
             <Route path="vouchers/sales/edit/:id" element={<SalesVoucher1 />} />
             <Route path="vouchers/sales-order/create" element={<SalesOrder />} />
             <Route path="vouchers/sales-order/edit/:id" element={<SalesOrder />} />
+            <Route path="vouchers/view/:voucherType/:voucherNo" element={<VoucherView />} />
            
             {/* Voucher Register Routes */}
             <Route path="voucher-register" element={<VoucherRegisterIndex />} />
@@ -313,11 +318,14 @@ function App() {
             <Route path="reports/day-book" element={<DayBook />} />
             <Route path="reports/ledger" element={<LedgerReport />} />
             <Route path="reports/trial-balance" element={<TrialBalance />} />
-             <Route path="reports/trading-account" element={<TradingAccount />} />
+             {/* <Route path="reports/trading-account" element={<TradingAccount />} /> */}
             <Route path="reports/profit-loss" element={<ProfitLoss />} />
             <Route path="reports/balance-sheet" element={<BalanceSheet />} />
             <Route path="reports/group-summary/:groupType" element={<GroupSummary />} />
             <Route path="reports/cash-flow" element={<CashFlow />} />
+            <Route path="reports/cash-flow-summary/:monthCode" element={<CashFlowSummary />} />
+            <Route path="reports/group-cash-flow/:accountName" element={<GroupCashFlow />} />
+            <Route path="reports/ledger-vouchers/:ledgerName" element={<LedgerVouchers />} />
             <Route path="reports/outstanding" element={<OutstandingReports />} />
 
            //inventory Routes
@@ -328,7 +336,7 @@ function App() {
             
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
-            <Route path="reports/trading-account" element={<TradingAccount />} />
+            {/* <Route path="reports/trading-account" element={<TradingAccount />} /> */}
             
 
 

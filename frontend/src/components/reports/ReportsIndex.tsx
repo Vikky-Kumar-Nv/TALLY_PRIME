@@ -25,10 +25,11 @@ const ReportsIndex: React.FC = () => {
         { icon: <FileText size={20} />, name: 'Ledger', path: '/app/reports/ledger' },
         { icon: <FileText size={20} />, name: 'Group Summary', path: '/app/masters/group' },
         { icon: <BarChart2 size={20} />, name: 'Trial Balance', path: '/app/reports/trial-balance' },
-        { icon: <TrendingUp size={20} />, name: 'Trading Account', path: '/app/reports/trading-account' },
+        // { icon: <TrendingUp size={20} />, name: 'Trading Account', path: '/app/reports/trading-account' },
         { icon: <TrendingUp size={20} />, name: 'Profit & Loss', path: '/app/reports/profit-loss' },
         { icon: <DollarSign size={20} />, name: 'Balance Sheet', path: '/app/reports/balance-sheet' },
-        { icon: <PieChart size={20} />, name: 'Cash/Funds Flow', path: '/app/reports/cash-flow' },
+        { icon: <PieChart size={20} />, name: 'Cash Flow', path: '/app/reports/cash-flow' },
+        { icon: <PieChart size={20} />, name: 'Fund Flow', path: '/app/reports/fund-flow' },
         { icon: <AlertTriangle size={20} />, name: 'Outstanding', path: '/app/reports/outstanding' }
       ]
     },

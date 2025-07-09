@@ -1,4 +1,4 @@
-@keyframes pulse-border {
+/* @keyframes pulse-border {
   0% {
     box-shadow: 0 0 5px rgba(6, 205, 255, 0.3), 0 0 10px rgba(255, 85, 165, 0.3);
   }
@@ -64,4 +64,4 @@
 
 .chart-title {
   color: var(--text-primary);
-}
+} */
