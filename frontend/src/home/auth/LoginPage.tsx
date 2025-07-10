@@ -10,8 +10,8 @@ const LoginPage: React.FC = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  
-  const { login } = useAuth();
+
+  const { } = useAuth();
   const navigate = useNavigate();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,6 +74,7 @@ const LoginPage: React.FC = () => {
     if (response.ok) {
       // Store user in localStorage
       // localStorage.setItem('user', JSON.stringify(data.user));
+         localStorage.setItem('employee_id', data.user.id); // or sessionStorage
 
       // Redirect based on subscription status
       if (data.user.hasSubscription) {

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Save, X, ArrowLeft, Plus } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
-import type { StockItem, GodownAllocation, Godown, UnitOfMeasurement, StockGroup, GstClassification } from '../../../types';
+import type {GodownAllocation, Godown, UnitOfMeasurement, StockGroup, GstClassification } from '../../../types';
 
 // Interface for InputField props
 interface InputFieldProps {
@@ -183,7 +183,7 @@ const GodownAllocationField: React.FC<GodownAllocationFieldProps> = ({ allocatio
 };
 
 const StockItemForm = () => {
-  const { theme, stockGroups = [], gstClassifications = [], units = [], godowns = [], companyInfo, addStockItem } = useAppContext();
+  const { theme, stockGroups = [], gstClassifications = [], units = [], godowns = [], companyInfo} = useAppContext();
   const navigate = useNavigate();
 
   interface FormData {

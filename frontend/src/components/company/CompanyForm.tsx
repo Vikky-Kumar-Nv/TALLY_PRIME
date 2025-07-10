@@ -389,7 +389,7 @@ const CompanyForm: React.FC = () => {
         accessControlEnabled,
         username: accessControlEnabled ? username : null,
         password: accessControlEnabled ? password : null,
-        employeeId: localStorage.getItem("emp_id"),
+        employeeId: localStorage.getItem("employee_id"), // ✅ this key must match
       };
 
       // Step 4: Submit to backend

@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 
 router.post('/company', async (req, res) => {
   // ✅ Extract emp_id from frontend (localStorage → request body)
-  const employeeId = req.body.employeeId;
+  // const employeeId = req.body.employeeId;
 
 //   if (!employeeId) {
 //     return res.status(401).json({ message: 'Unauthorized. Employee ID missing.' });
@@ -28,7 +28,8 @@ router.post('/company', async (req, res) => {
     vaultPassword,
     accessControlEnabled,
     username,
-    password
+    password,
+    employeeId
   } = req.body;
 
   const connection = await db.getConnection();
@@ -73,8 +74,11 @@ router.post('/company', async (req, res) => {
 
     await connection.commit();
     connection.release();
+    console.log("Employee ID received:", employeeId);
+    console.log("Full payload:", req.body);
 
     return res.status(201).json({
+      
       message: 'Company created successfully',
       companyId
     });

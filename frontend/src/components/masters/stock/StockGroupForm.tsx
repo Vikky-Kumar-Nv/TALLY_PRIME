@@ -25,16 +25,16 @@ type StockGroupFormData = StockGroup & {
 };
 
 const StockGroupForm: React.FC = () => {
-  const { theme, stockGroups, gstClassifications, addStockGroup, companyInfo } = useAppContext();
+  const { theme, stockGroups, gstClassifications,  companyInfo } = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
 
   // Mock updateStockGroup function since it's not in context
-  const updateStockGroup = useCallback((stockGroup: StockGroup) => {
-    console.log('Update stock group:', stockGroup);
-    alert('Stock group updated successfully!');
-  }, []);
+  // const updateStockGroup = useCallback((stockGroup: StockGroup) => {
+  //   console.log('Update stock group:', stockGroup);
+  //   alert('Stock group updated successfully!');
+  // }, []);
 
   const initialFormData: StockGroupFormData = {
     id: '',

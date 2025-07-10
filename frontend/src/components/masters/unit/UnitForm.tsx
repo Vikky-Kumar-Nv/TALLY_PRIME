@@ -6,7 +6,7 @@ import type { UnitOfMeasurement } from '../../../types';
 import Swal from 'sweetalert2'; // Add this at the top
 
 const UnitForm: React.FC = () => {
-  const { theme, units, addUnit } = useAppContext();
+  const { theme, units } = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = Boolean(id);
