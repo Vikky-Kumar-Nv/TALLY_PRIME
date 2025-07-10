@@ -127,6 +127,7 @@ import TDSModule from './components/modules/tds/TDSModule';
 import Form24Q from './components/modules/tds/Form24Q';
 import Form26Q from './components/modules/tds/Form26Q';
 import Form27Q from './components/modules/tds/Form27Q';
+import Form27EQ from './components/modules/tds/Form27EQ';
 import TDSRates from './components/modules/tds/TDSRates';
 import Form16 from './components/modules/tds/Form16';
 import ComplianceCheck2 from './components/modules/tds/ComplianceCheck';
@@ -362,6 +363,7 @@ function App() {
                <Route path='tds/form-24q' element={<Form24Q />} />
                <Route path='tds/form-26q' element={<Form26Q />} />
                <Route path='tds/form-27q' element={<Form27Q />} />
+               <Route path='tds/form-27eq' element={<Form27EQ />} />
                <Route path='tds/summary' element={<TDSSummary />} />
                <Route path='tds/rates' element={<TDSRates />} />
                <Route path='tds/form-16' element={<Form16 />} />
