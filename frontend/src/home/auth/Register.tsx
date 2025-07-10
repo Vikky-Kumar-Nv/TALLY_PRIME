@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Swal from 'sweetalert2';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -80,36 +81,60 @@ const Register: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!validateForm()) return;
+
+  setIsLoading(true);
+  setErrors({});
+console.log("📨 Raw Response:");
+
+
+  try {
+    const res = await fetch('http://localhost:5000/api/SignUp/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName:   formData.firstName,
+        lastName:    formData.lastName,
+        email:       formData.email,
+        password:    formData.password,
+        companyName: formData.companyName,
+        phoneNumber: formData.phoneNumber
+      })
+    });
+
+    console.log("📨 Raw Response:", res);
+
+    const data = await res.json();
+
+    console.log("✅ Response Status:", res.status);
+    console.log("✅ Response Body:", data);
+
+    if (res.ok) {
+      Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: data.message,
+              }).then(() => {
+                navigate('/login'); // or your route to go back
+              });
+      
+    }else{
+        setErrors({ submit: data.message || 'Registration failed. Please try again.' });
       return;
     }
+
     
-    setIsLoading(true);
-    setErrors({});
-    
-    try {
-      const result = await register({
-        fullName: `${formData.firstName} ${formData.lastName}`,
-        email: formData.email,
-        password: formData.password,
-        address: formData.companyName, // Using company name as address for now
-        phoneNo: formData.phoneNumber
-      });
-      
-      if (result) {
-        navigate('/pricing');
-      } else {
-        setErrors({ submit: 'Registration failed. Please try again.' });
-      }
-    } catch {
-      setErrors({ submit: 'An unexpected error occurred' });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  } catch (err) {
+    console.error('❌ Register fetch error:', err);
+    setErrors({ submit: 'Network error — please try again.' });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500/80 via-purple-600/80 to-purple-800/80 bg-[url('/src/assets/bg-1.svg')] bg-cover bg-center bg-no-repeat bg-blend-overlay">

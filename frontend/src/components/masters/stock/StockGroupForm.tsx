@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
 import { ArrowLeft, Save, Printer } from 'lucide-react';
 import type { StockGroup, GstClassification } from '../../../types';
+import Swal from 'sweetalert2';
 
 // Extended type for form data that includes all the properties used in the UI
 type StockGroupFormData = StockGroup & {
@@ -126,20 +127,43 @@ const StockGroupForm: React.FC = () => {
     }));
   };
 
-  const handleSubmit = useCallback(() => {
-    if (validateForm()) {
-      const stockGroupData = {
-        ...formData,
-        id: isEditMode ? formData.id : `SG-${Date.now()}`,
-      };
-      if (isEditMode) {
-        updateStockGroup(stockGroupData);
+
+const handleSubmit = useCallback(async () => {
+  if (validateForm()) {
+    const stockGroupData = {
+      ...formData,
+      id: isEditMode ? formData.id : `SG-${Date.now()}`
+    };
+
+    try {
+      const response = await fetch('http://localhost:5000/api/stock-groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(stockGroupData)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: result.message || 'Stock Group saved successfully'
+        });
+        navigate('/app/masters/stock-group');
       } else {
-        addStockGroup(stockGroupData);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: result.error || 'Something went wrong.'
+        });
       }
-      navigate('/app/masters/stock-group');
+    } catch (error) {
+          Swal.fire("Error", 'Something went wrong!', "error");
+      
     }
-  }, [formData, isEditMode, updateStockGroup, addStockGroup, navigate, validateForm]);
+  }
+}, [formData, isEditMode, navigate, validateForm]);
 
   const handlePrint = useCallback(() => {
     const printWindow = window.open('', '_blank');

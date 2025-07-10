@@ -1,0 +1,63 @@
+const express = require('express');
+const router = express.Router();
+const db = require('../db'); // your mysql2 pool connection
+
+router.post('/', async (req, res) => {
+  const connection = await db.getConnection(); // ✅ get a connection
+
+  try {
+    await connection.beginTransaction(); // ✅ begin transaction
+
+    const {
+      name, stockGroupId, unit, openingBalance, openingValue,
+      hsnCode, gstRate, taxType, standardPurchaseRate, standardSaleRate,
+      enableBatchTracking, allowNegativeStock, maintainInPieces, secondaryUnit,
+      godownAllocations = []
+    } = req.body;
+
+    const values = [
+      name, stockGroupId ?? null, unit ?? null,
+      openingBalance ?? 0, openingValue ?? 0, hsnCode ?? null, gstRate ?? 0,
+      taxType ?? 'Taxable', standardPurchaseRate ?? 0, standardSaleRate ?? 0,
+      enableBatchTracking ? 1 : 0, allowNegativeStock ? 1 : 0,
+      maintainInPieces ? 1 : 0, secondaryUnit ?? null
+    ];
+
+    // Insert stock item
+    const [result] = await connection.execute(`
+      INSERT INTO stock_items (
+        name, stockGroupId, unit, openingBalance, openingValue,
+        hsnCode, gstRate, taxType, standardPurchaseRate, standardSaleRate,
+        enableBatchTracking, allowNegativeStock, maintainInPieces, secondaryUnit
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, values);
+
+    const stockItemId = result.insertId; // ✅ get inserted ID
+
+    // Insert godown allocations
+    for (const alloc of godownAllocations) {
+      await connection.execute(`
+        INSERT INTO godown_allocations (stockItemId, godownId, quantity, value)
+        VALUES (?, ?, ?, ?)
+      `, [
+        stockItemId,
+        alloc.godownId ?? null,
+        alloc.quantity ?? 0,
+        alloc.value ?? 0
+      ]);
+    }
+
+    await connection.commit(); // ✅ commit transaction
+    res.json({ success: true, message: 'Stock item saved successfully' });
+
+  }  catch (err) {
+  console.error("🔥 Error saving stock item:", err); // log full error
+  await connection.rollback();
+  res.status(500).json({ success: false, message: 'Error saving stock item' });
+}
+ finally {
+    connection.release(); // ✅ always release the connection
+  }
+});
+
+module.exports = router;

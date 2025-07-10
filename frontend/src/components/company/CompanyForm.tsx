@@ -389,11 +389,11 @@ const CompanyForm: React.FC = () => {
         accessControlEnabled,
         username: accessControlEnabled ? username : null,
         password: accessControlEnabled ? password : null,
-        adminUserId: "current-user-id", // This should come from auth context
+        employeeId: localStorage.getItem("emp_id"),
       };
 
       // Step 4: Submit to backend
-      const res = await fetch("http://localhost:5000/api/company", {
+      const res = await fetch("http://localhost:5000/api/company/company", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -3,7 +3,10 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 interface User {
   id: string;
   email: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
+  companyName: string;
+  phoneNumber: string;
   hasSubscription: boolean;
   subscriptionPlan?: 'basic' | 'professional' | 'enterprise';
   createdAt?: string;
@@ -21,12 +24,14 @@ interface AuthContextType {
 }
 
 interface RegisterData {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  address: string;
-  phoneNo: string;
   password: string;
+  companyName: string;
+  phoneNumber: string;
 }
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -86,39 +91,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const register = async (userData: RegisterData): Promise<boolean> => {
-    setIsLoading(true);
-    
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Basic validation - in real app, this would be more comprehensive
-      if (!userData.email || !userData.password || !userData.fullName) {
-        setIsLoading(false);
-        return false;
-      }
-      
-      // Mock registration - in real app, this would call API
-      const newUser: User = {
-        id: Date.now().toString(),
-        email: userData.email,
-        fullName: userData.fullName,
-        hasSubscription: false,
-        createdAt: new Date().toISOString(),
-        lastLoginAt: new Date().toISOString(),
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('user', JSON.stringify(newUser));
-      setIsLoading(false);
-      
-      return true;
-    } catch (error) {
-      console.error('Registration error:', error);
-      setIsLoading(false);
-      return false;
+  setIsLoading(true);
+  try {
+    const response = await fetch("http://localhost:5000/api/SignUp/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      throw new Error("Registration failed");
     }
-  };
+
+    // Set user data from form (or response if backend returns it)
+    const newUser: User = {
+      id: Date.now().toString(), // Ideally, get this from backend response
+      email: userData.email,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      companyName: userData.companyName,
+      phoneNumber: userData.phoneNumber,
+      hasSubscription: false,
+      createdAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString(),
+    };
+
+    setUser(newUser);
+    localStorage.setItem("user", JSON.stringify(newUser));
+    return true;
+  } catch (error) {
+    console.error("Registration error:", error);
+    return false;
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const logout = () => {
     try {

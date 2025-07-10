@@ -47,36 +47,51 @@ const LoginPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
-    setIsLoading(true);
-    setErrors({});
-    
-    try {
-      const result = await login(formData.email, formData.password);
-      
-      if (result) {
-        // Check if user has a subscription
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        if (user.hasSubscription) {
-          navigate('/app');
-        } else {
-          navigate('/purchase');
-        }
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!validateForm()) {
+    return;
+  }
+
+  setIsLoading(true);
+  setErrors({});
+
+  try {
+    const response = await fetch('http://localhost:5000/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Store user in localStorage
+      // localStorage.setItem('user', JSON.stringify(data.user));
+
+      // Redirect based on subscription status
+      if (data.user.hasSubscription) {
+        navigate('/app');
       } else {
-        setErrors({ submit: 'Invalid email or password' });
+        navigate('/purchase');
       }
-    } catch {
-      setErrors({ submit: 'An unexpected error occurred' });
-    } finally {
-      setIsLoading(false);
+    } else {
+      setErrors({ submit: data.message || 'Invalid email or password' });
     }
-  };
+  } catch (error) {
+    console.error('Login Error:', error);
+    setErrors({ submit: 'An unexpected error occurred' });
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500/80 via-purple-600/80 to-purple-800/80 bg-[url('/src/assets/bg-1.svg')] bg-cover bg-center bg-no-repeat bg-blend-overlay">

@@ -301,48 +301,33 @@ const StockItemForm = () => {
       return;
     }
 
-    const selectedGroup = stockGroups.find((g: StockGroup) => g.id === formData.stockGroupId);
-    const totalQuantity = godownAllocations.reduce((sum, alloc) => sum + alloc.quantity, 0);
-    if (totalQuantity !== Number(formData.openingBalance)) {
-      alert('Total godown allocation quantity must equal opening balance');
-      return;
-    }
-
-    const stockItem: StockItem = {
-      id: Math.random().toString(36).substring(2, 9),
-      name: formData.name,
-      stockGroupId: formData.stockGroupId,
-      unit: formData.unit,
-      openingBalance: Number(formData.openingBalance),
-      openingValue: Number(formData.openingValue),
-      hsnCode:
-        formData.hsnSacOption === 'specify-details' ? formData.hsnCode :
-        formData.hsnSacOption === 'use-classification' ?
-          gstClassifications.find((c: GstClassification) => c.id === formData.gstClassification)?.hsnCode || '' :
-        selectedGroup?.hsnCode || '',
-      gstRate:
-        formData.gstRateOption === 'specify-details' ? Number(formData.gstRate) :
-        formData.gstRateOption === 'use-classification' ?
-          Number(gstClassifications.find((c: GstClassification) => c.id === formData.gstClassification)?.gstRate || 0) :
-        selectedGroup?.gstRate || 0,
-      taxType: formData.taxType,
-      standardPurchaseRate: Number(formData.standardPurchaseRate),
-      standardSaleRate: Number(formData.standardSaleRate),
-      enableBatchTracking: formData.enableBatchTracking,
-      batchDetails: formData.enableBatchTracking ? [{
-        id: Math.random().toString(36).substring(2, 9),
-        name: formData.batchName,
-        expiryDate: formData.batchExpiryDate || undefined,
-        manufacturingDate: formData.batchManufacturingDate || undefined
-      }] : undefined,
-      godownAllocations: godownAllocations.length > 0 ? godownAllocations : undefined,
-      allowNegativeStock: formData.allowNegativeStock,
-      maintainInPieces: formData.maintainInPieces,
-      secondaryUnit: formData.maintainInPieces ? formData.secondaryUnit : undefined
-    };
-    addStockItem(stockItem);
-    navigate('/app/masters/stock-item');
+  // Construct the stockItem object from formData and godownAllocations
+  const stockItem = {
+    ...formData,
+    godownAllocations,
   };
+
+  fetch('http://localhost:5000/api/stock-items', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(stockItem)
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert('Stock item saved successfully');
+        navigate('/app/masters/stock-item');
+      } else {
+        alert('Failed to save stock item');
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert('An error occurred');
+    });
+};
 
   const hsnSacOptions = [
     { value: 'as-per-company', label: 'As per Company/Group' },

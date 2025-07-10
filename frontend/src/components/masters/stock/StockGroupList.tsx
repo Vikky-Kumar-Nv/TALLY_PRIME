@@ -6,13 +6,27 @@ import ReportTable from '../../inventory/ReportTable';
 import type { StockGroup } from '../../../types';
 
 const StockGroupList: React.FC = () => {
-  const { theme, stockGroups, companyInfo } = useAppContext();
+  const { theme, companyInfo } = useAppContext();
   const navigate = useNavigate();
   const [filterName, setFilterName] = useState('');
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
+  const [stockGroups, setStockGroupData] = useState<StockGroup[]>([]);
+  useEffect(() => {
+      const fetchData = async () => {
+        try {
+          const res = await fetch('http://localhost:5000/api/stock-groups/list');
+          const data = await res.json();
+          setStockGroupData(data);
+        } catch (err) {
+          console.error('Failed to fetch stock groups:', err);
+        }
+      };
+  
+      fetchData();
+    }, []);
+  
   // Mock deleteStockGroup function since it's not in context
   const deleteStockGroup = useCallback((id: string) => {
     console.log('Delete stock group:', id);

@@ -3,12 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
 import { ArrowLeft, Save, Printer } from 'lucide-react';
 import type { StockCategory } from '../../../types';
+import Swal from 'sweetalert2';
 
 const StockCategoryForm: React.FC = () => {
   const { theme, companyInfo } = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const isEditMode = !!id;
+  const isEditMode = !!id;`1`
 
   // Mock stockCategories and functions since they're not in context
   const stockCategories = useMemo<StockCategory[]>(() => [], []);
@@ -48,19 +49,33 @@ const StockCategoryForm: React.FC = () => {
     setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const handleSubmit = useCallback(() => {
-    if (validateForm()) {
-      const categoryData = {
-        ...formData,
-        id: isEditMode ? formData.id : `SC-${Date.now()}`,
-      };
-      if (isEditMode) {
-        updateStockCategory(categoryData);
-      } else {
-        addStockCategory(categoryData);
-      }
-      navigate('/app/masters/stock-category');
+  const handleSubmit = useCallback(async () => {
+    if (!isEditMode) {
+  const newCategory = {
+    ...formData,
+    id: `SC-${Date.now()}`
+  };
+
+  try {
+    const res = await fetch('http://localhost:5000/api/stock-categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newCategory)
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      Swal.fire("Success", data.message, "success"); // Use sweetalert2
+      navigate('/app/masters/stock-categories');
+    } else {
+      Swal.fire("Error", data.message || "Failed to create Stock Category", "error");
     }
+  } catch (err) {
+    console.error('Create error:', err);
+    Swal.fire("Error", 'Something went wrong!', "error");
+  }
+}
+
   }, [formData, isEditMode, updateStockCategory, addStockCategory, navigate, validateForm]);
 
   const handlePrint = useCallback(() => {

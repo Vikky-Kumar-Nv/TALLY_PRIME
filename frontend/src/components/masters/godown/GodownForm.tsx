@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 interface GodownFormData {
   name: string;
@@ -45,11 +46,32 @@ const GodownForm: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle form submission
-    navigate('/app/masters/godown');
-  };
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const response = await fetch('http://localhost:5000/api/godowns', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...formData, id }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      Swal.fire('Success', result.message, 'success').then(() => {
+        navigate('/app/masters/godowns');
+      });
+    } else {
+      Swal.fire('Error', result.message, 'error');
+    }
+  } catch (err) {
+    console.error(err);
+    Swal.fire('Error', 'Something went wrong!', 'error');
+  }
+};
+
 
   return (
     <div className='pt-[56px] px-4 '>

@@ -1,12 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, Plus, Search } from 'lucide-react';
+import { Edit, Trash2, Plus, Search, ArrowLeft } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const UnitList: React.FC = () => {
-  const { theme, units } = useAppContext();
+  const { theme } = useAppContext();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [units, setUnits] = useState<any[]>([]);
+
+  // 🔹 Fetch units from backend
+  const fetchUnits = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/stock-units');
+      const data = await res.json();
+      setUnits(data);
+    } catch (error) {
+      console.error('Failed to fetch units:', error);
+    }
+  };
+
+  // 🔹 Delete unit with confirmation
+  const handleDelete = async (unitId: string) => {
+    const confirm = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'This will permanently delete the unit.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (confirm.isConfirmed) {
+      try {
+        const res = await fetch(`http://localhost:5000/api/stock-units/${unitId}`, {
+          method: 'DELETE'
+        });
+
+        const result = await res.json();
+
+        if (!res.ok) {
+          Swal.fire('Error', result.message || 'Failed to delete unit', 'error');
+          return;
+        }
+
+        Swal.fire('Deleted!', result.message || 'Unit deleted successfully', 'success');
+        fetchUnits(); // Refresh list
+      } catch (error) {
+        Swal.fire('Error', 'Server error. Please try again later.', 'error');
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchUnits();
+  }, []);
 
   const filteredUnits = units.filter(unit =>
     unit.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -15,10 +64,19 @@ const UnitList: React.FC = () => {
 
   return (
     <div className='pt-[56px] px-4 '>
-      <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-6">
+         <div className="flex items-center mb-6">        
+          <button
+            title="Back to Masters"
+            onClick={() => navigate('/app/masters')}
+            className={`mr-4 p-2 rounded-full ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
+          >
+            <ArrowLeft size={20} />
+          </button>
         <h1 className="text-2xl font-bold">Units of Measurement</h1>
+        </div>
         <button
-        title='Create New Unit'
+          title='Create New Unit'
           onClick={() => navigate('/app/masters/unit/create')}
           className={`flex items-center px-4 py-2 rounded ${
             theme === 'dark' 
@@ -30,7 +88,7 @@ const UnitList: React.FC = () => {
           Create Unit
         </button>
       </div>
-      
+
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
         <div className="flex items-center mb-4">
           <div className={`flex items-center w-full max-w-md px-3 py-2 rounded-md ${
@@ -48,13 +106,11 @@ const UnitList: React.FC = () => {
             />
           </div>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className={`${
-                theme === 'dark' ? 'border-b border-gray-700' : 'border-b border-gray-200'
-              }`}>
+              <tr className={`${theme === 'dark' ? 'border-b border-gray-700' : 'border-b border-gray-200'}`}>
                 <th className="px-4 py-3 text-left">Name</th>
                 <th className="px-4 py-3 text-left">Symbol</th>
                 <th className="px-4 py-3 text-center">Actions</th>
@@ -75,17 +131,14 @@ const UnitList: React.FC = () => {
                       <button
                         title="Edit Unit"
                         onClick={() => navigate(`/app/masters/unit/edit/${unit.id}`)}
-                        className={`p-1 rounded ${
-                          theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-                        }`}
+                        className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
                       >
                         <Edit size={16} />
                       </button>
                       <button
                         title="Delete Unit"
-                        className={`p-1 rounded ${
-                          theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-                        }`}
+                        onClick={() => handleDelete(unit.id)}
+                        className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
                       >
                         <Trash2 size={16} />
                       </button>
@@ -96,17 +149,15 @@ const UnitList: React.FC = () => {
             </tbody>
           </table>
         </div>
-        
+
         {filteredUnits.length === 0 && (
           <div className="text-center py-8">
             <p className="opacity-70">No units found matching your search.</p>
           </div>
         )}
       </div>
-      
-      <div className={`mt-6 p-4 rounded ${
-        theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'
-      }`}>
+
+      <div className={`mt-6 p-4 rounded ${theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'}`}>
         <p className="text-sm">
           <span className="font-semibold">Pro Tip:</span> Press Alt+F3 to access Masters, then use arrow keys to navigate to Units.
         </p>

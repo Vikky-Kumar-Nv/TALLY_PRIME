@@ -3,6 +3,7 @@ import { useAppContext } from '../../../context/AppContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Save } from 'lucide-react';
 import type { UnitOfMeasurement } from '../../../types';
+import Swal from 'sweetalert2'; // Add this at the top
 
 const UnitForm: React.FC = () => {
   const { theme, units, addUnit } = useAppContext();
@@ -35,23 +36,43 @@ const UnitForm: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (isEditMode && id) {
-      // Update existing unit (not implemented yet)
-    } else {
-      // Create new unit
-      const newUnit: UnitOfMeasurement = {
-        id: (units.length + 1).toString(),
-        ...formData
-      };
-      
-      addUnit(newUnit);
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  const apiUrl = 'http://localhost:5000/api/stock-units';
+  const method = isEditMode ? 'PUT' : 'POST';
+  const url = isEditMode ? `${apiUrl}/${id}` : apiUrl;
+
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      Swal.fire('Error', result.message || 'Something went wrong', 'error');
+      return;
     }
-    
-    navigate('/app/masters/unit');
-  };
+
+    Swal.fire({
+      icon: 'success',
+      title: isEditMode ? 'Updated Successfully' : 'Unit Created',
+      text: result.message
+    }).then(() => {
+      navigate('/app/masters/units');
+    });
+
+  } catch (error) {
+    Swal.fire('Error', 'Server error. Please try again later.', 'error');
+  }
+};
+
 
   return (
     <div className='pt-[56px] px-4 '>
