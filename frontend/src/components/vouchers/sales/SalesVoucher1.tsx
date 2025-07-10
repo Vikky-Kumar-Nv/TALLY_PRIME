@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useAppContext } from '../../../context/AppContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import type { VoucherEntry, Ledger, Godown } from '../../../types';
 import { Save, Plus, Trash2, ArrowLeft, Printer } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -75,8 +75,10 @@ const PRINT_STYLES = {
 };
 
 const SalesVoucher: React.FC = () => {
-  const { theme, stockItems, ledgers, godowns = [], vouchers = [], companyInfo } = useAppContext();
+  const { theme, stockItems, ledgers, godowns = [], vouchers = [], companyInfo, addVoucher, updateVoucher } = useAppContext();
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+  const isEditMode = !!id;
   const printRef = useRef<HTMLDivElement>(null);
 
   // Safe fallbacks for context data
@@ -130,19 +132,33 @@ const SalesVoucher: React.FC = () => {
     return `XYZ${(lastNumber + 1).toString().padStart(4, '0')}`;
   };
 
-  const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>({
-    date: new Date().toISOString().split('T')[0],
-    type: 'sales',
-    number: generateVoucherNumber(),
-    narration: '',
-    referenceNo: '',
-    partyId: '',
-    mode: 'item-invoice',
-    dispatchDetails: { docNo: '', through: '', destination: '' },
-    entries: [
-      { id: 'e1', itemId: '', quantity: 0, rate: 0, amount: 0, type: 'debit', cgstRate: 0, sgstRate: 0, igstRate: 0, godownId: '', discount: 0 }
-    ]
-  });
+  const getInitialFormData = (): Omit<VoucherEntry, 'id'> => {
+    if (isEditMode && id) {
+      const existingVoucher = vouchers.find(v => v.id === id);
+      if (existingVoucher) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id: _, ...voucherData } = existingVoucher;
+        return voucherData;
+      }
+    }
+    return {
+      date: new Date().toISOString().split('T')[0],
+      type: 'sales',
+      number: generateVoucherNumber(),
+      narration: '',
+      referenceNo: '',
+      partyId: '',
+      mode: 'item-invoice',
+      dispatchDetails: { docNo: '', through: '', destination: '' },
+      salesLedgerId: '', // Add sales ledger field
+      entries: [
+        { id: 'e1', itemId: '', quantity: 0, rate: 0, amount: 0, type: 'debit', cgstRate: 0, sgstRate: 0, igstRate: 0, godownId: '', discount: 0, hsnCode: '' }
+      ]
+    };
+  };
+
+  const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>(getInitialFormData());
+  const [godownEnabled, setGodownEnabled] = useState<'yes' | 'no'>('yes'); // Add state for godown selection visibility
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showConfig, setShowConfig] = useState(false);
@@ -254,6 +270,7 @@ const SalesVoucher: React.FC = () => {
           itemId: value,
           ledgerId: undefined,
           rate: itemDetails.rate, // Auto-fill the rate from item details
+          hsnCode: itemDetails.hsnCode || '', // Auto-fill HSN code from item
           cgstRate,
           sgstRate,
           igstRate,
@@ -325,7 +342,8 @@ const SalesVoucher: React.FC = () => {
           sgstRate: 0,
           igstRate: 0,
           godownId: '',
-          discount: 0
+          discount: 0,
+          hsnCode: '' // Add HSN code for manual editing
         }
       ]
     }));
@@ -344,10 +362,12 @@ const SalesVoucher: React.FC = () => {
     if (!formData.number) newErrors.number = 'Voucher number is required';
 
     if (formData.mode === 'item-invoice') {
+      if (!formData.salesLedgerId) newErrors.salesLedgerId = 'Sales Ledger is required';
+      
       formData.entries.forEach((entry, index) => {
         if (!entry.itemId) newErrors[`entry${index}.itemId`] = 'Item is required';
         if ((entry.quantity ?? 0) <= 0) newErrors[`entry${index}.quantity`] = 'Quantity must be greater than 0';
-        if (godowns.length > 0 && !entry.godownId) newErrors[`entry${index}.godownId`] = 'Godown is required';
+        if (godownEnabled === 'yes' && godowns.length > 0 && !entry.godownId) newErrors[`entry${index}.godownId`] = 'Godown is required';
 
         if (entry.itemId) {
           const stockItem = safeStockItems.find(item => item.id === entry.itemId);
@@ -444,29 +464,33 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 
   try {
-    const res = await fetch('http://localhost:5000/api/vouchers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
-    });
-
-    const data = await res.json();
-    console.log('Server response:', data); // debug log
-
-    if (res.ok) {
+    if (isEditMode && id) {
+      // Update existing voucher
+      updateVoucher(id, formData);
       await Swal.fire({
         title: 'Success',
-        text: data.message,
+        text: 'Sales voucher updated successfully!',
         icon: 'success',
         confirmButtonText: 'OK'
       });
-      navigate('/app/vouchers');
     } else {
-      Swal.fire('Error', data.message || 'Something went wrong', 'error');
+      // Create new voucher
+      const newVoucher: VoucherEntry = {
+        ...formData,
+        id: Math.random().toString(36).substring(2, 9)
+      };
+      addVoucher(newVoucher);
+      await Swal.fire({
+        title: 'Success',
+        text: 'Sales voucher saved successfully!',
+        icon: 'success',
+        confirmButtonText: 'OK'
+      });
     }
+    navigate('/app/vouchers');
   } catch (err) {
     console.error('Error:', err);
-    Swal.fire('Error', 'Network or server issue', 'error');
+    Swal.fire('Error', 'Failed to save voucher', 'error');
   }
 };
 
@@ -476,7 +500,27 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   // Helper functions for print layout
   const getItemDetails = (itemId: string) => {
+    // First try to get from context stockItems if available
+    if (safeStockItems && safeStockItems.length > 0) {
+      const stockItem = safeStockItems.find(item => item.id === itemId);
+      if (stockItem) {
+        return {
+          name: stockItem.name,
+          hsnCode: stockItem.hsnCode || '-',
+          unit: stockItem.unit,
+          gstRate: stockItem.gstRate || 0,
+          rate: stockItem.standardSaleRate || 0
+        };
+      }
+    }
+    
+    // Fallback to hardcoded item map with both old and new ID formats
     const itemMap: { [key: string]: { name: string; hsnCode: string; unit: string; gstRate: number; rate: number } } = {
+      // New format (from context)
+      'i1': { name: 'Electronics Item A', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 45000 },
+      'i2': { name: 'Clothing Item B', hsnCode: '6203', unit: 'Piece', gstRate: 12, rate: 1200 },
+      'i3': { name: 'Book Item C', hsnCode: '4901', unit: 'Piece', gstRate: 0, rate: 500 },
+      // Old format (for backward compatibility)
       '1': { name: 'Laptop HP Pavilion', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 45000 },
       '2': { name: 'Mobile Phone Samsung', hsnCode: '8517', unit: 'Piece', gstRate: 18, rate: 25000 },
       '3': { name: 'Printer Canon', hsnCode: '8443', unit: 'Piece', gstRate: 18, rate: 15000 },
@@ -713,6 +757,55 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
           </div>
 
+          {/* Sales Ledger selection for item-invoice mode */}
+          {formData.mode === 'item-invoice' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className="block text-sm font-medium mb-1" htmlFor="salesLedgerId">
+                  Sales Ledger <span className="text-red-500">*</span>
+                </label>              
+                <select
+                  id="salesLedgerId"
+                  name="salesLedgerId"
+                  value={formData.salesLedgerId || ''}
+                  onChange={handleChange}
+                  title="Select Sales Ledger"
+                  required
+                  className={FORM_STYLES.select(theme, !!errors.salesLedgerId)}
+                >
+                  <option value="">-- Select Sales Ledger --</option>
+                  {safeLedgers
+                    .filter(ledger => ledger.type === 'sales' || ledger.name.toLowerCase().includes('sales'))
+                    .map(ledger => (
+                      <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
+                    ))
+                  }
+                  {/* Fallback options if no sales ledgers found */}
+                  <option value="sales-general">Sales - General</option>
+                  <option value="sales-local">Sales - Local</option>
+                  <option value="sales-export">Sales - Export</option>
+                </select>
+                {errors.salesLedgerId && <p className="text-red-500 text-xs mt-1">{errors.salesLedgerId}</p>}
+              </div>
+              
+              {/* Godown Enable/Disable toggle */}
+              <div>
+                <label className="block text-sm font-medium mb-1" htmlFor="godownEnabled">
+                  Enable Godown Selection
+                </label>              
+                <select
+                  id="godownEnabled"
+                  value={godownEnabled}
+                  onChange={(e) => setGodownEnabled(e.target.value as 'yes' | 'no')}
+                  className={FORM_STYLES.select(theme)}
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+            </div>
+          )}
+
           <div className={`p-4 mb-6 rounded ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-semibold">{formData.mode === 'item-invoice' ? 'Items' : 'Ledger Entries'}</h3>
@@ -739,7 +832,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                       <th className="px-4 py-2 text-right">Rate</th>
                       <th className="px-4 py-2 text-right">Discount</th>
                       <th className="px-4 py-2 text-right">Amount</th>
-                      <th className="px-4 py-2 text-left">Godown</th>
+                      {godownEnabled === 'yes' && (
+                        <th className="px-4 py-2 text-left">Godown</th>
+                      )}
                       <th className="px-4 py-2 text-center">Action</th>
                     </tr>
                   </thead>                  <tbody>
@@ -758,25 +853,43 @@ const handleSubmit = async (e: React.FormEvent) => {
                               className={FORM_STYLES.tableSelect(theme)}
                             >
                               <option value="" disabled>-- Select Item --</option>
-                              <option value="1">Laptop HP Pavilion</option>
-                              <option value="2">Mobile Phone Samsung</option>
-                              <option value="3">Printer Canon</option>
-                              <option value="4">Office Chair</option>
-                              <option value="5">LED Monitor</option>
-                              <option value="6">Desktop Computer Dell</option>
-                              <option value="7">Wireless Mouse Logitech</option>
-                              <option value="8">Keyboard Mechanical</option>
-                              <option value="9">Smartphone iPhone</option>
-                              <option value="10">Tablet iPad</option>
-                              <option value="11">Webcam HD Logitech</option>
-                              <option value="12">Headphones Sony</option>
-                              <option value="13">External Hard Drive 1TB</option>
-                              <option value="14">Router WiFi TP-Link</option>
-                              <option value="15">UPS 1000VA APC</option>
+                              {safeStockItems && safeStockItems.length > 0 ? (
+                                safeStockItems.map(item => (
+                                  <option key={item.id} value={item.id}>{item.name}</option>
+                                ))
+                              ) : (
+                                <>
+                                  <option value="1">Laptop HP Pavilion</option>
+                                  <option value="2">Mobile Phone Samsung</option>
+                                  <option value="3">Printer Canon</option>
+                                  <option value="4">Office Chair</option>
+                                  <option value="5">LED Monitor</option>
+                                  <option value="6">Desktop Computer Dell</option>
+                                  <option value="7">Wireless Mouse Logitech</option>
+                                  <option value="8">Keyboard Mechanical</option>
+                                  <option value="9">Smartphone iPhone</option>
+                                  <option value="10">Tablet iPad</option>
+                                  <option value="11">Webcam HD Logitech</option>
+                                  <option value="12">Headphones Sony</option>
+                                  <option value="13">External Hard Drive 1TB</option>
+                                  <option value="14">Router WiFi TP-Link</option>
+                                  <option value="15">UPS 1000VA APC</option>
+                                </>
+                              )}
                             </select>
                             {errors[`entry${index}.itemId`] && <p className="text-red-500 text-xs mt-1">{errors[`entry${index}.itemId`]}</p>}
                           </td>
-                          <td className="px-4 py-2">{itemDetails.hsnCode}</td>
+                          <td className="px-4 py-2">
+                            <input
+                              title='Enter HSN/SAC Code'
+                              type="text"
+                              name="hsnCode"
+                              value={entry.hsnCode || ''}
+                              onChange={(e) => handleEntryChange(index, e)}
+                              placeholder="HSN/SAC"
+                              className={FORM_STYLES.tableInput(theme)}
+                            />
+                          </td>
                           <td className="px-4 py-2">
                             <input
                               title='Enter Quantity'
@@ -817,26 +930,28 @@ const handleSubmit = async (e: React.FormEvent) => {
                             />
                           </td>
                           <td className="px-4 py-2 text-right">{entry.amount.toLocaleString()}</td>
-                          <td className="px-4 py-2">
-                            <select
-                              title='Select Godown'
-                              name="godownId"
-                              value={entry.godownId}
-                              onChange={(e) => handleEntryChange(index, e)}
-                              required={godowns.length > 0}
-                              className={`${FORM_STYLES.tableSelect(theme)} ${errors[`entry${index}.godownId`] ? 'border-red-500' : ''}`}
-                            >
-                              <option value="">Select Godown</option>
-                              {godowns.length > 0 ? (
-                                godowns.map((godown: Godown) => (
-                                  <option key={godown.id} value={godown.id}>{godown.name}</option>
-                                ))
-                              ) : (
-                                <option value="" disabled>No godowns available</option>
-                              )}
-                            </select>
-                            {errors[`entry${index}.godownId`] && <p className="text-red-500 text-xs mt-1">{errors[`entry${index}.godownId`]}</p>}
-                          </td>
+                          {godownEnabled === 'yes' && (
+                            <td className="px-4 py-2">
+                              <select
+                                title='Select Godown'
+                                name="godownId"
+                                value={entry.godownId}
+                                onChange={(e) => handleEntryChange(index, e)}
+                                required={godowns.length > 0}
+                                className={`${FORM_STYLES.tableSelect(theme)} ${errors[`entry${index}.godownId`] ? 'border-red-500' : ''}`}
+                              >
+                                <option value="">Select Godown</option>
+                                {godowns.length > 0 ? (
+                                  godowns.map((godown: Godown) => (
+                                    <option key={godown.id} value={godown.id}>{godown.name}</option>
+                                  ))
+                                ) : (
+                                  <option value="" disabled>No godowns available</option>
+                                )}
+                              </select>
+                              {errors[`entry${index}.godownId`] && <p className="text-red-500 text-xs mt-1">{errors[`entry${index}.godownId`]}</p>}
+                            </td>
+                          )}
                           <td className="px-4 py-2 text-center">
                             <button
                               title='Remove Item'

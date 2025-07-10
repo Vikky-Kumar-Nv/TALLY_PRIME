@@ -3,9 +3,10 @@ import { useAppContext } from '../../context/AppContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Home, BarChart2, BookOpen, FileText, Settings, 
-  Database, Package, ShoppingCart, DollarSign, Truck, 
-  BookKey
-} from 'lucide-react';
+  Database,  ShoppingCart,  Truck, 
+  BookKey,
+  Wallet
+} from 'lucide-react';//DollarSign,Package,
 
 interface SidebarProps {
   isOpen: boolean;
@@ -22,10 +23,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     { icon: <FileText size={18} />, title: 'Vouchers', path: '/app/vouchers', shortcut: 'Alt+F5' },
     { icon: <BookKey  size={18} />, title: 'Vouchers Register', path: '/app/voucher-register' },
     { icon: <BarChart2 size={18} />, title: 'Reports', path: '/app/reports', shortcut: 'Alt+F9' },
-    { icon: <DollarSign size={18} />, title: 'Accounting', path: '/app/accounting', shortcut: 'Alt+F10' },
-    { icon: <Package size={18} />, title: 'Inventory', path: '/app/inventory', shortcut: 'Alt+F11' },
+    // { icon: <DollarSign size={18} />, title: 'Accounting', path: '/app/accounting', shortcut: 'Alt+F10' },
+    // { icon: <Package size={18} />, title: 'Inventory', path: '/app/inventory', shortcut: 'Alt+F11' },
     { icon: <ShoppingCart size={18} />, title: 'GST', path: '/app/gst', shortcut: '' },
     { icon: <Truck size={18} />, title: 'TDS', path: '/app/tds', shortcut: '' },
+    { icon: < Wallet size={18} />, title: 'Income Tax', path: '/app/income-tax', shortcut: '' },
     { icon: <BookOpen size={18} />, title: 'Audit', path: '/app/audit', shortcut: '' },
     { icon: <Settings size={18} />, title: 'Configuration', path: '/app/config', shortcut: 'Alt+F12' },
   ];

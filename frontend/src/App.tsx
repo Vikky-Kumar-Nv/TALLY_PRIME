@@ -46,6 +46,7 @@ import DebitNoteVoucher from './components/vouchers/debitnote/DebitNoteVoucher';
 import DeliveryNoteVoucher from './components/vouchers/deliverynote/DeliveryNoteVoucher';
 import JournalVoucher from './components/vouchers/journal/JournalVoucher';
 import SalesVoucher1 from './components/vouchers/sales/SalesVoucher1';
+import SalesOrder from './components/vouchers/salesOrder/SalesOrder';
 import PurchaseVoucher1 from './components/vouchers/purches/PurcheseVoucher1';
 import StockJournalVoucher1 from './components/vouchers/stockjournal/StockJournalVoucher1';
 import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
@@ -68,21 +69,11 @@ import QuotationRegister from './components/voucherRegister/QuotationRegister';
 import SalesReturnRegister from './components/voucherRegister/SalesReturnRegister';
 
 //Accounting
-import DayBook from './components/accounting/DayBook';
-import LedgerReport from './components/accounting/LedgerReport';
-import TrialBalance from './components/accounting/TrialBalance';
-import TradingAccount from './components/accounting/TradingAccount';
-// import ProfitLoss from './components/accounting/ProfitLoss';
-import ProfitLoss from './components/accounting/ProfitLoss';
-import BalanceSheet from './components/accounting/BalanceSheet';
-import CashFlow from './components/accounting/CashFlow';
+
 
 
 //inventry 
-import StockSummary from './components/inventory/StockSummary';
-import MovementAnalysis from './components/inventory/MovementAnalysis';
-import AgeingAnalysis from './components/inventory/AgeingAnalysis';
-import GodownSummary from './components/inventory/GodownSummary';
+
 
 
 
@@ -90,10 +81,25 @@ import GodownSummary from './components/inventory/GodownSummary';
 
 // // Reports Components
 import ReportsIndex from './components/reports/ReportsIndex';
-
-import GSTR1 from './components/reports/GSTR1';
-import GSTR3B from './components/reports/GSTR3B';
+import DayBook from './components/reports/DayBook';
+import LedgerReport from './components/reports/LedgerReport';
+import TrialBalance from './components/reports/TrialBalance';
+// import TradingAccount from './components/reports/TradingAccount';
+// import ProfitLoss from './components/accounting/ProfitLoss';
+import ProfitLoss from './components/reports/ProfitLoss';
+import BalanceSheet from './components/reports/BalanceSheet';
+import GroupSummary from './components/reports/GroupSummary';
+import CashFlow from './components/reports/CashFlow';
+import CashFlowSummary from './components/reports/CashFlowSummary';
+import GroupCashFlow from './components/reports/GroupCashFlow';
+import LedgerVouchers from './components/reports/LedgerVouchers';
+import VoucherView from './components/vouchers/view/VoucherView';
+import StockSummary from './components/reports/StockSummary';
+import MovementAnalysis from './components/reports/MovementAnalysis';
+import AgeingAnalysis from './components/reports/AgeingAnalysis';
+import GodownSummary from './components/reports/GodownSummary';
 import GSTAnalysis from './components/reports/GSTAnalysis';
+import OutstandingReports from './components/reports/outstanding/OutstandingReports';
 
 
 
@@ -103,12 +109,15 @@ import GSTModule from './components/modules/gst/GSTModul';
 import GSTCalculator from './components/modules/gst/GSTCalculator';
 import GSTRates from './components/modules/gst/GSTRates';
 import HSNCodes from './components/modules/gst/HSNCode';
+import GSTR1 from './components/modules/gst/GSTR1';
+import GSTR3B from './components/modules/gst/GSTR3B';
 import GSTRegistration from './components/modules/gst/GSTRegistration';
 import ComplianceCheck from './components/modules/gst/ComplianceCheck';
 import ImportData from './components/modules/gst/ImportData';
 import Reconciliation from './components/modules/gst/Reconciliation';
 import ExportReturns from './components/modules/gst/ExportReturns';
 import GSTSummary from './components/modules/gst/GSTSummary';
+import EWayBill from './components/modules/gst/EWayBill';
 import TDSSummary from './components/modules/tds/TDSSummary';
 
 
@@ -141,9 +150,20 @@ import ExceptionReports from './components/audit/ExceptionReports';
 import PeriodAnalysis from './components/audit/PeriodAnalysis';
 import UserReports from './components/audit/UserReports';
 
+// Income Tax Modules
+import IncomeTaxIndex from './components/incometax/IncomeTaxIndex';
+import ITRFiling from './components/incometax/ITRFiling';
+import TaxCalculator from './components/incometax/TaxCalculator';
+import AssesseeManagement from './components/incometax/AssesseeManagement';
+import BusinessIncomeManagement from './components/incometax/BusinessIncomeManagement';
+import InvestmentManagement from './components/incometax/InvestmentManagement';
+import CapitalGainsManagement from './components/incometax/CapitalGainsManagement';
+import TDSManagement from './components/incometax/TDSManagement';
+import IncomeTaxReports from './components/incometax/IncomeTaxReports';
+
 // Other Modules
-import AccountingModule from './components/accounting/AccountingModule';
-import InventoryModule from './components/inventory/InventoryModule';
+// import AccountingModule from './components/accounting/AccountingModule';
+// import InventoryModule from './components/inventory/InventoryModule';
 
 // Home Pages
 import HomePage from './home/pages/HomePage';
@@ -253,15 +273,28 @@ function App() {
             {/* Vouchers Routes */}
             <Route path="vouchers" element={<VouchersIndex />} />
             <Route path="vouchers/payment/create" element={<PaymentVoucher />} />
+            <Route path="vouchers/payment/edit/:id" element={<PaymentVoucher />} />
             <Route path="vouchers/receipt/create" element={<ReceiptVoucher />} />
+            <Route path="vouchers/receipt/edit/:id" element={<ReceiptVoucher />} />
             <Route path="vouchers/contra/create" element={<ContraVoucher />} />
+            <Route path="vouchers/contra/edit/:id" element={<ContraVoucher />} />
             <Route path="vouchers/credit-note/create" element={<CreditNoteVoucher />} />
+            <Route path="vouchers/credit-note/edit/:id" element={<CreditNoteVoucher />} />
             <Route path="vouchers/debit-note/create" element={<DebitNoteVoucher />} />
+            <Route path="vouchers/debit-note/edit/:id" element={<DebitNoteVoucher />} />
             <Route path="vouchers/delivery-note/create" element={<DeliveryNoteVoucher />} />
+            <Route path="vouchers/delivery-note/edit/:id" element={<DeliveryNoteVoucher />} />
             <Route path="vouchers/journal/create" element={<JournalVoucher />} />
+            <Route path="vouchers/journal/edit/:id" element={<JournalVoucher />} />
             <Route path="vouchers/purchase/create" element={<PurchaseVoucher1 />} />
+            <Route path="vouchers/purchase/edit/:id" element={<PurchaseVoucher1 />} />
             <Route path="vouchers/stock-journal/create" element={<StockJournalVoucher1 />} />
+            <Route path="vouchers/stock-journal/edit/:id" element={<StockJournalVoucher1 />} />
             <Route path="vouchers/sales/create" element={<SalesVoucher1 />} />
+            <Route path="vouchers/sales/edit/:id" element={<SalesVoucher1 />} />
+            <Route path="vouchers/sales-order/create" element={<SalesOrder />} />
+            <Route path="vouchers/sales-order/edit/:id" element={<SalesOrder />} />
+            <Route path="vouchers/view/:voucherType/:voucherNo" element={<VoucherView />} />
            
             {/* Voucher Register Routes */}
             <Route path="voucher-register" element={<VoucherRegisterIndex />} />
@@ -281,24 +314,29 @@ function App() {
             <Route path="voucher-register/sales-return" element={<SalesReturnRegister />} />
 
            //Accounting Routes
-           <Route path="accounting" element={<AccountingModule />} />
-            <Route path="accounting/day-book" element={<DayBook />} />
-            <Route path="accounting/ledger" element={<LedgerReport />} />
-            <Route path="accounting/trial-balance" element={<TrialBalance />} />
-             <Route path="accounting/trading-account" element={<TradingAccount />} />
-            <Route path="accounting/profit-loss" element={<ProfitLoss />} />
-            <Route path="accounting/balance-sheet" element={<BalanceSheet />} />
-            <Route path="accounting/cash-flow" element={<CashFlow />} />
+           {/* <Route path="accounting" element={<AccountingModule />} /> */}
+            <Route path="reports/day-book" element={<DayBook />} />
+            <Route path="reports/ledger" element={<LedgerReport />} />
+            <Route path="reports/trial-balance" element={<TrialBalance />} />
+             {/* <Route path="reports/trading-account" element={<TradingAccount />} /> */}
+            <Route path="reports/profit-loss" element={<ProfitLoss />} />
+            <Route path="reports/balance-sheet" element={<BalanceSheet />} />
+            <Route path="reports/group-summary/:groupType" element={<GroupSummary />} />
+            <Route path="reports/cash-flow" element={<CashFlow />} />
+            <Route path="reports/cash-flow-summary/:monthCode" element={<CashFlowSummary />} />
+            <Route path="reports/group-cash-flow/:accountName" element={<GroupCashFlow />} />
+            <Route path="reports/ledger-vouchers/:ledgerName" element={<LedgerVouchers />} />
+            <Route path="reports/outstanding" element={<OutstandingReports />} />
 
            //inventory Routes
-           <Route path="inventory/stock-summary" element={<StockSummary />} />
-            <Route path="inventory/movement-analysis" element={<MovementAnalysis />} />
-            <Route path="inventory/ageing-analysis" element={<AgeingAnalysis />} />
-             <Route path="inventory/godown-summary" element={<GodownSummary />} />
+           <Route path="reports/stock-summary" element={<StockSummary />} />
+            <Route path="reports/movement-analysis" element={<MovementAnalysis />} />
+            <Route path="reports/ageing-analysis" element={<AgeingAnalysis />} />
+             <Route path="reports/godown-summary" element={<GodownSummary />} />
             
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
-            <Route path="reports/trading-account" element={<TradingAccount />} />
+            {/* <Route path="reports/trading-account" element={<TradingAccount />} /> */}
             
 
 
@@ -315,7 +353,9 @@ function App() {
             <Route path="gst/registration" element={<GSTRegistration />} />
             <Route path="gst/import" element={<ImportData />} />
             <Route path="gst/reconciliation" element={<Reconciliation />} />
-            <Route path="gst/export" element={<ExportReturns />} />            <Route path="gst/summary" element={<GSTSummary />} />
+            <Route path="gst/export" element={<ExportReturns />} />
+            <Route path="gst/e-way-bill" element={<EWayBill />} />
+            <Route path="gst/summary" element={<GSTSummary />} />
 
             {/* TDS Module Routes */}
             <Route path="tds" element={<TDSModule />} />
@@ -344,6 +384,20 @@ function App() {
                 <Route path='audit/period-analysis' element={<PeriodAnalysis />} />
                 <Route path='audit/user-reports' element={<UserReports />} />
 
+            {/* Income Tax Module Routes */}
+            <Route path="income-tax" element={<IncomeTaxIndex />} />
+            <Route path="income-tax/itr-filing" element={<ITRFiling />} />
+            <Route path="income-tax/calculator" element={<TaxCalculator />} />
+            <Route path="income-tax/assessee" element={<AssesseeManagement />} />
+            <Route path="income-tax/business-income" element={<BusinessIncomeManagement />} />
+            <Route path="income-tax/investment" element={<InvestmentManagement />} />
+            <Route path="income-tax/capital-gains" element={<CapitalGainsManagement />} />
+            <Route path="income-tax/tds" element={<TDSManagement />} />
+            <Route path="income-tax/reports" element={<IncomeTaxReports />} />
+            
+            {/* Legacy route aliases for backward compatibility */}
+            <Route path="income-tax/business" element={<BusinessIncomeManagement />} />
+            <Route path="income-tax/deductions" element={<InvestmentManagement />} />
 
 
 
@@ -355,7 +409,7 @@ function App() {
 
                {/* Other Module Routes */}
             
-            <Route path="inventory" element={<InventoryModule />} />
+            {/* <Route path="inventory" element={<InventoryModule />} /> */}
             <Route path="gst" element={<GSTModule />} />
             
             {/* Config Module Routes */}

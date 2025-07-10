@@ -144,7 +144,8 @@ const PurchaseVoucher: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const [showConfig, setShowConfig] = useState(false);  // Keyboard shortcuts
+  const [showConfig, setShowConfig] = useState(false);
+  const [godownEnabled, setGodownEnabled] = useState<'yes' | 'no'>('yes'); // Add state for godown selection visibility
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.altKey || e.ctrlKey || e.metaKey) return;
     switch (e.key) {
@@ -347,7 +348,7 @@ const PurchaseVoucher: React.FC = () => {
       formData.entries.forEach((entry, index) => {
         if (!entry.itemId) newErrors[`entry${index}.itemId`] = 'Item is required';
         if ((entry.quantity ?? 0) <= 0) newErrors[`entry${index}.quantity`] = 'Quantity must be greater than 0';
-        if (safeGodowns.length > 0 && !entry.godownId) newErrors[`entry${index}.godownId`] = 'Godown is required';
+        if (godownEnabled === 'yes' && safeGodowns.length > 0 && !entry.godownId) newErrors[`entry${index}.godownId`] = 'Godown is required';
       });
     } else {
       formData.entries.forEach((entry, index) => {
@@ -614,6 +615,22 @@ const PurchaseVoucher: React.FC = () => {
               </select>
               {errors.purchaseLedgerId && <p className="text-red-500 text-xs mt-1">{errors.purchaseLedgerId}</p>}
             </div>
+            
+            {/* Godown Enable/Disable dropdown */}
+            <div>
+              <label className="block text-sm font-medium mb-1" htmlFor="godownEnabled">
+                Enable Godown Selection
+              </label>              
+              <select
+                id="godownEnabled"
+                value={godownEnabled}
+                onChange={(e) => setGodownEnabled(e.target.value as 'yes' | 'no')}
+                className={getSelectClasses(theme)}
+              >
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="dispatchDetails.docNo">
                 Receipt Doc No.
@@ -697,7 +714,9 @@ const PurchaseVoucher: React.FC = () => {
                       <th className={TABLE_STYLES.headerRight}>GST (%)</th>
                       <th className={TABLE_STYLES.headerRight}>Discount</th>
                       <th className={TABLE_STYLES.headerRight}>Amount</th>
-                      <th className={TABLE_STYLES.header}>Godown</th>
+                      {godownEnabled === 'yes' && (
+                        <th className={TABLE_STYLES.header}>Godown</th>
+                      )}
                       <th className={TABLE_STYLES.headerCenter}>Action</th>
                     </tr>
                   </thead>                  <tbody>                    {formData.entries.map((entry, index) => {
@@ -780,22 +799,26 @@ const PurchaseVoucher: React.FC = () => {
                           </td>
                           <td className="px-4 py-2 text-right">
                             {entry.amount.toLocaleString()}
-                          </td>                          <td className="px-4 py-2">                            <select
-                              title='Select Godown'
-                              name="godownId"
-                              value={entry.godownId || ''}
-                              onChange={(e) => handleEntryChange(formData.entries.indexOf(entry), e)}
-                              required={safeGodowns.length > 0}
-                              className={`${TABLE_STYLES.select} ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500 text-white' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors[`entry${formData.entries.indexOf(entry)}.godownId`] ? 'border-red-500' : ''}`}
-                            >
-                              <option value="">-- Select Godown --</option>
-                              <option value="1">Main Warehouse</option>
-                              <option value="2">Electronics Storage</option>
-                              <option value="3">Accessories Store</option>
-                              <option value="4">Damaged Goods</option>
-                            </select>
-                            {errors[`entry${formData.entries.indexOf(entry)}.godownId`] && <p className="text-red-500 text-xs mt-1">{errors[`entry${formData.entries.indexOf(entry)}.godownId`]}</p>}
                           </td>
+                          {godownEnabled === 'yes' && (
+                            <td className="px-4 py-2">
+                              <select
+                                title='Select Godown'
+                                name="godownId"
+                                value={entry.godownId || ''}
+                                onChange={(e) => handleEntryChange(formData.entries.indexOf(entry), e)}
+                                required={safeGodowns.length > 0}
+                                className={`${TABLE_STYLES.select} ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500 text-white' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors ${errors[`entry${formData.entries.indexOf(entry)}.godownId`] ? 'border-red-500' : ''}`}
+                              >
+                                <option value="">-- Select Godown --</option>
+                                <option value="1">Main Warehouse</option>
+                                <option value="2">Electronics Storage</option>
+                                <option value="3">Accessories Store</option>
+                                <option value="4">Damaged Goods</option>
+                              </select>
+                              {errors[`entry${formData.entries.indexOf(entry)}.godownId`] && <p className="text-red-500 text-xs mt-1">{errors[`entry${formData.entries.indexOf(entry)}.godownId`]}</p>}
+                            </td>
+                          )}
                           <td className="px-4 py-2 text-center">
                             <button
                               title='Remove Item'

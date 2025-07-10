@@ -2,8 +2,16 @@ import React from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { 
-  BarChart2,  
-} from 'lucide-react';   // BookOpen,Activity, Calendar
+  Activity,
+  BarChart2,
+  BookOpen,
+  Calendar,
+  DollarSign,
+  FileText,
+  PieChart,
+  TrendingUp,
+  AlertTriangle
+} from 'lucide-react';
 
 const ReportsIndex: React.FC = () => {
   const { theme } = useAppContext();
@@ -13,22 +21,25 @@ const ReportsIndex: React.FC = () => {
     {
       title: 'Accounting Reports',
       items: [
-        
-        // { icon: <FileText size={20} />, name: 'Ledger', path: '/app/reports/ledger' },
-        // { icon: <BarChart2 size={20} />, name: 'Trial Balance', path: '/app/reports/trial-balance' },
+        { icon: <BookOpen size={20} />, name: 'Day Book', path: '/app/reports/day-book' },
+        { icon: <FileText size={20} />, name: 'Ledger', path: '/app/reports/ledger' },
+        { icon: <FileText size={20} />, name: 'Group Summary', path: '/app/masters/group' },
+        { icon: <BarChart2 size={20} />, name: 'Trial Balance', path: '/app/reports/trial-balance' },
         // { icon: <TrendingUp size={20} />, name: 'Trading Account', path: '/app/reports/trading-account' },
-        // { icon: <TrendingUp size={20} />, name: 'Profit & Loss', path: '/app/reports/profit-loss' },
-        // { icon: <DollarSign size={20} />, name: 'Balance Sheet', path: '/app/reports/balance-sheet' },
-        // { icon: <PieChart size={20} />, name: 'Cash/Funds Flow', path: '/app/reports/cash-flow' }
+        { icon: <TrendingUp size={20} />, name: 'Profit & Loss', path: '/app/reports/profit-loss' },
+        { icon: <DollarSign size={20} />, name: 'Balance Sheet', path: '/app/reports/balance-sheet' },
+        { icon: <PieChart size={20} />, name: 'Cash Flow', path: '/app/reports/cash-flow' },
+        { icon: <PieChart size={20} />, name: 'Fund Flow', path: '/app/reports/fund-flow' },
+        { icon: <AlertTriangle size={20} />, name: 'Outstanding', path: '/app/reports/outstanding' }
       ]
     },
     {
       title: 'Inventory Reports',
       items: [
-        // { icon: <BookOpen size={20} />, name: 'Stock Summary', path: '/app/reports/stock-summary' },
-        // { icon: <Activity size={20} />, name: 'Movement Analysis', path: '/app/reports/movement-analysis' },
-        // { icon: <Calendar size={20} />, name: 'Ageing Analysis', path: '/app/reports/ageing-analysis' },
-        // { icon: <BarChart2 size={20} />, name: 'Godown Summary', path: '/app/reports/godown-summary' },
+        { icon: <BookOpen size={20} />, name: 'Stock Summary', path: '/app/reports/stock-summary' },
+        { icon: <Activity size={20} />, name: 'Movement Analysis', path: '/app/reports/movement-analysis' },
+        { icon: <Calendar size={20} />, name: 'Ageing Analysis', path: '/app/reports/ageing-analysis' },
+        { icon: <BarChart2 size={20} />, name: 'Godown Summary', path: '/app/reports/godown-summary' },
          { icon: <BarChart2 size={20} />, name: 'Bills Receivable', path: '/app/reports/bill-receivable' },
          { icon: <BarChart2 size={20} />, name: 'Bills Payable', path: '/app/reports/bill-payable' }
       ]
