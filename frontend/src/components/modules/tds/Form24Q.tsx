@@ -116,13 +116,11 @@ interface QuarterlyReturn {
 const FormSection: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ 
   title, children, className = '' 
 }) => (
-  <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6 overflow-hidden ${className}`}>
+  <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6 ${className}`}>
     <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
       {title}
     </h3>
-    <div className="overflow-x-auto">
-      {children}
-    </div>
+    {children}
   </div>
 );
 
@@ -146,8 +144,8 @@ const FormField: React.FC<{
   label, name, value, onChange, type = 'text', required = false, 
   placeholder, error, options, className = '', step, min, max, maxLength, disabled = false
 }) => (
-  <div className={`space-y-1 ${className}`}>
-    <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+  <div className={`space-y-0.5 sm:space-y-1 ${className}`}>
+    <label htmlFor={name} className="block text-xs sm:text-sm font-medium text-gray-700">
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     {type === 'select' ? (
@@ -156,7 +154,7 @@ const FormField: React.FC<{
         name={name}
         value={value}
         onChange={onChange}
-        className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+        className={`w-full px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
           error ? 'border-red-300' : 'border-gray-300'
         } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
         required={required}
@@ -175,7 +173,7 @@ const FormField: React.FC<{
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+        className={`w-full px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
           error ? 'border-red-300' : 'border-gray-300'
         } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
         required={required}
@@ -192,7 +190,7 @@ const FormField: React.FC<{
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className={`w-full px-3 py-2 border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
+        className={`w-full px-2 py-1 sm:px-3 sm:py-2 text-xs sm:text-sm border rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 ${
           error ? 'border-red-300' : 'border-gray-300'
         } ${disabled ? 'bg-gray-100 cursor-not-allowed' : ''}`}
         required={required}
@@ -225,9 +223,9 @@ const ActionButton: React.FC<{
   };
   
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base'
+    sm: 'px-2 py-1 text-xs sm:px-3 sm:py-1.5 sm:text-sm',
+    md: 'px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm',
+    lg: 'px-4 py-2 text-sm sm:px-6 sm:py-3 sm:text-base'
   };
   
   return (
@@ -917,8 +915,8 @@ const Form24Q: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen pt-[56px] px-4 ">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen pt-[56px] px-2 sm:px-4">
+      <div className="w-full mx-auto">
         <div className="flex items-center mb-4">
             <button
                 title='Back to Reports'
@@ -930,15 +928,15 @@ const Form24Q: React.FC = () => {
                 </button>
                 <h1 className="text-2xl font-bold">Form 24Q</h1>
             </div>
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-6 overflow-hidden">
           <div className="flex items-center gap-3 mb-6">
             <FileText className="h-6 w-6 text-blue-600" />
             <h1 className="text-2xl font-bold text-gray-900">Form 24Q - TDS Quarterly Return</h1>
           </div>
 
           {/* Tab Navigation */}
-          <div className="border-b border-gray-200 mb-6">
-            <nav className="flex space-x-8">
+          <div className="border-b border-gray-200 mb-4 sm:mb-6">
+            <nav className="flex space-x-2 sm:space-x-8 overflow-x-auto pb-1">
               {[
                 { id: 'list', label: 'Filed Returns' },
                 { id: 'create', label: 'Generate Return' },
@@ -949,7 +947,7 @@ const Form24Q: React.FC = () => {
                 type='button'
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as 'list' | 'create' | 'upload')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                  className={`py-1 sm:py-2 px-1 border-b-2 font-medium text-xs sm:text-sm whitespace-nowrap ${
                     activeTab === tab.id
                       ? 'border-blue-500 text-blue-600'
                       : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -983,7 +981,7 @@ const Form24Q: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <div className="text-2xl font-bold text-blue-700">4</div>
                   <div className="text-sm text-blue-600">Total Returns</div>
@@ -1063,7 +1061,7 @@ const Form24Q: React.FC = () => {
               
               {/* Section 1: Tax Deduction Account Details */}
               <FormSection title="1. Tax Deduction Account Details">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                   <FormField
                     label="Tax Deduction Account No."
                     name="taxDeductionAccountNo"
@@ -1155,7 +1153,7 @@ const Form24Q: React.FC = () => {
                 </div>
                 
                 <h4 className="text-md font-semibold text-gray-900 mt-6 mb-4">Address</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
                   <FormField
                     label="Flat No."
                     name="address.flatNo"
@@ -1232,7 +1230,7 @@ const Form24Q: React.FC = () => {
 
               {/* Section 3: Responsible Person Details */}
               <FormSection title="3. Particulars of the person responsible for deduction of tax">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                   <FormField
                     label="Name"
                     name="name"
@@ -1240,12 +1238,12 @@ const Form24Q: React.FC = () => {
                     onChange={handleResponsiblePersonChange}
                     required
                     placeholder="Enter name"
-                    className="md:col-span-2"
+                    className="sm:col-span-2"
                   />
                 </div>
                 
                 <h4 className="text-md font-semibold text-gray-900 mt-6 mb-4">Address</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
                   <FormField
                     label="Flat No."
                     name="address.flatNo"
@@ -1336,35 +1334,35 @@ const Form24Q: React.FC = () => {
                     />
                   </div>
                   
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse border border-gray-300">
+                  <div className="overflow-x-auto bg-white shadow-sm rounded-md max-w-full">
+                    <table className="w-full border-collapse border border-gray-300 table-auto">
                       <thead>
                         <tr className="bg-gray-50">
-                          <th className="border border-gray-300 px-3 py-2 text-left">Sr. No.</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">TDS (₹)</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Surcharge (₹)</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Education Cess (₹)</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Interest (₹)</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Others (₹)</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Total (₹)</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Cheque/DD No.</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">BSR Code</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Date Deposited</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Challan No.</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Book Entry</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Actions</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Sr. No.</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">TDS (₹)</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Surcharge (₹)</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Edu. Cess (₹)</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Interest (₹)</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Others (₹)</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Total (₹)</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Cheque No.</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">BSR Code</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Date</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Challan No.</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Book Entry</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {taxDetails.map((tax, index) => (
                           <tr key={index}>
-                            <td className="border border-gray-300 px-3 py-2">{tax.srNo}</td>
-                            <td className="border border-gray-300 px-3 py-2">
+                            <td className="border border-gray-300 px-2 py-1">{tax.srNo}</td>
+                            <td className="border border-gray-300 px-2 py-1">
                               <input
                                 type="number"
                                 value={tax.tds}
                                 onChange={(e) => handleTaxDetailChange(index, 'tds', Number(e.target.value))}
-                                className="w-full px-2 py-1 text-sm border-none"
+                                className="w-full px-1 py-1 text-xs border-none"
                                 min="0"
                                 step="0.01"
                                 title="TDS Amount"
@@ -1511,46 +1509,46 @@ const Form24Q: React.FC = () => {
                     />
                   </div>
                   
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse border border-gray-300">
+                  <div className="overflow-x-auto bg-white shadow-sm rounded-md max-w-full">
+                    <table className="w-full border-collapse border border-gray-300 table-auto">
                       <thead>
                         <tr className="bg-gray-50">
-                          <th className="border border-gray-300 px-3 py-2 text-left">Sr. No.</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Employee Name</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Employee PAN</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Ref. No.</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Address</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Salary Paid (₹)</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Tax Deducted (₹)</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Payment Date</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Payment Period</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Nature</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Section</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">TDS Rate (%)</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Certificate No.</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Quarter</th>
-                          <th className="border border-gray-300 px-3 py-2 text-left">Actions</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Sr.</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Name</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">PAN</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Ref. No.</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Address</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Salary (₹)</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">TDS (₹)</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Pay Date</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Period</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Nature</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Section</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Rate (%)</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Cert. No.</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Quarter</th>
+                          <th className="border border-gray-300 px-2 py-1 text-left whitespace-nowrap text-sm">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {employeeSalaryDetails.map((employee, index) => (
                           <tr key={index}>
-                            <td className="border border-gray-300 px-3 py-2">{employee.srNo}</td>
-                            <td className="border border-gray-300 px-3 py-2">
+                            <td className="border border-gray-300 px-2 py-1">{employee.srNo}</td>
+                            <td className="border border-gray-300 px-2 py-1">
                               <input
                                 type="text"
                                 value={employee.nameOfEmployee}
                                 onChange={(e) => handleEmployeeDetailChange(index, 'nameOfEmployee', e.target.value)}
-                                className="w-full px-2 py-1 text-sm border-none"
-                                placeholder="Employee Name"
+                                className="w-full px-1 py-1 text-xs border-none"
+                                placeholder="Name"
                               />
                             </td>
-                            <td className="border border-gray-300 px-3 py-2">
+                            <td className="border border-gray-300 px-2 py-1">
                               <input
                                 type="text"
                                 value={employee.panOfEmployee}
                                 onChange={(e) => handleEmployeeDetailChange(index, 'panOfEmployee', e.target.value)}
-                                className="w-full px-2 py-1 text-sm border-none"
+                                className="w-full px-1 py-1 text-xs border-none"
                                 placeholder="PAN"
                                 maxLength={10}
                               />
@@ -1692,7 +1690,7 @@ const Form24Q: React.FC = () => {
 
               {/* Section 6: Verification */}
               <FormSection title="6. Verification">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                   <FormField
                     label="Place"
                     name="place"
@@ -1737,7 +1735,7 @@ const Form24Q: React.FC = () => {
 
               {/* Summary Section */}
               <FormSection title="Summary">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <div className="text-2xl font-bold text-blue-700">{totalSummary.totalEmployees}</div>
                     <div className="text-sm text-blue-600">Total Employees</div>
