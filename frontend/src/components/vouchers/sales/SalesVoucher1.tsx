@@ -158,6 +158,7 @@ const SalesVoucher: React.FC = () => {
   };
 
   const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>(getInitialFormData());
+  const [godownEnabled, setGodownEnabled] = useState<'yes' | 'no'>('yes'); // Add state for godown selection visibility
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showConfig, setShowConfig] = useState(false);
@@ -366,7 +367,7 @@ const SalesVoucher: React.FC = () => {
       formData.entries.forEach((entry, index) => {
         if (!entry.itemId) newErrors[`entry${index}.itemId`] = 'Item is required';
         if ((entry.quantity ?? 0) <= 0) newErrors[`entry${index}.quantity`] = 'Quantity must be greater than 0';
-        if (godowns.length > 0 && !entry.godownId) newErrors[`entry${index}.godownId`] = 'Godown is required';
+        if (godownEnabled === 'yes' && godowns.length > 0 && !entry.godownId) newErrors[`entry${index}.godownId`] = 'Godown is required';
 
         if (entry.itemId) {
           const stockItem = safeStockItems.find(item => item.id === entry.itemId);
@@ -786,6 +787,22 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </select>
                 {errors.salesLedgerId && <p className="text-red-500 text-xs mt-1">{errors.salesLedgerId}</p>}
               </div>
+              
+              {/* Godown Enable/Disable toggle */}
+              <div>
+                <label className="block text-sm font-medium mb-1" htmlFor="godownEnabled">
+                  Enable Godown Selection
+                </label>              
+                <select
+                  id="godownEnabled"
+                  value={godownEnabled}
+                  onChange={(e) => setGodownEnabled(e.target.value as 'yes' | 'no')}
+                  className={FORM_STYLES.select(theme)}
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
             </div>
           )}
 
@@ -815,7 +832,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                       <th className="px-4 py-2 text-right">Rate</th>
                       <th className="px-4 py-2 text-right">Discount</th>
                       <th className="px-4 py-2 text-right">Amount</th>
-                      <th className="px-4 py-2 text-left">Godown</th>
+                      {godownEnabled === 'yes' && (
+                        <th className="px-4 py-2 text-left">Godown</th>
+                      )}
                       <th className="px-4 py-2 text-center">Action</th>
                     </tr>
                   </thead>                  <tbody>
@@ -911,26 +930,28 @@ const handleSubmit = async (e: React.FormEvent) => {
                             />
                           </td>
                           <td className="px-4 py-2 text-right">{entry.amount.toLocaleString()}</td>
-                          <td className="px-4 py-2">
-                            <select
-                              title='Select Godown'
-                              name="godownId"
-                              value={entry.godownId}
-                              onChange={(e) => handleEntryChange(index, e)}
-                              required={godowns.length > 0}
-                              className={`${FORM_STYLES.tableSelect(theme)} ${errors[`entry${index}.godownId`] ? 'border-red-500' : ''}`}
-                            >
-                              <option value="">Select Godown</option>
-                              {godowns.length > 0 ? (
-                                godowns.map((godown: Godown) => (
-                                  <option key={godown.id} value={godown.id}>{godown.name}</option>
-                                ))
-                              ) : (
-                                <option value="" disabled>No godowns available</option>
-                              )}
-                            </select>
-                            {errors[`entry${index}.godownId`] && <p className="text-red-500 text-xs mt-1">{errors[`entry${index}.godownId`]}</p>}
-                          </td>
+                          {godownEnabled === 'yes' && (
+                            <td className="px-4 py-2">
+                              <select
+                                title='Select Godown'
+                                name="godownId"
+                                value={entry.godownId}
+                                onChange={(e) => handleEntryChange(index, e)}
+                                required={godowns.length > 0}
+                                className={`${FORM_STYLES.tableSelect(theme)} ${errors[`entry${index}.godownId`] ? 'border-red-500' : ''}`}
+                              >
+                                <option value="">Select Godown</option>
+                                {godowns.length > 0 ? (
+                                  godowns.map((godown: Godown) => (
+                                    <option key={godown.id} value={godown.id}>{godown.name}</option>
+                                  ))
+                                ) : (
+                                  <option value="" disabled>No godowns available</option>
+                                )}
+                              </select>
+                              {errors[`entry${index}.godownId`] && <p className="text-red-500 text-xs mt-1">{errors[`entry${index}.godownId`]}</p>}
+                            </td>
+                          )}
                           <td className="px-4 py-2 text-center">
                             <button
                               title='Remove Item'
