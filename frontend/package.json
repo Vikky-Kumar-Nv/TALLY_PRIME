@@ -13,12 +13,9 @@
     "@tailwindcss/vite": "^4.1.8",
     "bcryptjs": "^3.0.2",
     "chart.js": "^4.5.0",
-<<<<<<< HEAD
     "jsonwebtoken": "^9.0.2",
-=======
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
->>>>>>> 8f229c940094053ad50c2282e9a48c1a8adcdb09
     "lucide-react": "^0.513.0",
     "pdf-parse": "^1.1.1",
     "pdfjs-dist": "^3.11.174",
