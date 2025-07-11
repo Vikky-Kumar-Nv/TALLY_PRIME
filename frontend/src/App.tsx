@@ -9,6 +9,7 @@ import CompanyForm from './components/company/CompanyForm';
 import MastersIndex from './components/masters/MastersIndex';
 import LedgerList from './components/masters/ledger/LedgerList';
 import LedgerForm from './components/masters/ledger/LedgerForm';
+import MultiLedgerForm from './components/masters/ledger/MultiLedgerForm';
 import GroupList from './components/masters/group/GroupList';
 import GroupForm from './components/masters/group/GroupForm';
 import BudgetList from './components/masters/budget/BudgetList';
@@ -234,6 +235,7 @@ function App() {
             <Route path="masters" element={<MastersIndex />} />
             <Route path="masters/ledger" element={<LedgerList />} />
             <Route path="masters/ledger/create" element={<LedgerForm />} />
+            <Route path="masters/ledger/bulk-create" element={<MultiLedgerForm />} />
             <Route path="masters/ledger/edit/:id" element={<LedgerForm />} />
             <Route path="masters/group" element={<GroupList />} />
             <Route path="masters/group/create" element={<GroupForm />} />

@@ -90,4 +90,73 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Create multiple ledgers in bulk
+router.post('/bulk', async (req, res) => {
+  const { ledgers } = req.body;
+
+  if (!ledgers || !Array.isArray(ledgers) || ledgers.length === 0) {
+    return res.status(400).json({ message: 'Invalid ledgers data' });
+  }
+
+  const connection = await db.getConnection();
+  
+  try {
+    await connection.beginTransaction();
+
+    const sql = `INSERT INTO ledgers 
+      (name, group_id, opening_balance, balance_type, address, email, phone, gst_number, pan_number)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+    const results = [];
+    
+    for (const ledger of ledgers) {
+      const {
+        name,
+        groupId,
+        openingBalance,
+        balanceType,
+        address,
+        email,
+        phone,
+        gstNumber,
+        panNumber
+      } = ledger;
+
+      // Validate required fields
+      if (!name || !groupId) {
+        throw new Error(`Missing required fields for ledger: ${name || 'Unknown'}`);
+      }
+
+      await connection.execute(sql, [
+        name,
+        groupId,
+        openingBalance || 0,
+        balanceType || 'debit',
+        address || '',
+        email || '',
+        phone || '',
+        gstNumber || '',
+        panNumber || ''
+      ]);
+
+      results.push({ name, status: 'created' });
+    }
+
+    await connection.commit();
+    res.status(201).json({ 
+      message: `${results.length} ledger(s) created successfully!`,
+      results 
+    });
+  } catch (err) {
+    await connection.rollback();
+    console.error('Bulk ledger insert error:', err);
+    res.status(500).json({ 
+      message: 'Failed to create ledgers', 
+      error: err.message 
+    });
+  } finally {
+    connection.release();
+  }
+});
+
 module.exports = router;

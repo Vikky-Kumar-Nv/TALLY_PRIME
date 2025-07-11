@@ -1,28 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, Plus, Search,ArrowLeft } from 'lucide-react';
+import { Edit, Trash2, Plus, Search, ArrowLeft } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
-import type { Ledger } from '../../../types';
+import type { Ledger, LedgerGroup } from '../../../types';
 
 const LedgerList: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
+  const [ledgerGroups, setLedgerGroups] = useState<LedgerGroup[]>([]);
 
   useEffect(() => {
-    const fetchLedgers = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/ledger");
-        const data = await res.json();
-        setLedgers(data);
+        // Fetch ledgers
+        const ledgerRes = await fetch("http://localhost:5000/api/ledger");
+        const ledgerData = await ledgerRes.json();
+        setLedgers(ledgerData);
+
+        // Fetch ledger groups
+        const groupRes = await fetch("http://localhost:5000/api/ledger-groups");
+        const groupData = await groupRes.json();
+        setLedgerGroups(groupData);
       } catch (err) {
-        console.error("Failed to load ledgers", err);
+        console.error("Failed to load data", err);
       }
     };
 
-    fetchLedgers();
+    fetchData();
   }, []);
+
+  const getGroupName = (groupId: string): string => {
+    const group = ledgerGroups.find(g => g.id === groupId);
+    return group ? group.name : 'Unknown Group';
+  };
 
   const filteredLedgers = ledgers.filter(ledger => 
     ledger.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -43,20 +55,37 @@ const LedgerList: React.FC = () => {
         <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>Ledger List</h1>
       </div>
         
-        <button
-        title="Create Ledger"
-          aria-label="Create Ledger"
-          type='button'
-          onClick={() => navigate('/app/masters/ledger/create')}
-          className={`flex items-center px-4 py-2 rounded ${
-            theme === 'dark' 
-              ? 'bg-blue-600 hover:bg-blue-700' 
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
-          }`}
-        >
-          <Plus size={18} className="mr-1" />
-          Create Ledger
-        </button>
+        <div className="flex space-x-3">
+          <button
+            title="Bulk Create Ledgers"
+            aria-label="Bulk Create Ledgers"
+            type='button'
+            onClick={() => navigate('/app/masters/ledger/bulk-create')}
+            className={`flex items-center px-4 py-2 rounded ${
+              theme === 'dark' 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-green-600 hover:bg-green-700 text-white'
+            }`}
+          >
+            <Plus size={18} className="mr-1" />
+            Bulk Create
+          </button>
+          
+          <button
+            title="Create Ledger"
+            aria-label="Create Ledger"
+            type='button'
+            onClick={() => navigate('/app/masters/ledger/create')}
+            className={`flex items-center px-4 py-2 rounded ${
+              theme === 'dark' 
+                ? 'bg-blue-600 hover:bg-blue-700' 
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
+          >
+            <Plus size={18} className="mr-1" />
+            Create Ledger
+          </button>
+        </div>
       </div>
       
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
@@ -91,10 +120,10 @@ const LedgerList: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredLedgers.map((ledger:any) => (
+              {filteredLedgers.map((ledger: Ledger) => (
                 <tr key={ledger.id} className={`hover:bg-opacity-10 hover:bg-blue-500 ${theme === 'dark' ? 'border-b border-gray-700' : 'border-b border-gray-200'}`}>
                   <td className="px-4 py-3">{ledger.name}</td>
-                  <td className="px-4 py-3">{ledger.groupName}</td>
+                  <td className="px-4 py-3">{getGroupName(ledger.groupId)}</td>
                   <td className="px-4 py-3 text-right font-mono">{ledger.openingBalance}</td>                  
                   <td className="px-4 py-3 text-center">
                     <span className={`px-2 py-1 rounded text-xs ${
