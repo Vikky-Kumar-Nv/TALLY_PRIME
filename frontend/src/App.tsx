@@ -191,6 +191,8 @@ import UserAccounts from './components/config/UserAccounts';
 import Permissions from './components/config/Permissions';
 import RoleManagement from './components/config/RoleManagement';
 import AccessControl from './components/config/AccessControl';
+import SetProfit from './components/config/SetProfit';
+import SalesByFifo from './components/config/SalesByFifo';
 
 
 
@@ -431,6 +433,8 @@ function App() {
             <Route path='config/permissions' element={<Permissions />} />
             <Route path='config/roles' element={<RoleManagement />} />
             <Route path='config/access' element={<AccessControl />} />
+            <Route path='config/set-profit' element={<SetProfit />} />
+            <Route path='config/sales-fifo' element={<SalesByFifo />} />
            
 
 
