@@ -89,7 +89,18 @@ const BatchSelection: React.FC<BatchSelectionProps> = ({
     }
   ];
 
-  const handleBatchSelect = (batch: any) => {
+  interface Batch {
+    id: string;
+    batchNumber: string;
+    manufacturingDate: string;
+    expiryDate: string;
+    quantity: number;
+    availableQuantity: number;
+    costPrice: number;
+    mrp: number;
+  }
+
+  const handleBatchSelect = (batch: Batch) => {
     if (onBatchSelect) {
       onBatchSelect(batch.batchNumber, batch.expiryDate, batch.manufacturingDate);
     }
@@ -235,6 +246,7 @@ const BatchSelection: React.FC<BatchSelectionProps> = ({
                   Expiry Date
                 </label>
                 <input
+                title='Expiry Date'
                   type="date"
                   value={newExpiryDate}
                   onChange={(e) => setNewExpiryDate(e.target.value)}

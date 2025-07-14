@@ -43,6 +43,27 @@ const ReportsIndex: React.FC = () => {
          { icon: <BarChart2 size={20} />, name: 'Bills Receivable', path: '/app/reports/bill-receivable' },
          { icon: <BarChart2 size={20} />, name: 'Bills Payable', path: '/app/reports/bill-payable' }
       ]
+    },{
+      title: 'sales Reports',
+      items: [
+        { icon: <BookOpen size={20} />, name: 'Columner Sales', path: '/app/reports/columner-sales' },
+        { icon: <Activity size={20} />, name: 'Sales Report', path: '/app/reports/sales-report' },
+        { icon: <Calendar size={20} />, name: 'Sales Invoice Matching', path: '/app/reports/sales-invoice-matching' },
+        // { icon: <BarChart2 size={20} />, name: 'Godown Summary', path: '/app/reports/godown-summary' },
+        //  { icon: <BarChart2 size={20} />, name: 'Bills Receivable', path: '/app/reports/bill-receivable' },
+        //  { icon: <BarChart2 size={20} />, name: 'Bills Payable', path: '/app/reports/bill-payable' }
+      ]
+    },
+    {
+      title: 'Purchase Reports',
+      items: [
+        // { icon: <BookOpen size={20} />, name: 'Stock Summary', path: '/app/reports/stock-summary' },
+        // { icon: <Activity size={20} />, name: 'Movement Analysis', path: '/app/reports/movement-analysis' },
+        // { icon: <Calendar size={20} />, name: 'Ageing Analysis', path: '/app/reports/ageing-analysis' },
+        // { icon: <BarChart2 size={20} />, name: 'Godown Summary', path: '/app/reports/godown-summary' },
+        //  { icon: <BarChart2 size={20} />, name: 'Bills Receivable', path: '/app/reports/bill-receivable' },
+        //  { icon: <BarChart2 size={20} />, name: 'Bills Payable', path: '/app/reports/bill-payable' }
+      ]
     }
   ];
 

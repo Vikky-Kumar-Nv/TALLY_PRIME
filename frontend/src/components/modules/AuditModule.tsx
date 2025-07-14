@@ -1,10 +1,8 @@
 import React from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Search, FileText, Shield, Activity, 
-  CheckCircle, AlertTriangle, Clock, Users 
-} from 'lucide-react';
+import { Activity } from 'lucide-react';//Search, FileText, Shield, Activity, 
+  //CheckCircle, AlertTriangle, Clock, Users 
 
 const AuditModule: React.FC = () => {
   const { theme } = useAppContext();
@@ -14,30 +12,36 @@ const AuditModule: React.FC = () => {
     {
       title: 'Audit Trail',
       items: [
-        { icon: <Activity size={20} />, name: 'Transaction Log', path: '/app/audit/transaction-log' },
-        { icon: <Users size={20} />, name: 'User Activity', path: '/app/audit/user-activity' },
-        { icon: <Clock size={20} />, name: 'Login History', path: '/app/audit/login-history' },
-        { icon: <FileText size={20} />, name: 'Data Changes', path: '/app/audit/data-changes' }
+        { icon: <Activity size={20} />, name: 'DPR', path: '/app/audit/dpr' },
+        { icon: <Activity size={20} />, name: 'CMA', path: '/app/audit/cma' },
+        { icon: <Activity size={20} />, name: '3CB', path: '/app/audit/3-Cb' },
+        { icon: <Activity size={20} />, name: '3CD', path: '/app/audit/3-cd' },
+        { icon: <Activity size={20} />, name: '3CA', path: '/app/audit/3-ca' },
+                { icon: <Activity size={20} />, name: '3CB', path: '/app/audit/3-cb' },
+        // { icon: <Activity size={20} />, name: 'Transaction Log', path: '/app/audit/transaction-log' },
+        // { icon: <Users size={20} />, name: 'User Activity', path: '/app/audit/user-activity' },
+        // { icon: <Clock size={20} />, name: 'Login History', path: '/app/audit/login-history' },
+        // { icon: <FileText size={20} />, name: 'Data Changes', path: '/app/audit/data-changes' }
       ]
     },
-    {
-      title: 'Security & Compliance',
-      items: [
-        { icon: <Shield size={20} />, name: 'Security Settings', path: '/app/audit/security' },
-        { icon: <CheckCircle size={20} />, name: 'Compliance Check', path: '/app/audit/compliance' },
-        { icon: <AlertTriangle size={20} />, name: 'Risk Assessment', path: '/app/audit/risk' },
-        { icon: <Search size={20} />, name: 'Fraud Detection', path: '/app/audit/fraud' }
-      ]
-    },
-    {
-      title: 'Audit Reports',
-      items: [
-        { icon: <FileText size={20} />, name: 'Audit Summary', path: '/app/audit/summary' },
-        { icon: <Activity size={20} />, name: 'Exception Reports', path: '/app/audit/exceptions' },
-        { icon: <Clock size={20} />, name: 'Period Analysis', path: '/app/audit/period-analysis' },
-        { icon: <Users size={20} />, name: 'User Reports', path: '/app/audit/user-reports' }
-      ]
-    }
+    // {
+    //   title: 'Security & Compliance',
+    //   items: [
+    //     { icon: <Shield size={20} />, name: 'Security Settings', path: '/app/audit/security' },
+    //     { icon: <CheckCircle size={20} />, name: 'Compliance Check', path: '/app/audit/compliance' },
+    //     { icon: <AlertTriangle size={20} />, name: 'Risk Assessment', path: '/app/audit/risk' },
+    //     { icon: <Search size={20} />, name: 'Fraud Detection', path: '/app/audit/fraud' }
+    //   ]
+    // },
+    // {
+    //   title: 'Audit Reports',
+    //   items: [
+    //     { icon: <FileText size={20} />, name: 'Audit Summary', path: '/app/audit/summary' },
+    //     { icon: <Activity size={20} />, name: 'Exception Reports', path: '/app/audit/exceptions' },
+    //     { icon: <Clock size={20} />, name: 'Period Analysis', path: '/app/audit/period-analysis' },
+    //     { icon: <Users size={20} />, name: 'User Reports', path: '/app/audit/user-reports' }
+    //   ]
+    // }
   ];
 
   return (

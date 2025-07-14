@@ -139,7 +139,9 @@ import DeducteeMaster from './components/modules/tds/DeducteeMaster';
 import TANRegistration from './components/modules/tds/TANRegistration';
 import AuditCompliance from './components/audit/ComplianceCheck';
 import FraudDetection from './components/audit/FraudDetection';
-
+import Form3CB from './components/audit/Form3CB';
+import Form3CA from './components/audit/Form3CA';
+import Form3CD from './components/modules/audit/Form3CD'; 
 
 
 //Audit Modules
@@ -395,6 +397,10 @@ function App() {
                 <Route path='audit/exceptions' element={<ExceptionReports />} />
                 <Route path='audit/period-analysis' element={<PeriodAnalysis />} />
                 <Route path='audit/user-reports' element={<UserReports />} />
+                <Route path='audit/3-Cb' element={<Form3CB />} />
+                <Route path='audit/3-ca' element={<Form3CA />} />
+                <Route path='audit/3-cd' element={<Form3CD />} /> 
+
 
             {/* Income Tax Module Routes */}
             <Route path="income-tax" element={<IncomeTaxIndex />} />
