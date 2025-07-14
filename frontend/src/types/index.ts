@@ -104,6 +104,9 @@ export type VoucherEntryLine = {
   igstRate?: number;
   godownId?: string;
   batchId?: string;
+  batchNumber?: string;
+  expiryDate?: string;
+  manufacturingDate?: string;
   discount?: number;
   hsnCode?: string;
   narration?: string;

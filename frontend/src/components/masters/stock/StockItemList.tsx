@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Package } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 
 const StockItemList = () => {
@@ -17,17 +17,30 @@ const StockItemList = () => {
     <div className="pt-[56px] px-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Stock Items</h1>
-        <Link
-          to="/app/masters/stock-item/create"
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-            theme === 'dark' 
-              ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
-          }`}
-        >
-          <Plus size={18} />
-          <span>New Stock Item</span>
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            to="/app/masters/stock-item/batches"
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              theme === 'dark' 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-green-600 hover:bg-green-700 text-white'
+            }`}
+          >
+            <Package size={18} />
+            <span>Batch Management</span>
+          </Link>
+          <Link
+            to="/app/masters/stock-item/create"
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              theme === 'dark' 
+                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
+          >
+            <Plus size={18} />
+            <span>New Stock Item</span>
+          </Link>
+        </div>
       </div>
 
       <div className={`rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>

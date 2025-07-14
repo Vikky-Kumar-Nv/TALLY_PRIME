@@ -28,7 +28,7 @@ const PRINT_STYLES = {
 
 // DRY Principle - Colspan values for table consistency
 const COLSPAN_VALUES = {
-  ITEM_TABLE_TOTAL: 8, // Sr No + Item + HSN + Qty + Unit + Rate + GST + Discount = 8 columns before Amount
+  ITEM_TABLE_TOTAL: 9, // Sr No + Item + HSN + Batch + Qty + Unit + Rate + GST + Discount = 9 columns before Amount
   PRINT_TABLE_NO_ITEMS: 7, // All columns in print table
   PRINT_TABLE_TERMS: 5 // Columns for terms and conditions
 };
@@ -708,6 +708,7 @@ const PurchaseVoucher: React.FC = () => {
                       <th className={TABLE_STYLES.headerCenter}>Sr No</th>
                       <th className={TABLE_STYLES.header}>Item</th>
                       <th className={TABLE_STYLES.header}>HSN/SAC</th>
+                      <th className={TABLE_STYLES.header}>Batch</th>
                       <th className={TABLE_STYLES.headerRight}>Quantity</th>
                       <th className={TABLE_STYLES.header}>Unit</th>
                       <th className={TABLE_STYLES.headerRight}>Rate</th>
@@ -754,6 +755,17 @@ const PurchaseVoucher: React.FC = () => {
                           </td>
                           <td className="px-4 py-2">
                             {selectedItem?.hsnCode || '-'}
+                          </td>
+                          <td className="px-4 py-2">
+                            <input
+                              title='Enter Batch Number'
+                              type="text"
+                              name="batchNumber"
+                              value={entry.batchNumber || ''}
+                              onChange={(e) => handleEntryChange(formData.entries.indexOf(entry), e)}
+                              placeholder="Batch"
+                              className={getInputClasses(theme)}
+                            />
                           </td>
                           <td className="px-4 py-2">
                             <input

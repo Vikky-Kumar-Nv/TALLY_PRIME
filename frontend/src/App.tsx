@@ -1,4 +1,4 @@
-import  { useEffect } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import MainLayout from './components/layout/MainLayout';
@@ -23,6 +23,8 @@ import StockCategoryForm from './components/masters/stock/StockCategoryForm';
 import StockItemList from './components/masters/stock/StockItemList';
 import StockItemForm from './components/masters/stock/StockItemForm';
 import StockItemEdit from './components/masters/stock/StockItemEdit'; 
+import BatchList from './components/masters/batch/BatchList';
+import BatchSelectionPage from './components/masters/batch/BatchSelectionPage';
 import StockGroupList from './components/masters/stock/StockGroupList';
 import StockGroupForm from './components/masters/stock/StockGroupForm';
 import UnitList from './components/masters/unit/UnitList';
@@ -256,6 +258,8 @@ function App() {
             <Route path="masters/stock-item/create" element={<StockItemForm />} />
             <Route path="masters/stock-item/edit/:id" element={<StockItemForm />} />
             <Route path="masters/stock-item/edit-stock/:id" element={<StockItemEdit />} />
+            <Route path="masters/stock-item/batches" element={<BatchList />} />
+            <Route path="masters/stock-item/batch-selection/:id" element={<BatchSelectionPage />} />
             <Route path="masters/stock-group" element={<StockGroupList />} />
             <Route path="masters/stock-group/create" element={<StockGroupForm />} />
             <Route path="masters/stock-group/edit/:id" element={<StockGroupForm />} />
