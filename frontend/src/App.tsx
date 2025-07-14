@@ -53,6 +53,7 @@ import SalesOrder from './components/vouchers/salesOrder/SalesOrder';
 import PurchaseVoucher1 from './components/vouchers/purches/PurcheseVoucher1';
 import StockJournalVoucher1 from './components/vouchers/stockjournal/StockJournalVoucher1';
 import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
+import VoucherImport from './components/vouchers/import/VoucherImport';
 
 // Voucher Register Components
 import VoucherRegisterIndex from './components/voucherRegister/VoucherRegisterIndex';
@@ -304,6 +305,7 @@ function App() {
             <Route path="vouchers/sales-order/create" element={<SalesOrder />} />
             <Route path="vouchers/sales-order/edit/:id" element={<SalesOrder />} />
             <Route path="vouchers/view/:voucherType/:voucherNo" element={<VoucherView />} />
+            <Route path="vouchers/import" element={<VoucherImport />} />
            
             {/* Voucher Register Routes */}
             <Route path="voucher-register" element={<VoucherRegisterIndex />} />
