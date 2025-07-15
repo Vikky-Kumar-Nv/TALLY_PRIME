@@ -1,27 +1,12 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
   "buildCommand": "npm install --force && npm run build",
-  "installCommand": "npm install --force --legacy-peer-deps --ignore-platform",
+  "installCommand": "npm install --force --legacy-peer-deps",
   "framework": "vite",
   "outputDirectory": "dist",
-  "functions": {
-    "app/**": {
-      "includeFiles": "dist/**"
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  }
+  ]
 }
