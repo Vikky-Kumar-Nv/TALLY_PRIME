@@ -352,6 +352,7 @@ function App() {
             
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
+            
             {/* <Route path="reports/trading-account" element={<TradingAccount />} /> */}
             
 
