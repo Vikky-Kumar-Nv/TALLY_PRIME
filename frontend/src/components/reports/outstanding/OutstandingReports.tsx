@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, FileText, Building, TrendingUp, TrendingDown, ArrowLeft } from 'lucide-react';
+import { Calendar, FileText, Building, TrendingUp, TrendingDown, ArrowLeft, Receipt, CreditCard } from 'lucide-react';
 import OutstandingReceivables from './OutstandingReceivables';
 import OutstandingPayables from './OutstandingPayables';
 import OutstandingLedger from './OutstandingLedger';
 import OutstandingGroup from './OutstandingGroup';
+import BillwiseReceivables from './BillwiseReceivables';
+import BillwisePayables from './BillwisePayables';
 
 const OutstandingReports: React.FC = () => {
   const { theme } = useAppContext();
@@ -30,11 +32,27 @@ const OutstandingReports: React.FC = () => {
       component: OutstandingPayables
     },
     {
+      id: 'billwise-receivables',
+      title: 'Bill-wise Receivables',
+      description: 'Detailed bill-wise receivables analysis (Tally Style)',
+      icon: Receipt,
+      color: 'blue',
+      component: BillwiseReceivables
+    },
+    {
+      id: 'billwise-payables',
+      title: 'Bill-wise Payables',
+      description: 'Detailed bill-wise payables analysis (Tally Style)',
+      icon: CreditCard,
+      color: 'orange',
+      component: BillwisePayables
+    },
+    {
       id: 'ledger',
       title: 'Ledger Outstanding',
       description: 'Outstanding for specific ledger accounts',
       icon: FileText,
-      color: 'blue',
+      color: 'indigo',
       component: OutstandingLedger
     },
     {
@@ -115,6 +133,8 @@ const OutstandingReports: React.FC = () => {
               green: 'from-green-500 to-green-600',
               red: 'from-red-500 to-red-600',
               blue: 'from-blue-500 to-blue-600',
+              orange: 'from-orange-500 to-orange-600',
+              indigo: 'from-indigo-500 to-indigo-600',
               purple: 'from-purple-500 to-purple-600'
             };
 

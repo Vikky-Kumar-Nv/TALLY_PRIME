@@ -2,13 +2,12 @@ import React, { useState, useMemo } from 'react';
 import { FileText, Upload, ArrowLeft, Save, Plus, Trash2, Eye, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-// Types for Form 27Q based on TCS requirements
+// Types for Form 27EQ based on provided PDF
 interface CollectorDetails {
   tan: string;
   financialYear: string;
-  quarter: string;
   panOfCollector: string;
-  typeOfCollector: 'Central Govt' | 'State Govt' | 'Company' | 'Firm' | 'Individual/HUF' | 'AOP/BOI' | 'Local Authority' | 'Others';
+  typeOfCollector: 'Central Govt' | 'State Govt' | 'Company' | 'Firm' | 'Individual/HUF' | 'Others';
   collectorName: string;
   address: {
     flatNo: string;
@@ -37,8 +36,7 @@ interface CollectorDetails {
     };
     mobileNo: string;
     alternateMobile: string;
-    email: string;
-    designation: string;
+    alternateEmail: string;
   };
 }
 
@@ -60,7 +58,7 @@ interface CollecteeDetails {
   serialNo: number;
   panOfCollectee: string;
   nameOfCollectee: string;
-  amountPaid: number;
+  amountReceived: number;
   taxCollected: number;
   taxDeposited: number;
   dateOfCollection: string;
@@ -78,12 +76,8 @@ interface Verification {
   signature: string;
 }
 
-// Reusable Components
-const FormSection: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ 
-  title, 
-  children, 
-  className = '' 
-}) => (
+// Reusable Components (same as Form 26Q for consistent UI)
+const FormSection: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = '' }) => (
   <div className={`bg-white border border-gray-200 rounded-lg p-6 ${className}`}>
     <h3 className="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">{title}</h3>
     {children}
@@ -101,18 +95,7 @@ const FormField: React.FC<{
   placeholder?: string;
   error?: string;
   className?: string;
-}> = ({ 
-  label, 
-  name, 
-  type = 'text', 
-  value, 
-  onChange, 
-  required = false, 
-  options, 
-  placeholder, 
-  error, 
-  className = '' 
-}) => (
+}> = ({ label, name, type = 'text', value, onChange, required = false, options, placeholder, error, className = '' }) => (
   <div className={`space-y-1 ${className}`}>
     <label className="block text-sm font-medium text-gray-700">
       {label} {required && <span className="text-red-500">*</span>}
@@ -163,14 +146,7 @@ const ActionButton: React.FC<{
   variant?: 'primary' | 'secondary' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
-}> = ({ 
-  onClick, 
-  icon: Icon, 
-  label, 
-  variant = 'primary', 
-  size = 'md', 
-  disabled = false 
-}) => {
+}> = ({ onClick, icon: Icon, label, variant = 'primary', size = 'md', disabled = false }) => {
   const baseClasses = "inline-flex items-center gap-2 font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
   const variantClasses = {
     primary: "bg-blue-600 hover:bg-blue-700 text-white",
@@ -195,17 +171,17 @@ const ActionButton: React.FC<{
   );
 };
 
-const Form27Q: React.FC = () => {
+const Form27EQ: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'list' | 'create' | 'upload'>('list');
+  // We need errors state but we'll use it later for validation
   const [errors] = useState<Record<string, string>>({});
 
   // Form data state
   const [collectorDetails, setCollectorDetails] = useState<CollectorDetails>({
     tan: '',
     financialYear: '2024-25',
-    quarter: 'Q1',
-    panOfCollector: 'PANNOTREQD',
+    panOfCollector: 'PANNOTREQD', // Default for Government collectors
     typeOfCollector: 'Company',
     collectorName: '',
     address: {
@@ -235,8 +211,7 @@ const Form27Q: React.FC = () => {
       },
       mobileNo: '',
       alternateMobile: '',
-      email: '',
-      designation: ''
+      alternateEmail: ''
     }
   });
 
@@ -258,7 +233,7 @@ const Form27Q: React.FC = () => {
     serialNo: 1,
     panOfCollectee: '',
     nameOfCollectee: '',
-    amountPaid: 0,
+    amountReceived: 0,
     taxCollected: 0,
     taxDeposited: 0,
     dateOfCollection: '',
@@ -292,26 +267,14 @@ const Form27Q: React.FC = () => {
   ];
 
   const sectionCodes = [
-    { value: '206C1', label: '206C(1) - Sale of goods' },
-    { value: '206C1A', label: '206C(1A) - Sale of motor vehicle' },
-    { value: '206C1C', label: '206C(1C) - Parking lot license' },
-    { value: '206C1F', label: '206C(1F) - Sale of goods by trader' },
-    { value: '206C1H', label: '206C(1H) - Sale of goods exceeding Rs. 50 lakh' },
+    { value: '206C1', label: '206C(1) - Sale of forest produce' },
+    { value: '206C1C', label: '206C(1C) - License for parking lot' },
+    { value: '206C1F', label: '206C(1F) - Sale of motor vehicle' },
+    { value: '206C1H', label: '206C(1H) - Sale of goods' },
     { value: '206C2', label: '206C(2) - Collection of cash' },
     { value: '206C3', label: '206C(3) - Grant of lease/license' },
-    { value: '206C5', label: '206C(5) - Purchase of jewelry' },
-    { value: '206CA', label: '206CA - Other specified receipts' }
-  ];
-
-  const collectorTypes = [
-    { value: 'Central Govt', label: 'Central Government' },
-    { value: 'State Govt', label: 'State Government' },
-    { value: 'Company', label: 'Company' },
-    { value: 'Firm', label: 'Firm' },
-    { value: 'Individual/HUF', label: 'Individual/HUF' },
-    { value: 'AOP/BOI', label: 'AOP/BOI' },
-    { value: 'Local Authority', label: 'Local Authority' },
-    { value: 'Others', label: 'Others' }
+    { value: '206C5', label: '206C(5) - Jewelry purchase' },
+    { value: '206CA', label: '206CA - Tax collection at source' }
   ];
 
   // Handler functions
@@ -331,6 +294,30 @@ const Form27Q: React.FC = () => {
       }
     }));
   };
+  
+  // Function for handling address changes that we'll use in future implementation
+  // const handleAddressChange = (type: 'collector' | 'responsible', key: string, value: string) => {
+  //   if (type === 'collector') {
+  //     setCollectorDetails(prev => ({
+  //       ...prev,
+  //       address: {
+  //         ...prev.address,
+  //         [key]: value
+  //       }
+  //     }));
+  //   } else {
+  //     setCollectorDetails(prev => ({
+  //       ...prev,
+  //       responsiblePerson: {
+  //         ...prev.responsiblePerson,
+  //         address: {
+  //           ...prev.responsiblePerson.address,
+  //           [key]: value
+  //         }
+  //       }
+  //     }));
+  //   }
+  // };
 
   const handleChallanChange = (index: number, key: keyof ChallanDetails, value: string | number) => {
     const newChallanDetails = [...challanDetails];
@@ -340,7 +327,7 @@ const Form27Q: React.FC = () => {
     };
     
     // Recalculate total
-    if (['tax', 'surcharge', 'educationCess', 'interest', 'fee'].includes(key as string)) {
+    if (['tax', 'surcharge', 'educationCess', 'interest', 'fee'].includes(key)) {
       const { tax, surcharge, educationCess, interest, fee } = newChallanDetails[index];
       newChallanDetails[index].total = tax + surcharge + educationCess + interest + fee;
     }
@@ -380,6 +367,7 @@ const Form27Q: React.FC = () => {
     if (challanDetails.length === 1) return;
     
     const newChallanDetails = challanDetails.filter((_, i) => i !== index);
+    // Update serial numbers
     newChallanDetails.forEach((challan, i) => {
       challan.serialNo = i + 1;
     });
@@ -394,7 +382,7 @@ const Form27Q: React.FC = () => {
         serialNo: prev.length + 1,
         panOfCollectee: '',
         nameOfCollectee: '',
-        amountPaid: 0,
+        amountReceived: 0,
         taxCollected: 0,
         taxDeposited: 0,
         dateOfCollection: '',
@@ -409,6 +397,7 @@ const Form27Q: React.FC = () => {
     if (collecteeDetails.length === 1) return;
     
     const newCollecteeDetails = collecteeDetails.filter((_, i) => i !== index);
+    // Update serial numbers
     newCollecteeDetails.forEach((collectee, i) => {
       collectee.serialNo = i + 1;
     });
@@ -421,36 +410,40 @@ const Form27Q: React.FC = () => {
     return {
       totalCollectees: collecteeDetails.length,
       totalChallan: challanDetails.length,
-      totalAmountPaid: collecteeDetails.reduce((sum, item) => sum + item.amountPaid, 0),
+      totalAmountReceived: collecteeDetails.reduce((sum, item) => sum + item.amountReceived, 0),
       totalTaxCollected: collecteeDetails.reduce((sum, item) => sum + item.taxCollected, 0),
       totalTaxDeposited: collecteeDetails.reduce((sum, item) => sum + item.taxDeposited, 0)
     };
   }, [collecteeDetails, challanDetails]);
+  
+  // Handle tab switching
+  // We're using setActiveTab directly in buttons, so this function is not needed
+  // const switchTab = (tab: 'list' | 'create' | 'upload') => {
+  //   setActiveTab(tab);
+  // };
 
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="container mx-auto py-8 px-4">
-        {/* Header */}
         <div className="flex items-center mb-6">
           <div className="flex items-center gap-2">
             <button
-              title='Back to TDS Module'
+              title='Back to Reports'
               type='button'
               onClick={() => navigate('/app/tds')}
               className="mr-4 p-2 rounded-full hover:bg-gray-200"
             >
               <ArrowLeft size={20} />
             </button>
-            <h1 className="text-2xl font-bold">Form 27Q</h1>
+            <h1 className="text-2xl font-bold">Form 27EQ</h1>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-3 sm:p-6 mb-6 overflow-hidden">
           <div className="flex items-center gap-3 mb-6">
             <FileText className="h-6 w-6 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Form 27Q - TCS Quarterly Return</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Form 27EQ - TCS Quarterly Return</h1>
           </div>
-
           {/* Tabs */}
           <div className="flex border-b border-gray-200 mb-6">
             <button
@@ -477,8 +470,8 @@ const Form27Q: React.FC = () => {
             {/* Return List Tab */}
             {activeTab === 'list' && (
               <div>
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold">Recent TCS Returns (Form 27Q)</h2>
+                <div className="flex justify-between mb-4">
+                  <h2 className="text-lg font-semibold">Recent TCS Returns (Form 27EQ)</h2>
                   <div className="flex gap-2">
                     <ActionButton
                       onClick={() => setActiveTab('create')}
@@ -496,7 +489,7 @@ const Form27Q: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Returns Table */}
+                {/* Sample Return List Table */}
                 <div className="overflow-x-auto">
                   <table className="w-full border border-gray-200">
                     <thead className="bg-gray-50">
@@ -519,12 +512,8 @@ const Form27Q: React.FC = () => {
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-800">15-Jul-2024</td>
                         <td className="px-4 py-3 text-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-800" title="View Return">
-                            <Eye size={16} />
-                          </button>
-                          <button className="text-green-600 hover:text-green-800" title="Download">
-                            <FileText size={16} />
-                          </button>
+                          <button className="text-blue-600 hover:text-blue-800" title="View Return"><Eye size={16} /></button>
+                          <button className="text-green-600 hover:text-green-800" title="Download"><FileText size={16} /></button>
                         </td>
                       </tr>
                       <tr>
@@ -536,12 +525,8 @@ const Form27Q: React.FC = () => {
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-800">-</td>
                         <td className="px-4 py-3 text-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-800" title="Edit Draft">
-                            <Eye size={16} />
-                          </button>
-                          <button className="text-red-600 hover:text-red-800" title="Delete Draft">
-                            <Trash2 size={16} />
-                          </button>
+                          <button className="text-blue-600 hover:text-blue-800" title="Edit Draft"><Eye size={16} /></button>
+                          <button className="text-red-600 hover:text-red-800" title="Delete Draft"><Trash2 size={16} /></button>
                         </td>
                       </tr>
                     </tbody>
@@ -553,11 +538,11 @@ const Form27Q: React.FC = () => {
             {/* Create New Return Tab */}
             {activeTab === 'create' && (
               <div className="space-y-6">
-                {/* Form Header */}
+                {/* Form Header with Save Button */}
                 <div className="flex justify-between items-center bg-gray-50 p-4 rounded-lg">
                   <div>
-                    <h2 className="text-lg font-semibold">New TCS Return - Form 27Q</h2>
-                    <p className="text-sm text-gray-600">Tax Collection at Source (TCS) Quarterly Return</p>
+                    <h2 className="text-lg font-semibold">New TCS Return - Form 27EQ</h2>
+                    <p className="text-sm text-gray-600">Tax Collection at Source (TCS) Return</p>
                   </div>
                   <div className="flex gap-2">
                     <ActionButton
@@ -572,15 +557,14 @@ const Form27Q: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Part A - General Information */}
+                {/* Collector Details */}
                 <FormSection title="Part A - General Information">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       label="TAN"
                       name="tan"
                       value={collectorDetails.tan}
                       onChange={(e) => handleCollectorChange('tan', e.target.value)}
-                      placeholder="ABCD12345E"
                       required
                     />
                     <FormField
@@ -588,15 +572,10 @@ const Form27Q: React.FC = () => {
                       name="financialYear"
                       value={collectorDetails.financialYear}
                       onChange={(e) => handleCollectorChange('financialYear', e.target.value)}
-                      options={financialYears}
-                      required
-                    />
-                    <FormField
-                      label="Quarter"
-                      name="quarter"
-                      value={collectorDetails.quarter}
-                      onChange={(e) => handleCollectorChange('quarter', e.target.value)}
-                      options={quarters}
+                      options={[
+                        { value: '2024-25', label: '2024-25' },
+                        { value: '2023-24', label: '2023-24' }
+                      ]}
                       required
                     />
                     <FormField
@@ -611,7 +590,14 @@ const Form27Q: React.FC = () => {
                       name="typeOfCollector"
                       value={collectorDetails.typeOfCollector}
                       onChange={(e) => handleCollectorChange('typeOfCollector', e.target.value)}
-                      options={collectorTypes}
+                      options={[
+                        { value: 'Central Govt', label: 'Central Govt' },
+                        { value: 'State Govt', label: 'State Govt' },
+                        { value: 'Company', label: 'Company' },
+                        { value: 'Firm', label: 'Firm' },
+                        { value: 'Individual/HUF', label: 'Individual/HUF' },
+                        { value: 'Others', label: 'Others' }
+                      ]}
                       required
                     />
                     <FormField
@@ -619,7 +605,6 @@ const Form27Q: React.FC = () => {
                       name="collectorName"
                       value={collectorDetails.collectorName}
                       onChange={(e) => handleCollectorChange('collectorName', e.target.value)}
-                      placeholder="Name of the collector"
                       required
                     />
                     <FormField
@@ -627,166 +612,48 @@ const Form27Q: React.FC = () => {
                       name="mobileNo"
                       value={collectorDetails.mobileNo}
                       onChange={(e) => handleCollectorChange('mobileNo', e.target.value)}
-                      placeholder="10-digit mobile number"
                       required
                     />
                     <FormField
                       label="Email"
                       name="email"
-                      type="email"
                       value={collectorDetails.email}
                       onChange={(e) => handleCollectorChange('email', e.target.value)}
                       placeholder="example@domain.com"
                       required
                     />
                     <FormField
-                      label="Alternate Mobile"
-                      name="alternateMobile"
-                      value={collectorDetails.alternateMobile}
-                      onChange={(e) => handleCollectorChange('alternateMobile', e.target.value)}
-                      placeholder="10-digit mobile number"
+                      label="Responsible Person - Name"
+                      name="responsiblePerson.name"
+                      value={collectorDetails.responsiblePerson.name}
+                      onChange={(e) => handleResponsiblePersonChange('name', e.target.value)}
+                      required
                     />
                     <FormField
-                      label="Alternate Email"
-                      name="alternateEmail"
-                      type="email"
-                      value={collectorDetails.alternateEmail}
-                      onChange={(e) => handleCollectorChange('alternateEmail', e.target.value)}
-                      placeholder="alternate@domain.com"
+                      label="Responsible Person - PAN"
+                      name="responsiblePerson.pan"
+                      value={collectorDetails.responsiblePerson.pan}
+                      onChange={(e) => handleResponsiblePersonChange('pan', e.target.value)}
+                      placeholder="PANNOTREQD"
                     />
-                  </div>
-
-                  {/* Collector Address */}
-                  <div className="mt-6">
-                    <h4 className="text-md font-medium text-gray-800 mb-4">Collector Address</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <FormField
-                        label="Flat/Door/Block No."
-                        name="address.flatNo"
-                        value={collectorDetails.address.flatNo}
-                        onChange={(e) => setCollectorDetails(prev => ({
-                          ...prev,
-                          address: { ...prev.address, flatNo: e.target.value }
-                        }))}
-                        placeholder="Building/Flat number"
-                      />
-                      <FormField
-                        label="Premises/Building Name"
-                        name="address.premisesName"
-                        value={collectorDetails.address.premisesName}
-                        onChange={(e) => setCollectorDetails(prev => ({
-                          ...prev,
-                          address: { ...prev.address, premisesName: e.target.value }
-                        }))}
-                        placeholder="Building name"
-                      />
-                      <FormField
-                        label="Road/Street/Lane"
-                        name="address.roadStreet"
-                        value={collectorDetails.address.roadStreet}
-                        onChange={(e) => setCollectorDetails(prev => ({
-                          ...prev,
-                          address: { ...prev.address, roadStreet: e.target.value }
-                        }))}
-                        placeholder="Street name"
-                        required
-                      />
-                      <FormField
-                        label="Area/Locality"
-                        name="address.area"
-                        value={collectorDetails.address.area}
-                        onChange={(e) => setCollectorDetails(prev => ({
-                          ...prev,
-                          address: { ...prev.address, area: e.target.value }
-                        }))}
-                        placeholder="Area/Locality"
-                        required
-                      />
-                      <FormField
-                        label="Town/City/District"
-                        name="address.town"
-                        value={collectorDetails.address.town}
-                        onChange={(e) => setCollectorDetails(prev => ({
-                          ...prev,
-                          address: { ...prev.address, town: e.target.value }
-                        }))}
-                        placeholder="City name"
-                        required
-                      />
-                      <FormField
-                        label="State"
-                        name="address.state"
-                        value={collectorDetails.address.state}
-                        onChange={(e) => setCollectorDetails(prev => ({
-                          ...prev,
-                          address: { ...prev.address, state: e.target.value }
-                        }))}
-                        placeholder="State name"
-                        required
-                      />
-                      <FormField
-                        label="PIN Code"
-                        name="address.pinCode"
-                        value={collectorDetails.address.pinCode}
-                        onChange={(e) => setCollectorDetails(prev => ({
-                          ...prev,
-                          address: { ...prev.address, pinCode: e.target.value }
-                        }))}
-                        placeholder="6-digit PIN code"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Responsible Person Details */}
-                  <div className="mt-6">
-                    <h4 className="text-md font-medium text-gray-800 mb-4">Responsible Person Details</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <FormField
-                        label="Name"
-                        name="responsiblePerson.name"
-                        value={collectorDetails.responsiblePerson.name}
-                        onChange={(e) => handleResponsiblePersonChange('name', e.target.value)}
-                        placeholder="Full name"
-                        required
-                      />
-                      <FormField
-                        label="PAN"
-                        name="responsiblePerson.pan"
-                        value={collectorDetails.responsiblePerson.pan}
-                        onChange={(e) => handleResponsiblePersonChange('pan', e.target.value)}
-                        placeholder="ABCDE1234F"
-                      />
-                      <FormField
-                        label="Designation"
-                        name="responsiblePerson.designation"
-                        value={collectorDetails.responsiblePerson.designation}
-                        onChange={(e) => handleResponsiblePersonChange('designation', e.target.value)}
-                        placeholder="Designation/Position"
-                        required
-                      />
-                      <FormField
-                        label="Mobile No."
-                        name="responsiblePerson.mobileNo"
-                        value={collectorDetails.responsiblePerson.mobileNo}
-                        onChange={(e) => handleResponsiblePersonChange('mobileNo', e.target.value)}
-                        placeholder="10-digit mobile number"
-                        required
-                      />
-                      <FormField
-                        label="Email"
-                        name="responsiblePerson.email"
-                        type="email"
-                        value={collectorDetails.responsiblePerson.email}
-                        onChange={(e) => handleResponsiblePersonChange('email', e.target.value)}
-                        placeholder="example@domain.com"
-                        required
-                      />
-                    </div>
+                    <FormField
+                      label="Responsible Person - Mobile No."
+                      name="responsiblePerson.mobileNo"
+                      value={collectorDetails.responsiblePerson.mobileNo}
+                      onChange={(e) => handleResponsiblePersonChange('mobileNo', e.target.value)}
+                      required
+                    />
+                    <FormField
+                      label="Responsible Person - Email"
+                      name="responsiblePerson.alternateEmail"
+                      value={collectorDetails.responsiblePerson.alternateEmail}
+                      onChange={(e) => handleResponsiblePersonChange('alternateEmail', e.target.value)}
+                      placeholder="example@domain.com"
+                    />
                   </div>
                 </FormSection>
 
-                {/* Part B - Challan Details */}
+                {/* Challan Details */}
                 <FormSection title="Part B - Details of Tax Collected and Deposited">
                   <div className="flex justify-between items-center mb-4">
                     <p className="text-sm text-gray-600">Details of challan-cum-receipt for tax collected</p>
@@ -802,24 +669,24 @@ const Form27Q: React.FC = () => {
                     <table className="w-full border border-gray-300">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">S.No.</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">BSR Code</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Date of Deposit</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Challan Serial No.</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Tax (₹)</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Surcharge (₹)</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Education Cess (₹)</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Interest (₹)</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Fee (₹)</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Total (₹)</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Minor Head</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Action</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">S.No.</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">BSR Code</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Date of Deposit</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Challan Serial No.</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Tax</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Surcharge</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Education Cess</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Interest</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Fee</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Total</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Minor Head</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Action</th>
                         </tr>
                       </thead>
                       <tbody>
                         {challanDetails.map((challan, index) => (
                           <tr key={index}>
-                            <td className="border border-gray-300 px-2 py-1 text-center text-xs">{challan.serialNo}</td>
+                            <td className="border border-gray-300 px-2 py-1 text-center">{challan.serialNo}</td>
                             <td className="border border-gray-300 px-1 py-1">
                               <input
                                 title="BSR Code"
@@ -893,10 +760,10 @@ const Form27Q: React.FC = () => {
                   </div>
                 </FormSection>
 
-                {/* Part C - Collectee Details */}
-                <FormSection title="Part C - Details of Amount Paid and Tax Collected">
+                {/* Collectee Details */}
+                <FormSection title="Part C - Details of Amount Received and Tax Collected">
                   <div className="flex justify-between items-center mb-4">
-                    <p className="text-sm text-gray-600">Details of amount paid and tax collected</p>
+                    <p className="text-sm text-gray-600">Details of amount received/debited and tax collected</p>
                     <ActionButton
                       onClick={addCollectee}
                       icon={Plus}
@@ -909,23 +776,23 @@ const Form27Q: React.FC = () => {
                     <table className="w-full border border-gray-300">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">S.No.</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">PAN of Collectee</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Name of Collectee</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Amount Paid (₹)</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Tax Collected (₹)</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Tax Deposited (₹)</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Date of Collection</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Section</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Rate %</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Remark Code</th>
-                          <th className="border border-gray-300 px-2 py-2 text-xs font-medium">Action</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">S.No.</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">PAN of Collectee</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Name of Collectee</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Amount Received</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Tax Collected</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Tax Deposited</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Date of Collection</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Section</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Rate %</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Remark Code</th>
+                          <th className="border border-gray-300 px-2 py-2 text-xs">Action</th>
                         </tr>
                       </thead>
                       <tbody>
                         {collecteeDetails.map((collectee, index) => (
                           <tr key={index}>
-                            <td className="border border-gray-300 px-2 py-1 text-center text-xs">{collectee.serialNo}</td>
+                            <td className="border border-gray-300 px-2 py-1 text-center">{collectee.serialNo}</td>
                             <td className="border border-gray-300 px-1 py-1">
                               <input
                                 title="PAN of Collectee"
@@ -949,10 +816,10 @@ const Form27Q: React.FC = () => {
                             </td>
                             <td className="border border-gray-300 px-1 py-1">
                               <input
-                                title="Amount Paid"
+                                title="Amount Received"
                                 type="number"
-                                value={collectee.amountPaid}
-                                onChange={(e) => handleCollecteeChange(index, 'amountPaid', parseFloat(e.target.value) || 0)}
+                                value={collectee.amountReceived}
+                                onChange={(e) => handleCollecteeChange(index, 'amountReceived', parseFloat(e.target.value) || 0)}
                                 className="w-full px-1 py-1 text-xs border-0 focus:ring-1 focus:ring-blue-500"
                                 placeholder="0"
                                 step="0.01"
@@ -997,7 +864,7 @@ const Form27Q: React.FC = () => {
                                 className="w-full px-1 py-1 text-xs border-0 focus:ring-1 focus:ring-blue-500"
                               >
                                 {sectionCodes.map(section => (
-                                  <option key={section.value} value={section.value}>{section.value}</option>
+                                  <option key={section.value} value={section.value}>{section.label}</option>
                                 ))}
                               </select>
                             </td>
@@ -1020,7 +887,7 @@ const Form27Q: React.FC = () => {
                                 value={collectee.remarkCode || ''}
                                 onChange={(e) => handleCollecteeChange(index, 'remarkCode', e.target.value)}
                                 className="w-full px-1 py-1 text-xs border-0 focus:ring-1 focus:ring-blue-500"
-                                placeholder="Remark"
+                                placeholder="Remark Code"
                               />
                             </td>
                             <td className="border border-gray-300 px-2 py-1 text-center">
@@ -1045,8 +912,8 @@ const Form27Q: React.FC = () => {
                     <h4 className="font-medium mb-2">Summary Totals</h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <span className="text-sm text-gray-600">Total Amount Paid: </span>
-                        <span className="font-medium">₹{totalSummary.totalAmountPaid.toLocaleString()}</span>
+                        <span className="text-sm text-gray-600">Total Amount Received/Debited: </span>
+                        <span className="font-medium">₹{totalSummary.totalAmountReceived.toLocaleString()}</span>
                       </div>
                       <div>
                         <span className="text-sm text-gray-600">Total Tax Collected: </span>
@@ -1060,7 +927,7 @@ const Form27Q: React.FC = () => {
                   </div>
                 </FormSection>
 
-                {/* Verification Section */}
+                {/* Verification */}
                 <FormSection title="Verification">
                   <div className="space-y-6">
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -1091,7 +958,6 @@ const Form27Q: React.FC = () => {
                         name="declarationPlace"
                         value={verification.declarationPlace}
                         onChange={(e) => setVerification(prev => ({ ...prev, declarationPlace: e.target.value }))}
-                        placeholder="City name"
                         required
                         error={errors.declarationPlace}
                       />
@@ -1108,7 +974,6 @@ const Form27Q: React.FC = () => {
                         name="fullName"
                         value={verification.fullName}
                         onChange={(e) => setVerification(prev => ({ ...prev, fullName: e.target.value }))}
-                        placeholder="Full name of declarant"
                         required
                         error={errors.verificationName}
                       />
@@ -1117,7 +982,6 @@ const Form27Q: React.FC = () => {
                         name="designation"
                         value={verification.designation}
                         onChange={(e) => setVerification(prev => ({ ...prev, designation: e.target.value }))}
-                        placeholder="Designation/Position"
                         required
                       />
                       <FormField
@@ -1133,7 +997,7 @@ const Form27Q: React.FC = () => {
               </div>
             )}
 
-            {/* Upload Filed Return Tab */}
+            {/* Upload Return Tab */}
             {activeTab === 'upload' && (
               <div className="space-y-6">
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
@@ -1142,7 +1006,7 @@ const Form27Q: React.FC = () => {
                     <h3 className="font-semibold text-orange-900">Upload Filed Return</h3>
                   </div>
                   <p className="text-orange-700 text-sm">
-                    Upload the acknowledgment receipt (.txt/.pdf) received after successfully filing Form 27Q with the Income Tax Department.
+                    Upload the acknowledgment receipt (.txt/.pdf) received after successfully filing Form 27EQ with the Income Tax Department.
                   </p>
                 </div>
 
@@ -1227,4 +1091,4 @@ const Form27Q: React.FC = () => {
   );
 };
 
-export default Form27Q;
+export default Form27EQ;

@@ -827,6 +827,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       <th className="px-4 py-2 text-left">S.No</th>
                       <th className="px-4 py-2 text-left">Item</th>
                       <th className="px-4 py-2 text-left">HSN/SAC</th>
+                      <th className="px-4 py-2 text-left">Batch</th>
                       <th className="px-4 py-2 text-right">Quantity</th>
                       <th className="px-4 py-2 text-left">Unit</th>
                       <th className="px-4 py-2 text-right">Rate</th>
@@ -887,6 +888,17 @@ const handleSubmit = async (e: React.FormEvent) => {
                               value={entry.hsnCode || ''}
                               onChange={(e) => handleEntryChange(index, e)}
                               placeholder="HSN/SAC"
+                              className={FORM_STYLES.tableInput(theme)}
+                            />
+                          </td>
+                          <td className="px-4 py-2">
+                            <input
+                              title='Enter Batch Number'
+                              type="text"
+                              name="batchNumber"
+                              value={entry.batchNumber || ''}
+                              onChange={(e) => handleEntryChange(index, e)}
+                              placeholder="Batch No."
                               className={FORM_STYLES.tableInput(theme)}
                             />
                           </td>
@@ -968,31 +980,31 @@ const handleSubmit = async (e: React.FormEvent) => {
                     })}
                   </tbody>                  <tfoot>
                     <tr className={`font-semibold ${theme === 'dark' ? 'border-t border-gray-600' : 'border-t border-gray-300'}`}>
-                      <td className="px-4 py-2 text-right" colSpan={7}>Subtotal:</td>
+                      <td className="px-4 py-2 text-right" colSpan={8}>Subtotal:</td>
                       <td className="px-4 py-2 text-right">{subtotal.toLocaleString()}</td>
                       <td className="px-4 py-2"></td>
                       <td className="px-4 py-2"></td>
                     </tr>
                     <tr className={`font-semibold ${theme === 'dark' ? 'border-t border-gray-600' : 'border-t border-gray-300'}`}>
-                      <td className="px-4 py-2 text-right" colSpan={7}>CGST Total:</td>
+                      <td className="px-4 py-2 text-right" colSpan={8}>CGST Total:</td>
                       <td className="px-4 py-2 text-right">{cgstTotal.toLocaleString()}</td>
                       <td className="px-4 py-2"></td>
                       <td className="px-4 py-2"></td>
                     </tr>
                     <tr className={`font-semibold ${theme === 'dark' ? 'border-t border-gray-600' : 'border-t border-gray-300'}`}>
-                      <td className="px-4 py-2 text-right" colSpan={7}>SGST Total:</td>
+                      <td className="px-4 py-2 text-right" colSpan={8}>SGST Total:</td>
                       <td className="px-4 py-2 text-right">{sgstTotal.toLocaleString()}</td>
                       <td className="px-4 py-2"></td>
                       <td className="px-4 py-2"></td>
                     </tr>
                     <tr className={`font-semibold ${theme === 'dark' ? 'border-t border-gray-600' : 'border-t border-gray-300'}`}>
-                      <td className="px-4 py-2 text-right" colSpan={7}>IGST Total:</td>
+                      <td className="px-4 py-2 text-right" colSpan={8}>IGST Total:</td>
                       <td className="px-4 py-2 text-right">{igstTotal.toLocaleString()}</td>
                       <td className="px-4 py-2"></td>
                       <td className="px-4 py-2"></td>
                     </tr>
                     <tr className={`font-semibold ${theme === 'dark' ? 'border-t border-gray-600' : 'border-t border-gray-300'}`}>
-                      <td className="px-4 py-2 text-right" colSpan={7}>Discount Total:</td>
+                      <td className="px-4 py-2 text-right" colSpan={8}>Discount Total:</td>
                       <td className="px-4 py-2 text-right">{discountTotal.toLocaleString()}</td>
                       <td className="px-4 py-2"></td>
                       <td className="px-4 py-2"></td>

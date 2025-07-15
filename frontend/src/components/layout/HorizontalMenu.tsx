@@ -74,7 +74,7 @@ const menuItems = [
   // { title: 'Accounting', path: '/app/accounting' },
   // { title: 'Inventory', path: '/app/inventory' },
   { title: 'Vouchers Register', path: '/app/voucher-register' },
-  { title: 'Sales Order', path: '/app/sales-order' },
+  // { title: 'Sales Order', path: '/app/sales-order' },
   { title: 'GST', path: '/app/gst' },
   { title: 'TDS', path: '/app/tds' },
   { title: 'Audit', path: '/app/audit' },

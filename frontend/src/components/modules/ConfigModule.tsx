@@ -2,9 +2,9 @@ import React from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { 
-  Settings, Users, Database, Shield, 
-  Monitor, Printer, Mail, RefreshCcw 
-} from 'lucide-react';
+  Settings, Users,  Shield, 
+  Monitor, 
+} from 'lucide-react'; //Database,Printer, Mail, RefreshCcw 
 
 const ConfigModule: React.FC = () => {
   const { theme } = useAppContext();
@@ -14,10 +14,12 @@ const ConfigModule: React.FC = () => {
     {
       title: 'System Configuration',
       items: [
-        { icon: <Settings size={20} />, name: 'General Settings', path: '/app/config/general' },
-        { icon: <Database size={20} />, name: 'Database Settings', path: '/app/config/database' },
-        { icon: <RefreshCcw size={20} />, name: 'Backup & Restore', path: '/app/config/backup' },
-        { icon: <Monitor size={20} />, name: 'Display Settings', path: '/app/config/display' }
+        { icon: <Settings size={20} />, name: 'Sales by Fifo', path: '/app/config/sales-fifo' },
+        { icon: <Settings size={20} />, name: 'Set Profit', path: '/app/config/set-profit' },
+        // { icon: <Settings size={20} />, name: 'General Settings', path: '/app/config/general' },
+        // { icon: <Database size={20} />, name: 'Database Settings', path: '/app/config/database' },
+        // { icon: <RefreshCcw size={20} />, name: 'Backup & Restore', path: '/app/config/backup' },
+        // { icon: <Monitor size={20} />, name: 'Display Settings', path: '/app/config/display' }
       ]
     },
     {
@@ -32,10 +34,10 @@ const ConfigModule: React.FC = () => {
     {
       title: 'Integration & Output',
       items: [
-        { icon: <Printer size={20} />, name: 'Print Settings', path: '/app/config/print' },
-        { icon: <Mail size={20} />, name: 'Email Configuration', path: '/app/config/email' },
-        { icon: <Database size={20} />, name: 'Import/Export', path: '/app/config/import-export' },
-        { icon: <Settings size={20} />, name: 'API Settings', path: '/app/config/api' }
+        // { icon: <Printer size={20} />, name: 'Print Settings', path: '/app/config/print' },
+        // { icon: <Mail size={20} />, name: 'Email Configuration', path: '/app/config/email' },
+        // { icon: <Database size={20} />, name: 'Import/Export', path: '/app/config/import-export' },
+        // { icon: <Settings size={20} />, name: 'API Settings', path: '/app/config/api' }
       ]
     }
   ];

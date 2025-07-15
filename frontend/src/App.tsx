@@ -1,4 +1,4 @@
-import  { useEffect } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import MainLayout from './components/layout/MainLayout';
@@ -9,6 +9,7 @@ import CompanyForm from './components/company/CompanyForm';
 import MastersIndex from './components/masters/MastersIndex';
 import LedgerList from './components/masters/ledger/LedgerList';
 import LedgerForm from './components/masters/ledger/LedgerForm';
+import MultiLedgerForm from './components/masters/ledger/MultiLedgerForm';
 import GroupList from './components/masters/group/GroupList';
 import GroupForm from './components/masters/group/GroupForm';
 import BudgetList from './components/masters/budget/BudgetList';
@@ -22,6 +23,8 @@ import StockCategoryForm from './components/masters/stock/StockCategoryForm';
 import StockItemList from './components/masters/stock/StockItemList';
 import StockItemForm from './components/masters/stock/StockItemForm';
 import StockItemEdit from './components/masters/stock/StockItemEdit'; 
+import BatchList from './components/masters/batch/BatchList';
+import BatchSelectionPage from './components/masters/batch/BatchSelectionPage';
 import StockGroupList from './components/masters/stock/StockGroupList';
 import StockGroupForm from './components/masters/stock/StockGroupForm';
 import UnitList from './components/masters/unit/UnitList';
@@ -50,6 +53,7 @@ import SalesOrder from './components/vouchers/salesOrder/SalesOrder';
 import PurchaseVoucher1 from './components/vouchers/purches/PurcheseVoucher1';
 import StockJournalVoucher1 from './components/vouchers/stockjournal/StockJournalVoucher1';
 import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
+import VoucherImport from './components/vouchers/import/VoucherImport';
 
 // Voucher Register Components
 import VoucherRegisterIndex from './components/voucherRegister/VoucherRegisterIndex';
@@ -126,7 +130,8 @@ import TDSSummary from './components/modules/tds/TDSSummary';
 import TDSModule from './components/modules/tds/TDSModule';
 import Form24Q from './components/modules/tds/Form24Q';
 import Form26Q from './components/modules/tds/Form26Q';
-import Form27Q from './components/modules/tds/Form27Q';
+import Form27QPage from './components/modules/tds/Form27QPage';
+import Form27EQ from './components/modules/tds/Form27EQ';
 import TDSRates from './components/modules/tds/TDSRates';
 import Form16 from './components/modules/tds/Form16';
 import ComplianceCheck2 from './components/modules/tds/ComplianceCheck';
@@ -134,7 +139,9 @@ import DeducteeMaster from './components/modules/tds/DeducteeMaster';
 import TANRegistration from './components/modules/tds/TANRegistration';
 import AuditCompliance from './components/audit/ComplianceCheck';
 import FraudDetection from './components/audit/FraudDetection';
-
+import Form3CB from './components/audit/Form3CB';
+import Form3CA from './components/audit/Form3CA';
+import Form3CD from './components/modules/audit/Form3CD'; 
 
 
 //Audit Modules
@@ -146,6 +153,9 @@ import LoginHistory from './components/audit/LoginHistory';
 import DataChanges from './components/audit/DataChanges';
 import SecuritySettings from './components/audit/SecuritySettings';
 import RiskAssessment from './components/audit/RiskAssessment';
+import CMAModule from './components/modules/CMAModule';
+import CMAReport from './components/audit/CMAReport';
+import DPRReport from './components/audit/DPRReport';
 import ExceptionReports from './components/audit/ExceptionReports';
 import PeriodAnalysis from './components/audit/PeriodAnalysis';
 import UserReports from './components/audit/UserReports';
@@ -187,6 +197,8 @@ import UserAccounts from './components/config/UserAccounts';
 import Permissions from './components/config/Permissions';
 import RoleManagement from './components/config/RoleManagement';
 import AccessControl from './components/config/AccessControl';
+import SetProfit from './components/config/SetProfit';
+import SalesByFifo from './components/config/SalesByFifo';
 
 
 
@@ -233,6 +245,7 @@ function App() {
             <Route path="masters" element={<MastersIndex />} />
             <Route path="masters/ledger" element={<LedgerList />} />
             <Route path="masters/ledger/create" element={<LedgerForm />} />
+            <Route path="masters/ledger/bulk-create" element={<MultiLedgerForm />} />
             <Route path="masters/ledger/edit/:id" element={<LedgerForm />} />
             <Route path="masters/group" element={<GroupList />} />
             <Route path="masters/group/create" element={<GroupForm />} />
@@ -253,6 +266,8 @@ function App() {
             <Route path="masters/stock-item/create" element={<StockItemForm />} />
             <Route path="masters/stock-item/edit/:id" element={<StockItemForm />} />
             <Route path="masters/stock-item/edit-stock/:id" element={<StockItemEdit />} />
+            <Route path="masters/stock-item/batches" element={<BatchList />} />
+            <Route path="masters/stock-item/batch-selection/:id" element={<BatchSelectionPage />} />
             <Route path="masters/stock-group" element={<StockGroupList />} />
             <Route path="masters/stock-group/create" element={<StockGroupForm />} />
             <Route path="masters/stock-group/edit/:id" element={<StockGroupForm />} />
@@ -295,6 +310,7 @@ function App() {
             <Route path="vouchers/sales-order/create" element={<SalesOrder />} />
             <Route path="vouchers/sales-order/edit/:id" element={<SalesOrder />} />
             <Route path="vouchers/view/:voucherType/:voucherNo" element={<VoucherView />} />
+            <Route path="vouchers/import" element={<VoucherImport />} />
            
             {/* Voucher Register Routes */}
             <Route path="voucher-register" element={<VoucherRegisterIndex />} />
@@ -336,6 +352,7 @@ function App() {
             
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
+            
             {/* <Route path="reports/trading-account" element={<TradingAccount />} /> */}
             
 
@@ -361,7 +378,8 @@ function App() {
             <Route path="tds" element={<TDSModule />} />
                <Route path='tds/form-24q' element={<Form24Q />} />
                <Route path='tds/form-26q' element={<Form26Q />} />
-               <Route path='tds/form-27q' element={<Form27Q />} />
+               <Route path='tds/form-27q' element={<Form27QPage />} />
+               <Route path='tds/form-27eq' element={<Form27EQ />} />
                <Route path='tds/summary' element={<TDSSummary />} />
                <Route path='tds/rates' element={<TDSRates />} />
                <Route path='tds/form-16' element={<Form16 />} />
@@ -383,6 +401,13 @@ function App() {
                 <Route path='audit/exceptions' element={<ExceptionReports />} />
                 <Route path='audit/period-analysis' element={<PeriodAnalysis />} />
                 <Route path='audit/user-reports' element={<UserReports />} />
+                <Route path='audit/cma' element={<CMAModule />} />
+                <Route path='audit/cma-report' element={<CMAReport />} />
+                <Route path='audit/dpr' element={<DPRReport />} />
+                <Route path='audit/3-Cb' element={<Form3CB />} />
+                <Route path='audit/3-ca' element={<Form3CA />} />
+                <Route path='audit/3-cd' element={<Form3CD />} /> 
+
 
             {/* Income Tax Module Routes */}
             <Route path="income-tax" element={<IncomeTaxIndex />} />
@@ -423,6 +448,8 @@ function App() {
             <Route path='config/permissions' element={<Permissions />} />
             <Route path='config/roles' element={<RoleManagement />} />
             <Route path='config/access' element={<AccessControl />} />
+            <Route path='config/set-profit' element={<SetProfit />} />
+            <Route path='config/sales-fifo' element={<SalesByFifo />} />
            
 
 

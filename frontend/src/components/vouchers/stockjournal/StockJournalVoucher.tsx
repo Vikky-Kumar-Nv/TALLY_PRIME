@@ -167,6 +167,7 @@ const StockJournalVoucher: React.FC = () => {
                     theme === 'dark' ? 'border-b border-gray-600' : 'border-b border-gray-300'
                   }`}>
                     <th className="px-4 py-2 text-left">Stock Item</th>
+                    <th className="px-4 py-2 text-left">Batch No.</th>
                     <th className="px-4 py-2 text-left">In/Out</th>
                     <th className="px-4 py-2 text-right">Quantity</th>
                     <th className="px-4 py-2 text-right">Rate</th>
@@ -202,6 +203,19 @@ const StockJournalVoucher: React.FC = () => {
                             </option>
                           ))}
                         </select>
+                      </td>
+                      <td className="px-4 py-2">
+                        <input
+                          title='Batch Number'
+                          type="text"
+                          name="batchNumber"
+                          placeholder="Batch No."
+                          className={`w-full p-2 rounded border ${
+                            theme === 'dark' 
+                              ? 'bg-gray-700 border-gray-600 focus:border-blue-500' 
+                              : 'bg-white border-gray-300 focus:border-blue-500'
+                          } outline-none transition-colors`}
+                        />
                       </td>
                       <td className="px-4 py-2">
                         <select
