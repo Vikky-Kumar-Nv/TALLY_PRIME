@@ -195,7 +195,7 @@ const ActionButton: React.FC<{
   );
 };
 
-const Form27Q: React.FC = () => {
+const Form27QPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'list' | 'create' | 'upload'>('list');
   const [errors] = useState<Record<string, string>>({});
@@ -1227,4 +1227,4 @@ const Form27Q: React.FC = () => {
   );
 };
 
-export default Form27Q;
+export default Form27QPage;

@@ -130,7 +130,7 @@ import TDSSummary from './components/modules/tds/TDSSummary';
 import TDSModule from './components/modules/tds/TDSModule';
 import Form24Q from './components/modules/tds/Form24Q';
 import Form26Q from './components/modules/tds/Form26Q';
-import Form27Q from './components/modules/tds/Form27Q';
+import Form27QPage from './components/modules/tds/Form27QPage';
 import Form27EQ from './components/modules/tds/Form27EQ';
 import TDSRates from './components/modules/tds/TDSRates';
 import Form16 from './components/modules/tds/Form16';
@@ -153,6 +153,9 @@ import LoginHistory from './components/audit/LoginHistory';
 import DataChanges from './components/audit/DataChanges';
 import SecuritySettings from './components/audit/SecuritySettings';
 import RiskAssessment from './components/audit/RiskAssessment';
+import CMAModule from './components/modules/CMAModule';
+import CMAReport from './components/audit/CMAReport';
+import DPRReport from './components/audit/DPRReport';
 import ExceptionReports from './components/audit/ExceptionReports';
 import PeriodAnalysis from './components/audit/PeriodAnalysis';
 import UserReports from './components/audit/UserReports';
@@ -374,7 +377,7 @@ function App() {
             <Route path="tds" element={<TDSModule />} />
                <Route path='tds/form-24q' element={<Form24Q />} />
                <Route path='tds/form-26q' element={<Form26Q />} />
-               <Route path='tds/form-27q' element={<Form27Q />} />
+               <Route path='tds/form-27q' element={<Form27QPage />} />
                <Route path='tds/form-27eq' element={<Form27EQ />} />
                <Route path='tds/summary' element={<TDSSummary />} />
                <Route path='tds/rates' element={<TDSRates />} />
@@ -397,6 +400,9 @@ function App() {
                 <Route path='audit/exceptions' element={<ExceptionReports />} />
                 <Route path='audit/period-analysis' element={<PeriodAnalysis />} />
                 <Route path='audit/user-reports' element={<UserReports />} />
+                <Route path='audit/cma' element={<CMAModule />} />
+                <Route path='audit/cma-report' element={<CMAReport />} />
+                <Route path='audit/dpr' element={<DPRReport />} />
                 <Route path='audit/3-Cb' element={<Form3CB />} />
                 <Route path='audit/3-ca' element={<Form3CA />} />
                 <Route path='audit/3-cd' element={<Form3CD />} /> 
