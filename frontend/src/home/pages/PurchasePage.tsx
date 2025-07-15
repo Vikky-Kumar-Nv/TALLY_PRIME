@@ -127,7 +127,7 @@ const PurchasePage: React.FC = () => {
               </Link>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">Welcome, {user.fullName}</span>
+              <span className="text-sm text-gray-700">Welcome, {user.firstName}</span>
               <button
                 onClick={() => navigate('/app')}
                 className="text-indigo-600 hover:text-indigo-700 text-sm font-medium"

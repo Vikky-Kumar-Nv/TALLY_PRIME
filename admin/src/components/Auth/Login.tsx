@@ -2,15 +2,19 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAdmin } from '../../hooks/useAdmin';
 import { gsap } from 'gsap';
 import { Eye, EyeOff, Lock, Mail, Database } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 const Login: React.FC = () => {
-  const { setIsAuthenticated } = useAdmin();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const {  } = useAdmin();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-
+  const [errors, setErrors] = useState<Record<string, string>>({});
+const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    rememberMe: false
+  });
   const containerRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
 
@@ -28,21 +32,79 @@ const Login: React.FC = () => {
     );
   }, []);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
+  const navigate = useNavigate();
 
-    // Simulate API call
-    setTimeout(() => {
-      if (email === 'admin@tallyprime.com' && password === 'admin123') {
-        setIsAuthenticated(true);
-      } else {
-        setError('Invalid email or password');
-      }
-      setIsLoading(false);
-    }, 1500);
-  };
+  // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const { name, value, type, checked } = e.target;
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     [name]: type === 'checkbox' ? checked : value
+  //   }));
+    
+  //   // Clear error when user starts typing
+  //   if (errors[name]) {
+  //     setErrors(prev => ({
+  //       ...prev,
+  //       [name]: ''
+  //     }));
+  //   }
+  // };
+
+  
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  
+
+
+  try {
+    const response = await fetch('http://localhost:5000/api/admin/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: formData.email,
+        password: formData.password
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: data.message,
+              }).then(() => {
+                navigate('/dashboard'); // or your route to go back
+              });
+
+    } else {
+      setErrors({ submit: data.message || 'Invalid email or password' });
+    }
+  } catch (error) {
+    console.error('Login Error:', error);
+    setErrors({ submit: 'An unexpected error occurred' });
+  } finally {
+    setIsLoading(false);
+  }
+};
+  // const handleLogin = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setIsLoading(true);
+  //   setError('');
+
+  //   // Simulate API call
+  //   setTimeout(() => {
+  //     if (email === 'admin@tallyprime.com' && password === 'admin123') {
+  //       setIsAuthenticated(true);
+  //     } else {
+  //       setError('Invalid email or password');
+  //     }
+  //     setIsLoading(false);
+  //   }, 1500);
+  // };
 
   return (
     <div 
@@ -80,24 +142,27 @@ const Login: React.FC = () => {
           </div>
 
           {/* Login Form */}
-          <form onSubmit={handleLogin} className="space-y-6 xl:space-y-8">
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 xl:px-6 xl:py-4 rounded-xl text-sm xl:text-base">
-                {error}
-              </div>
-            )}
+          <form onSubmit={handleSubmit} className="space-y-6 xl:space-y-8">
+            {errors.submit && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl text-sm">
+                  {errors.submit}
+                </div>
+              )}
 
             <div>
               <div className="relative">
                 <Mail className="absolute left-3 xl:left-4 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5 xl:w-6 xl:h-6" />
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 xl:pl-12 pr-4 xl:pr-6 py-3 xl:py-4 2xl:py-5 border-2 border-white/30 rounded-xl xl:rounded-2xl placeholder-white/70 text-white text-base xl:text-lg focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 bg-white/10 backdrop-blur-sm transition-all duration-200"
-                  placeholder="Enter your email"
-                  required
-                />
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                className="w-full pl-10 xl:pl-12 pr-12 xl:pr-14 py-3 xl:py-4 2xl:py-5 border-2 border-white/30 rounded-xl xl:rounded-2xl placeholder-white/70 text-white text-base xl:text-lg focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 bg-white/10 backdrop-blur-sm transition-all duration-200"                placeholder="Enter your email"
+                required
+              />
+
               </div>
             </div>
 
@@ -106,12 +171,16 @@ const Login: React.FC = () => {
                 <Lock className="absolute left-3 xl:left-4 top-1/2 transform -translate-y-1/2 text-white/70 w-5 h-5 xl:w-6 xl:h-6" />
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 xl:pl-12 pr-12 xl:pr-14 py-3 xl:py-4 2xl:py-5 border-2 border-white/30 rounded-xl xl:rounded-2xl placeholder-white/70 text-white text-base xl:text-lg focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 bg-white/10 backdrop-blur-sm transition-all duration-200"
+                  name="password"
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  className="w-full pl-10 xl:pl-12 pr-4 xl:pr-6 py-3 xl:py-4 2xl:py-5 border-2 border-white/30 rounded-xl xl:rounded-2xl placeholder-white/70 text-white text-base xl:text-lg focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/50 bg-white/10 backdrop-blur-sm transition-all duration-200"
                   placeholder="Enter your password"
                   required
                 />
+
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -124,10 +193,15 @@ const Login: React.FC = () => {
 
             <div className="flex items-center">
               <input
-                title='Remember Password'
-                type="checkbox"
-                className="h-4 w-4 xl:h-5 xl:w-5 text-white focus:ring-white/50 border-white/30 rounded bg-white/10"
-              />
+              type="checkbox"
+              name="rememberMe"
+              checked={formData.rememberMe}
+              className="h-4 w-4 xl:h-5 xl:w-5 text-white focus:ring-white/50 border-white/30 rounded bg-white/10"
+              onChange={(e) =>
+                setFormData({ ...formData, rememberMe: e.target.checked })
+              }
+            />
+
               <label className="ml-3 text-sm xl:text-base text-white font-medium">
                 Remember Password
               </label>
@@ -168,3 +242,7 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+
+function setIsAuthenticated(arg0: boolean) {
+  throw new Error('Function not implemented.');
+}

@@ -64,6 +64,8 @@ app.use('/api/login', loginRoute);
 const companyRoutes = require('./routes/company');
 app.use('/api/company', companyRoutes);
 
+const adminloginRoute = require('./routes/adminlogin');
+app.use('/api/admin/login', adminloginRoute);
 // ✅ MySQL Connection
 const db = mysql.createConnection({
   host: 'localhost',
