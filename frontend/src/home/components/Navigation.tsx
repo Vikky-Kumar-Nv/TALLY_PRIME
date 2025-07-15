@@ -70,7 +70,7 @@ const Navigation: React.FC<NavigationProps> = ({ transparent = false, centered =
             <div className="flex items-center space-x-4">
               {user ? (
                 <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-700">Welcome, {`${user.firstName} ${user.lastName}`}</span>
+                  <span className="text-sm text-gray-700">Welcome, {user.fullName}</span>
                   <Link
                     to="/app"
                     className="text-[#6D30D4] hover:text-[#5a2bb5] px-3 py-2 text-sm font-medium transition duration-150"
