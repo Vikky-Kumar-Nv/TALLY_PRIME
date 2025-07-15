@@ -72,7 +72,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const mockUser: User = {
         id: '1',
         email,
-        fullName: 'John Doe',
+        firstName: 'John',
+        lastName: 'Doe',
+        companyName: 'Demo Company',
+        phoneNumber: '1234567890',
         hasSubscription: false,
         createdAt: new Date().toISOString(),
         lastLoginAt: new Date().toISOString(),
