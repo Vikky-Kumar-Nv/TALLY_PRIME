@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo,useEffect } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Printer, Download, Filter, Calendar, Eye } from 'lucide-react';
@@ -30,6 +30,8 @@ interface VoucherGroup {
   totalCredit: number;
   entries: DayBookEntry[];
   narration?: string;
+  entriesCount: number;
+  supplier_invoice_date: Date
 }
 
 const DayBook: React.FC = () => {
@@ -45,191 +47,247 @@ const DayBook: React.FC = () => {
     if (!itemId) return '';
     return stockItems.find(item => item.id === itemId)?.hsnCode || '';
   };
+  const [totals, setTotals] = useState({
+        totalDebit: 0,
+        totalCredit: 0,
+        netDifference: 0,
+        vouchersCount: 0,
+    });
+
+    const [daybookTotals, setDaybookTotals] = useState({
+    totalDebit: 0,
+    totalCredit: 0,
+    netDifference:0,
+    vouchersCount:0,
+    supplier_invoice_date:0
+});
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedDateRange, setSelectedDateRange] = useState('today');
   const [selectedVoucherType, setSelectedVoucherType] = useState('');
   const [viewMode, setViewMode] = useState<'detailed' | 'grouped'>('grouped');
   const [selectedVoucher, setSelectedVoucher] = useState<VoucherGroup | null>(null);
+ const [groupedVouchers, setGroupedVouchers] = useState<VoucherGroup[]>([]);
+const [processedEntries, setProcessedEntries] = useState<DayBookEntry[]>([]);
   // Process vouchers into Day Book entries
-  const processedEntries = useMemo((): DayBookEntry[] => {
-    if (!vouchers || vouchers.length === 0) return [];
+  useEffect(() => {
+    const employeeId = localStorage.getItem('employee_id');
+    if (!employeeId) return;
 
-    const entries: DayBookEntry[] = [];
-
-    vouchers.forEach(voucher => {
-      // Filter by date
-      const voucherDate = voucher.date;
-      const today = new Date().toISOString().split('T')[0];
-      
-      let includeVoucher = false;
-      switch (selectedDateRange) {
-        case 'today':
-          includeVoucher = voucherDate === today;
-          break;
-        case 'yesterday': {
-          const yesterday = new Date();
-          yesterday.setDate(yesterday.getDate() - 1);
-          includeVoucher = voucherDate === yesterday.toISOString().split('T')[0];
-          break;
-        }
-        case 'this-week': {
-          const weekStart = new Date();
-          weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-          includeVoucher = voucherDate >= weekStart.toISOString().split('T')[0] && voucherDate <= today;
-          break;
-        }
-        case 'this-month': {
-          const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-          includeVoucher = voucherDate >= monthStart.toISOString().split('T')[0] && voucherDate <= today;
-          break;
-        }
-        case 'custom':
-          includeVoucher = voucherDate === selectedDate;
-          break;
-        default:
-          includeVoucher = true;
-      }
-
-      // Filter by voucher type
-      if (selectedVoucherType && voucher.type !== selectedVoucherType) {
-        includeVoucher = false;
-      }
-
-      if (includeVoucher && voucher.entries) {
-        voucher.entries.forEach((entry, index) => {
-          const itemInfo = entry.itemId ? stockItems.find(item => item.id === entry.itemId) : null;
-          const ledgerInfo = entry.ledgerId ? ledgers.find(ledger => ledger.id === entry.ledgerId) : null;
-          
-          // For item-invoice vouchers, we need to handle the structure differently
-          if (voucher.mode === 'item-invoice' && voucher.type === 'sales') {
-            // For item entries, show item details
-            if (entry.itemId) {
-              entries.push({
-                id: `${voucher.id}-${index}`,
-                date: voucher.date,
-                voucherType: voucher.type || 'Journal',
-                voucherNo: voucher.number || 'Auto',
-                particulars: itemInfo ? itemInfo.name : 'Unknown Item',
-                ledgerName: 'Sales Item', // This is an item line
-                debit: 0, // Items don't directly debit/credit, they're the source
-                credit: 0,
-                voucherId: voucher.id,
-                narration: voucher.narration || entry.narration,
-                // Item fields
-                itemId: entry.itemId,
-                quantity: entry.quantity,
-                rate: entry.rate,
-                hsnCode: entry.hsnCode || (itemInfo ? itemInfo.hsnCode : undefined)
-              });
-            }
-            
-            // For sales ledger entry (this is usually derived, not explicitly in entries for item-invoice)
-            if (voucher.salesLedgerId) {
-              const salesLedger = ledgers.find(ledger => ledger.id === voucher.salesLedgerId);
-              const itemAmount = (entry.quantity || 0) * (entry.rate || 0);
-              if (salesLedger && itemAmount > 0) {
-                entries.push({
-                  id: `${voucher.id}-sales-${index}`,
-                  date: voucher.date,
-                  voucherType: voucher.type || 'Journal',
-                  voucherNo: voucher.number || 'Auto',
-                  particulars: salesLedger.name,
-                  ledgerName: salesLedger.name,
-                  debit: 0,
-                  credit: itemAmount, // Sales is credited
-                  voucherId: voucher.id,
-                  narration: `Sales of ${itemInfo ? itemInfo.name : 'item'}`,
-                  itemId: entry.itemId,
-                  quantity: entry.quantity,
-                  rate: entry.rate,
-                  hsnCode: entry.hsnCode || (itemInfo ? itemInfo.hsnCode : undefined)
-                });
-              }
-            }
-            
-            // For customer ledger entry (party ledger is debited)
-            if (voucher.partyId) {
-              const partyLedger = ledgers.find(ledger => ledger.id === voucher.partyId);
-              const itemAmount = (entry.quantity || 0) * (entry.rate || 0);
-              const gstRate = (entry.cgstRate || 0) + (entry.sgstRate || 0) + (entry.igstRate || 0);
-              const gstAmount = itemAmount * gstRate / 100;
-              const totalAmount = itemAmount + gstAmount - (entry.discount || 0);
-              
-              if (partyLedger && totalAmount > 0) {
-                entries.push({
-                  id: `${voucher.id}-party-${index}`,
-                  date: voucher.date,
-                  voucherType: voucher.type || 'Journal',
-                  voucherNo: voucher.number || 'Auto',
-                  particulars: partyLedger.name,
-                  ledgerName: partyLedger.name,
-                  debit: totalAmount, // Customer is debited
-                  credit: 0,
-                  voucherId: voucher.id,
-                  narration: `Sale to ${partyLedger.name}`,
-                });
-              }
-            }
-          } else {
-            // For non-item-invoice vouchers, use the original logic
-            entries.push({
-              id: `${voucher.id}-${index}`,
-              date: voucher.date,
-              voucherType: voucher.type || 'Journal',
-              voucherNo: voucher.number || 'Auto',
-              particulars: itemInfo ? itemInfo.name : (ledgerInfo ? ledgerInfo.name : ''),
-              ledgerName: ledgerInfo ? ledgerInfo.name : '',
-              debit: entry.type === 'debit' ? entry.amount : 0,
-              credit: entry.type === 'credit' ? entry.amount : 0,
-              voucherId: voucher.id,
-              narration: voucher.narration || entry.narration,
-              // Item fields
-              itemId: entry.itemId,
-              quantity: entry.quantity,
-              rate: entry.rate,
-              hsnCode: entry.hsnCode || (itemInfo ? itemInfo.hsnCode : undefined)
+    fetch(`http://localhost:5000/api/DayBookCards`)
+        .then(res => res.json())
+        .then(data => {
+            setTotals({
+                totalDebit: data.totalDebit,
+                totalCredit: data.totalCredit,
+                netDifference: data.netDifference,
+                vouchersCount: data.vouchersCount
             });
-          }
-        });
-      }
-    });
+        })
+        .catch(err => console.error('Failed to fetch totals', err));
+}, []);
 
-    return entries.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [vouchers, ledgers, stockItems, selectedDateRange, selectedDate, selectedVoucherType]);
+useEffect(() => {
+  const fetchData = async () => {
+    const res = await fetch('http://localhost:5000/api/daybookTable');
+    const data = await res.json();
+
+    setGroupedVouchers(data.groupedVouchers  || []);
+    setDaybookTotals({
+      totalDebit: data.totalDebit,
+      totalCredit: data.totalCredit,
+      netDifference: data.netDifference,
+      vouchersCount: data.vouchersCount,
+      supplier_invoice_date:data.supplier_invoice_date
+    });
+  };
+  fetchData();
+},[]); // Whatever triggers your refetch.
+
+
+
+
+  // const processedEntries = useMemo((): DayBookEntry[] => {
+
+
+
+  //   if (!vouchers || vouchers.length === 0) return [];
+
+  //   const entries: DayBookEntry[] = [];
+
+  //   vouchers.forEach(voucher => {
+  //     // Filter by date
+  //     const voucherDate = voucher.date;
+  //     const today = new Date().toISOString().split('T')[0];
+      
+  //     let includeVoucher = false;
+  //     switch (selectedDateRange) {
+  //       case 'today':
+  //         includeVoucher = voucherDate === today;
+  //         break;
+  //       case 'yesterday': {
+  //         const yesterday = new Date();
+  //         yesterday.setDate(yesterday.getDate() - 1);
+  //         includeVoucher = voucherDate === yesterday.toISOString().split('T')[0];
+  //         break;
+  //       }
+  //       case 'this-week': {
+  //         const weekStart = new Date();
+  //         weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  //         includeVoucher = voucherDate >= weekStart.toISOString().split('T')[0] && voucherDate <= today;
+  //         break;
+  //       }
+  //       case 'this-month': {
+  //         const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  //         includeVoucher = voucherDate >= monthStart.toISOString().split('T')[0] && voucherDate <= today;
+  //         break;
+  //       }
+  //       case 'custom':
+  //         includeVoucher = voucherDate === selectedDate;
+  //         break;
+  //       default:
+  //         includeVoucher = true;
+  //     }
+
+  //     // Filter by voucher type
+  //     if (selectedVoucherType && voucher.type !== selectedVoucherType) {
+  //       includeVoucher = false;
+  //     }
+
+  //     if (includeVoucher && voucher.entries) {
+  //       voucher.entries.forEach((entry, index) => {
+  //         const itemInfo = entry.itemId ? stockItems.find(item => item.id === entry.itemId) : null;
+  //         const ledgerInfo = entry.ledgerId ? ledgers.find(ledger => ledger.id === entry.ledgerId) : null;
+          
+  //         // For item-invoice vouchers, we need to handle the structure differently
+  //         if (voucher.mode === 'item-invoice' && voucher.type === 'sales') {
+  //           // For item entries, show item details
+  //           if (entry.itemId) {
+  //             entries.push({
+  //               id: `${voucher.id}-${index}`,
+  //               date: voucher.date,
+  //               voucherType: voucher.type || 'Journal',
+  //               voucherNo: voucher.number || 'Auto',
+  //               particulars: itemInfo ? itemInfo.name : 'Unknown Item',
+  //               ledgerName: 'Sales Item', // This is an item line
+  //               debit: 0, // Items don't directly debit/credit, they're the source
+  //               credit: 0,
+  //               voucherId: voucher.id,
+  //               narration: voucher.narration || entry.narration,
+  //               // Item fields
+  //               itemId: entry.itemId,
+  //               quantity: entry.quantity,
+  //               rate: entry.rate,
+  //               hsnCode: entry.hsnCode || (itemInfo ? itemInfo.hsnCode : undefined)
+  //             });
+  //           }
+            
+  //           // For sales ledger entry (this is usually derived, not explicitly in entries for item-invoice)
+  //           if (voucher.salesLedgerId) {
+  //             const salesLedger = ledgers.find(ledger => ledger.id === voucher.salesLedgerId);
+  //             const itemAmount = (entry.quantity || 0) * (entry.rate || 0);
+  //             if (salesLedger && itemAmount > 0) {
+  //               entries.push({
+  //                 id: `${voucher.id}-sales-${index}`,
+  //                 date: voucher.date,
+  //                 voucherType: voucher.type || 'Journal',
+  //                 voucherNo: voucher.number || 'Auto',
+  //                 particulars: salesLedger.name,
+  //                 ledgerName: salesLedger.name,
+  //                 debit: 0,
+  //                 credit: itemAmount, // Sales is credited
+  //                 voucherId: voucher.id,
+  //                 narration: `Sales of ${itemInfo ? itemInfo.name : 'item'}`,
+  //                 itemId: entry.itemId,
+  //                 quantity: entry.quantity,
+  //                 rate: entry.rate,
+  //                 hsnCode: entry.hsnCode || (itemInfo ? itemInfo.hsnCode : undefined)
+  //               });
+  //             }
+  //           }
+            
+  //           // For customer ledger entry (party ledger is debited)
+  //           if (voucher.partyId) {
+  //             const partyLedger = ledgers.find(ledger => ledger.id === voucher.partyId);
+  //             const itemAmount = (entry.quantity || 0) * (entry.rate || 0);
+  //             const gstRate = (entry.cgstRate || 0) + (entry.sgstRate || 0) + (entry.igstRate || 0);
+  //             const gstAmount = itemAmount * gstRate / 100;
+  //             const totalAmount = itemAmount + gstAmount - (entry.discount || 0);
+              
+  //             if (partyLedger && totalAmount > 0) {
+  //               entries.push({
+  //                 id: `${voucher.id}-party-${index}`,
+  //                 date: voucher.date,
+  //                 voucherType: voucher.type || 'Journal',
+  //                 voucherNo: voucher.number || 'Auto',
+  //                 particulars: partyLedger.name,
+  //                 ledgerName: partyLedger.name,
+  //                 debit: totalAmount, // Customer is debited
+  //                 credit: 0,
+  //                 voucherId: voucher.id,
+  //                 narration: `Sale to ${partyLedger.name}`,
+  //               });
+  //             }
+  //           }
+  //         } else {
+  //           // For non-item-invoice vouchers, use the original logic
+  //           entries.push({
+  //             id: `${voucher.id}-${index}`,
+  //             date: voucher.date,
+  //             voucherType: voucher.type || 'Journal',
+  //             voucherNo: voucher.number || 'Auto',
+  //             particulars: itemInfo ? itemInfo.name : (ledgerInfo ? ledgerInfo.name : ''),
+  //             ledgerName: ledgerInfo ? ledgerInfo.name : '',
+  //             debit: entry.type === 'debit' ? entry.amount : 0,
+  //             credit: entry.type === 'credit' ? entry.amount : 0,
+  //             voucherId: voucher.id,
+  //             narration: voucher.narration || entry.narration,
+  //             // Item fields
+  //             itemId: entry.itemId,
+  //             quantity: entry.quantity,
+  //             rate: entry.rate,
+  //             hsnCode: entry.hsnCode || (itemInfo ? itemInfo.hsnCode : undefined)
+  //           });
+  //         }
+  //       });
+  //     }
+  //   });
+
+  //   return entries.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  // }, [vouchers, ledgers, stockItems, selectedDateRange, selectedDate, selectedVoucherType]);
 
   // Group entries by voucher for grouped view
-  const groupedVouchers = useMemo((): VoucherGroup[] => {
-    const groups: { [key: string]: VoucherGroup } = {};
+  // const groupedVouchers = useMemo((): VoucherGroup[] => {
+  //   const groups: { [key: string]: VoucherGroup } = {};
 
-    processedEntries.forEach(entry => {
-      if (!groups[entry.voucherId]) {
-        groups[entry.voucherId] = {
-          voucherId: entry.voucherId,
-          voucherNo: entry.voucherNo,
-          voucherType: entry.voucherType,
-          date: entry.date,
-          totalDebit: 0,
-          totalCredit: 0,
-          entries: [],
-          narration: entry.narration
-        };
-      }
+  //   processedEntries.forEach(entry => {
+  //     if (!groups[entry.voucherId]) {
+  //       groups[entry.voucherId] = {
+  //         voucherId: entry.voucherId,
+  //         voucherNo: entry.voucherNo,
+  //         voucherType: entry.voucherType,
+  //         date: entry.date,
+  //         totalDebit: 0,
+  //         totalCredit: 0,
+  //         entries: [],
+  //         narration: entry.narration
+  //       };
+  //     }
 
-      groups[entry.voucherId].entries.push(entry);
-      groups[entry.voucherId].totalDebit += entry.debit;
-      groups[entry.voucherId].totalCredit += entry.credit;
-    });
+  //     groups[entry.voucherId].entries.push(entry);
+  //     groups[entry.voucherId].totalDebit += entry.debit;
+  //     groups[entry.voucherId].totalCredit += entry.credit;
+  //   });
 
-    return Object.values(groups).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [processedEntries]);
+  //   return Object.values(groups).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  // }, [processedEntries]);
 
   // Calculate totals
-  const totals = useMemo(() => {
-    const totalDebit = processedEntries.reduce((sum, entry) => sum + entry.debit, 0);
-    const totalCredit = processedEntries.reduce((sum, entry) => sum + entry.credit, 0);
-    return { totalDebit, totalCredit };
-  }, [processedEntries]);
+  // const totals = useMemo(() => {
+  //   const totalDebit = processedEntries.reduce((sum, entry) => sum + entry.debit, 0);
+  //   const totalCredit = processedEntries.reduce((sum, entry) => sum + entry.credit, 0);
+  //   return { totalDebit, totalCredit };
+  // }, [processedEntries]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -425,7 +483,8 @@ const DayBook: React.FC = () => {
         }`}>
           <div className="text-sm text-gray-500">Vouchers</div>
           <div className="text-xl font-bold text-gray-600">
-            {viewMode === 'grouped' ? groupedVouchers.length : processedEntries.length}
+             {((totals.vouchersCount))}
+            {/* {viewMode === 'grouped' ? groupedVouchers.length : processedEntries.length} */}
           </div>
         </div>
       </div>
@@ -464,7 +523,7 @@ const DayBook: React.FC = () => {
           <div className="flex items-center space-x-2">
             <Calendar size={16} className="text-gray-500" />
             <span className="text-sm text-gray-500">
-              {viewMode === 'grouped' ? `${groupedVouchers.length} vouchers` : `${processedEntries.length} entries`}
+              {/* {viewMode === 'grouped' ? `${groupedVouchers.length} vouchers` : `${processedEntries.length} entries`} */}
             </span>
           </div>
         </div>
@@ -486,12 +545,12 @@ const DayBook: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {groupedVouchers.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center opacity-70">
-                      No vouchers found for the selected criteria
-                    </td>
-                  </tr>
+                {groupedVouchers.length === 0 ?  (
+                 <tr>
+      <td colSpan={7} className="px-4 py-8 text-center opacity-70">
+        No vouchers found for the selected criteria
+      </td>
+    </tr>
                 ) : (
                   groupedVouchers.map((voucher) => (
                     <tr 
@@ -501,7 +560,16 @@ const DayBook: React.FC = () => {
                       } cursor-pointer`}
                       onClick={() => handleVoucherClick(voucher)}
                     >
-                      <td className="px-4 py-3">{formatDate(voucher.date)}</td>
+                      <td className="px-4 py-3">
+  {voucher.supplier_invoice_date
+    ? formatDate(
+        typeof voucher.supplier_invoice_date === 'string'
+          ? voucher.supplier_invoice_date
+          : voucher.supplier_invoice_date.toISOString().slice(0, 10)
+      )
+    : '-'}
+</td>
+
                       <td className="px-4 py-3">
                         <span className={`px-2 py-1 rounded-full text-xs ${
                           voucher.voucherType === 'sales' ? 'bg-green-100 text-green-800' :
@@ -514,7 +582,7 @@ const DayBook: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3 font-mono">{voucher.voucherNo}</td>
-                      <td className="px-4 py-3">{voucher.entries.length} entries</td>
+                      <td className="px-4 py-3">{voucher.entriesCount} entries</td>
                       <td className="px-4 py-3 text-right font-mono">{formatCurrency(voucher.totalDebit)}</td>
                       <td className="px-4 py-3 text-right font-mono">{formatCurrency(voucher.totalCredit)}</td>
                       <td className="px-4 py-3 text-center">
@@ -535,18 +603,18 @@ const DayBook: React.FC = () => {
                   ))
                 )}
               </tbody>
-              {groupedVouchers.length > 0 && (
-                <tfoot>
-                  <tr className={`${
-                    theme === 'dark' ? 'border-t-2 border-gray-600 bg-gray-700' : 'border-t-2 border-gray-400 bg-gray-50'
-                  }`}>
-                    <td colSpan={4} className="px-4 py-3 font-bold">Total:</td>
-                    <td className="px-4 py-3 text-right font-bold font-mono">{formatCurrency(totals.totalDebit)}</td>
-                    <td className="px-4 py-3 text-right font-bold font-mono">{formatCurrency(totals.totalCredit)}</td>
-                    <td></td>
-                  </tr>
-                </tfoot>
-              )}
+              {groupedVouchers?.length > 0 && (
+    <tfoot>
+        <tr className={`${
+            theme === 'dark' ? 'border-t-2 border-gray-600 bg-gray-700' : 'border-t-2 border-gray-400 bg-gray-50'
+        }`}>
+            <td colSpan={4} className="px-4 py-3 font-bold">Total:</td>
+            <td className="px-4 py-3 text-right font-bold font-mono">{formatCurrency(totals.totalDebit)}</td>
+            <td className="px-4 py-3 text-right font-bold font-mono">{formatCurrency(totals.totalCredit)}</td>
+            <td></td>
+        </tr>
+    </tfoot>
+)}
             </table>
           ) : (
             <table className="w-full">

@@ -32,11 +32,7 @@ const StockItemList = () => {
         <h1 className="text-2xl font-bold">Stock Items</h1>
         <Link
           to="/app/masters/stock-item/create"
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-            theme === 'dark' 
-              ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
-          }`}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors bg-blue-600 hover:bg-blue-700 text-white"
         >
           <Plus size={18} />
           <span>New Stock Item</span>

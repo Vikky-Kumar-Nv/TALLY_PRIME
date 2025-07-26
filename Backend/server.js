@@ -66,6 +66,33 @@ app.use('/api/company', companyRoutes);
 
 const adminloginRoute = require('./routes/adminlogin');
 app.use('/api/admin/login', adminloginRoute);
+
+const ledgerDropdown = require("./routes/ledgerDropdown");
+app.use("/api/ledger-dropdown", ledgerDropdown);
+
+
+const salesOrders = require('./routes/salesOrders');
+app.use('/api/sales-orders', salesOrders);
+
+
+const DebitNoteVoucher = require('./routes/DebitNoteVoucher');
+app.use('/api/DebitNoteVoucher', DebitNoteVoucher);
+
+const CreditNotevoucher = require('./routes/CreditNotevoucher');
+app.use('/api/CreditNotevoucher', CreditNotevoucher);
+
+const StockJournal = require('./routes/StockJournal');
+app.use('/api/StockJournal', StockJournal);
+
+const DeliveryItem = require('./routes/DeliveryItem');
+app.use('/api/DeliveryItem', DeliveryItem);
+
+const DayBookCards = require('./routes/DayBookCards');
+app.use('/api/DayBookCards', DayBookCards);
+
+const daybookTable = require('./routes/daybookTable');
+app.use('/api/daybookTable', daybookTable);
+
 // ✅ MySQL Connection
 const db = mysql.createConnection({
   host: 'localhost',
