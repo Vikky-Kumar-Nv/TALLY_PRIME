@@ -76,7 +76,7 @@ router.post("/api/tds26q", async (req, res) => {
           returnId, // 1
           ch.serialNo || index + 1, // 2
           ch.bsrCode || '', // 3
-          ch.dateOfDeposit || null, // 4
+          ch.dateOfDeposit, // 4
           ch.challanSerialNo || '', // 5
           ch.tax || 0, // 6
           ch.surcharge || 0, // 7

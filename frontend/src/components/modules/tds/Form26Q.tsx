@@ -418,7 +418,26 @@ const Form26Q: React.FC = () => {
     { value: 'UK', label: 'Uttarakhand' },
     { value: 'WB', label: 'West Bengal' }
   ];
+// Add selectedYear state before useEffect
+const [selectedYear, setSelectedYear] = useState('2024-25');
 
+React.useEffect(() => {
+  const fetchReturns = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`http://localhost:5000/api/tds26q?year=${selectedYear}`);
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+      setReturnsList(data);
+    } catch (error) {
+      console.error("Fetch returns error:", error);
+      setReturnsList([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchReturns();
+}, [selectedYear]);
   // Handler functions
   const handleDeductorChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -1420,3 +1439,11 @@ const Form26Q: React.FC = () => {
 };
 
 export default Form26Q;
+
+function setReturnsList(data: any) {
+  throw new Error('Function not implemented.');
+}
+function setLoading(arg0: boolean) {
+  throw new Error('Function not implemented.');
+}
+
