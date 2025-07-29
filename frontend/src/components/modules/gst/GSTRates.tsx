@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, Filter, Download, Eye, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,77 +17,23 @@ const GSTRates: React.FC = () => {
   const navigate = useNavigate();
   const [selectedRate, setSelectedRate] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [gstRates, setGstRates] = useState<GSTRate[]>([]);
 
-  // Sample GST rates data
-  const gstRates: GSTRate[] = [
-    {
-      id: '1',
-      category: 'Food Items',
-      description: 'Rice, wheat, flour',
-      hsnCode: '1001-1008',
-      gstRate: 0,
-      effectiveFrom: '2017-07-01'
-    },
-    {
-      id: '2',
-      category: 'Medicines',
-      description: 'Life saving drugs',
-      hsnCode: '3001-3006',
-      gstRate: 5,
-      effectiveFrom: '2017-07-01'
-    },
-    {
-      id: '3',
-      category: 'Textiles',
-      description: 'Cotton fabrics',
-      hsnCode: '5208-5212',
-      gstRate: 5,
-      effectiveFrom: '2017-07-01'
-    },
-    {
-      id: '4',
-      category: 'Electronics',
-      description: 'Mobile phones',
-      hsnCode: '8517',
-      gstRate: 12,
-      effectiveFrom: '2017-07-01'
-    },
-    {
-      id: '5',
-      category: 'Services',
-      description: 'Restaurant services',
-      hsnCode: '996331',
-      gstRate: 18,
-      effectiveFrom: '2017-07-01'
-    },
-    {
-      id: '6',
-      category: 'Automobiles',
-      description: 'Motor cars',
-      hsnCode: '8703',
-      gstRate: 28,
-      cess: 15,
-      effectiveFrom: '2017-07-01'
-    },
-    {
-      id: '7',
-      category: 'Luxury Items',
-      description: 'Cigarettes',
-      hsnCode: '2402',
-      gstRate: 28,
-      cess: 290,
-      effectiveFrom: '2017-07-01'
-    },
-    {
-      id: '8',
-      category: 'IT Services',
-      description: 'Software development',
-      hsnCode: '998314',
-      gstRate: 18,
-      effectiveFrom: '2017-07-01'
+  useEffect(() => {
+  const fetchRates = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/gst-rates');
+      const data = await response.json();
+      setGstRates(data); // you'll need to add setGstRates to useState
+    } catch (error) {
+      console.error('Failed to fetch GST rates:', error);
     }
-  ];
+  };
 
+  fetchRates();
+}, []);
+
+  
   const categories = ['all', ...Array.from(new Set(gstRates.map(rate => rate.category)))];
   const rates = ['all', '0', '5', '12', '18', '28'];
 

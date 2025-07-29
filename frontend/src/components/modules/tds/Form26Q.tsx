@@ -539,13 +539,35 @@ const Form26Q: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   }, [deductorDetails, challanDetails, deducteeDetails, verification]);
 
-  const handleSaveForm = useCallback(() => {
-    if (validateForm()) {
-      console.log('Form saved successfully');
-      alert('Form saved successfully!');
+  const handleSaveForm = useCallback(async () => {
+    
+  const payload = {
+    deductorDetails,
+    challanDetails,
+    deducteeDetails,
+    verification,
+    assessmentYear: deductorDetails.assessmentYear,
+  };
+
+  try {
+    const res = await fetch("http://localhost:5000/api/tds26q", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      alert("Form 26Q saved successfully.");
+      // Optionally reset form or redirect
     } else {
-      alert('Please fix the errors before saving');
+      alert("Failed to save: " + (data.error || "Unknown error"));
     }
+  } catch (err) {
+    console.error("Error submitting Form 26Q:", err);
+    alert("Error submitting form.");
+  }
+
   }, [validateForm]);
 
   const generatePreviewHTML = useCallback(() => {

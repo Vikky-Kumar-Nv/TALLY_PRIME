@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { 
   ArrowLeft, FileText, Upload, Plus, Save, Eye, Printer, 
   Trash2, Download
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import axios from "axios";
 
 // Complete Form 24Q Interfaces based on Official PDF Structure
 interface TaxDeductionAccount {
@@ -241,6 +242,69 @@ const ActionButton: React.FC<{
   );
 };
 
+// Financial Years options for dropdown
+const financialYears = [
+  { value: '2024-25', label: '2024-25' },
+  { value: '2023-24', label: '2023-24' },
+  { value: '2022-23', label: '2022-23' },
+];
+
+// Assessment Years options for dropdown
+const assessmentYears = [
+  { value: '2024-25', label: '2024-25' },
+  { value: '2023-24', label: '2023-24' },
+  { value: '2022-23', label: '2022-23' },
+];
+
+// Deductor Types options for dropdown
+const deductorTypes = [
+  { value: 'Government', label: 'Government' },
+  { value: 'Company', label: 'Company' },
+  { value: 'Firm', label: 'Firm' },
+  { value: 'Individual', label: 'Individual' },
+  { value: 'Others', label: 'Others' }
+];
+
+// Indian States options for dropdown
+const states = [
+  { value: 'Andhra Pradesh', label: 'Andhra Pradesh' },
+  { value: 'Arunachal Pradesh', label: 'Arunachal Pradesh' },
+  { value: 'Assam', label: 'Assam' },
+  { value: 'Bihar', label: 'Bihar' },
+  { value: 'Chhattisgarh', label: 'Chhattisgarh' },
+  { value: 'Goa', label: 'Goa' },
+  { value: 'Gujarat', label: 'Gujarat' },
+  { value: 'Haryana', label: 'Haryana' },
+  { value: 'Himachal Pradesh', label: 'Himachal Pradesh' },
+  { value: 'Jharkhand', label: 'Jharkhand' },
+  { value: 'Karnataka', label: 'Karnataka' },
+  { value: 'Kerala', label: 'Kerala' },
+  { value: 'Madhya Pradesh', label: 'Madhya Pradesh' },
+  { value: 'Maharashtra', label: 'Maharashtra' },
+  { value: 'Manipur', label: 'Manipur' },
+  { value: 'Meghalaya', label: 'Meghalaya' },
+  { value: 'Mizoram', label: 'Mizoram' },
+  { value: 'Nagaland', label: 'Nagaland' },
+  { value: 'Odisha', label: 'Odisha' },
+  { value: 'Punjab', label: 'Punjab' },
+  { value: 'Rajasthan', label: 'Rajasthan' },
+  { value: 'Sikkim', label: 'Sikkim' },
+  { value: 'Tamil Nadu', label: 'Tamil Nadu' },
+  { value: 'Telangana', label: 'Telangana' },
+  { value: 'Tripura', label: 'Tripura' },
+  { value: 'Uttar Pradesh', label: 'Uttar Pradesh' },
+  { value: 'Uttarakhand', label: 'Uttarakhand' },
+  { value: 'West Bengal', label: 'West Bengal' },
+  { value: 'Andaman and Nicobar Islands', label: 'Andaman and Nicobar Islands' },
+  { value: 'Chandigarh', label: 'Chandigarh' },
+  { value: 'Dadra and Nagar Haveli and Daman and Diu', label: 'Dadra and Nagar Haveli and Daman and Diu' },
+  { value: 'Delhi', label: 'Delhi' },
+  { value: 'Jammu and Kashmir', label: 'Jammu and Kashmir' },
+  { value: 'Ladakh', label: 'Ladakh' },
+  { value: 'Lakshadweep', label: 'Lakshadweep' },
+  { value: 'Puducherry', label: 'Puducherry' }
+];
+
 const Form24Q: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'list' | 'create' | 'upload'>('list');
@@ -326,115 +390,35 @@ const Form24Q: React.FC = () => {
     designation: '',
     signature: ''
   });
+const [quarterlyReturns, setQuarterlyReturns] = useState<QuarterlyReturn[]>([]);
+const [selectedYear, setSelectedYear] = useState('2023-24');
+// Years options for dropdown
+const years = [
+  { value: '2024-25', label: '2024-25' },
+  { value: '2023-24', label: '2023-24' },
+  { value: '2022-23', label: '2022-23' },
+  { value: '2021-22', label: '2021-22' }
+];
 
   // Mock data for display
-  const quarterlyReturns: QuarterlyReturn[] = [
-    {
-      id: '1',
-      quarter: 'Q4',
-      year: '2023-24',
-      status: 'filed',
-      filingDate: '2024-01-15',
-      acknowledgmentNo: 'ACK123456789',
-      totalDeductees: 150,
-      totalTDS: 2500000,
-      dueDate: '2024-01-31'
-    },
-    {
-      id: '2',
-      quarter: 'Q3',
-      year: '2023-24',
-      status: 'filed',
-      filingDate: '2023-10-30',
-      acknowledgmentNo: 'ACK987654321',
-      totalDeductees: 142,
-      totalTDS: 2300000,
-      dueDate: '2023-10-31'
-    },
-    {
-      id: '3',
-      quarter: 'Q2',
-      year: '2023-24',
-      status: 'revised',
-      filingDate: '2023-07-28',
-      acknowledgmentNo: 'ACK456789123',
-      totalDeductees: 138,
-      totalTDS: 2200000,
-      dueDate: '2023-07-31'
-    },
-    {
-      id: '4',
-      quarter: 'Q1',
-      year: '2024-25',
-      status: 'draft',
-      totalDeductees: 0,
-      totalTDS: 0,
-      dueDate: '2024-07-31'
+  
+useEffect(() => {
+  const fetchReturns = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/tds24q?year=${selectedYear}`);
+      const data = await response.json();
+      setQuarterlyReturns(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setQuarterlyReturns([]);
     }
-  ];
+  };
+  fetchReturns();
+}, [selectedYear]);
 
-  // Options for dropdowns
-  const financialYears = [
-    { value: '2024-25', label: 'FY 2024-25' },
-    { value: '2023-24', label: 'FY 2023-24' },
-    { value: '2022-23', label: 'FY 2022-23' }
-  ];
-
-  const assessmentYears = [
-    { value: '2024-25', label: 'AY 2024-25' },
-    { value: '2023-24', label: 'AY 2023-24' },
-    { value: '2022-23', label: 'AY 2022-23' }
-  ];
-
-  const deductorTypes = [
-    { value: 'Company', label: 'Company' },
-    { value: 'Individual/HUF', label: 'Individual/HUF' },
-    { value: 'Firm', label: 'Firm' },
-    { value: 'AOP/BOI', label: 'AOP/BOI' },
-    { value: 'Local Authority', label: 'Local Authority' },
-    { value: 'Artificial Juridical Person', label: 'Artificial Juridical Person' },
-    { value: 'Government', label: 'Government' },
-    { value: 'Others', label: 'Others' }
-  ];
-
-  const states = [
-    { value: 'AN', label: 'Andaman and Nicobar Islands' },
-    { value: 'AP', label: 'Andhra Pradesh' },
-    { value: 'AR', label: 'Arunachal Pradesh' },
-    { value: 'AS', label: 'Assam' },
-    { value: 'BR', label: 'Bihar' },
-    { value: 'CG', label: 'Chhattisgarh' },
-    { value: 'CH', label: 'Chandigarh' },
-    { value: 'DN', label: 'Dadra and Nagar Haveli' },
-    { value: 'DD', label: 'Daman and Diu' },
-    { value: 'DL', label: 'Delhi' },
-    { value: 'GA', label: 'Goa' },
-    { value: 'GJ', label: 'Gujarat' },
-    { value: 'HR', label: 'Haryana' },
-    { value: 'HP', label: 'Himachal Pradesh' },
-    { value: 'JK', label: 'Jammu and Kashmir' },
-    { value: 'JH', label: 'Jharkhand' },
-    { value: 'KA', label: 'Karnataka' },
-    { value: 'KL', label: 'Kerala' },
-    { value: 'LD', label: 'Lakshadweep' },
-    { value: 'MP', label: 'Madhya Pradesh' },
-    { value: 'MH', label: 'Maharashtra' },
-    { value: 'MN', label: 'Manipur' },
-    { value: 'ML', label: 'Meghalaya' },
-    { value: 'MZ', label: 'Mizoram' },
-    { value: 'NL', label: 'Nagaland' },
-    { value: 'OR', label: 'Odisha' },
-    { value: 'PY', label: 'Puducherry' },
-    { value: 'PB', label: 'Punjab' },
-    { value: 'RJ', label: 'Rajasthan' },
-    { value: 'SK', label: 'Sikkim' },
-    { value: 'TN', label: 'Tamil Nadu' },
-    { value: 'TS', label: 'Telangana' },
-    { value: 'TR', label: 'Tripura' },
-    { value: 'UP', label: 'Uttar Pradesh' },
-    { value: 'UK', label: 'Uttarakhand' },
-    { value: 'WB', label: 'West Bengal' }
-  ];
+// const total = quarterlyReturns.length;
+// const filed = quarterlyReturns.filter(r => r.status === 'filed').length;
+// const revised = quarterlyReturns.filter(r => r.status === 'revised').length;
+// const draft = quarterlyReturns.filter(r => r.status === 'draft').length;
 
   // Event Handlers using useCallback for optimization
   const handleTaxDeductionAccountChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -578,14 +562,31 @@ const Form24Q: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   }, [taxDeductionAccount, deductorDetails, responsiblePersonDetails, verification]);
 
-  const handleSaveForm = useCallback(() => {
-    if (validateForm()) {
-      console.log('Form saved successfully');
-      alert('Form saved successfully!');
-    } else {
-      alert('Please fix the errors before saving');
+  const handleSaveForm = useCallback(async () => {
+    try {
+      // Gather the payload as per backend expects
+      const payload = {
+        taxDeductionAccount,
+        deductorDetails,
+        responsiblePersonDetails,
+        taxDetails,
+        employeeSalaryDetails,
+        verification,
+        status: 'draft',
+      };
+      const response = await axios.post("http://localhost:5000/api/tds24q", payload);
+      const data = response.data as { success: boolean; error?: string };
+      if (data.success) {
+        alert("Form 24Q saved successfully!");
+        // Optionally reload or navigate
+      } else {
+        alert("Failed to save! " + (data.error || ""));
+      }
+    } catch (error) {
+      alert("Backend error: " + (error instanceof Error ? error.message : String(error)));
     }
-  }, [validateForm]);
+  
+}, [taxDeductionAccount, deductorDetails, responsiblePersonDetails, taxDetails, employeeSalaryDetails, verification, validateForm]);
 
   const generateForm24QHTML = useCallback(() => {
     return `
@@ -964,13 +965,16 @@ const Form24Q: React.FC = () => {
             <div className="space-y-6">
               <div className="flex flex-col sm:flex-row gap-4 justify-between">
                 <div className="flex gap-4">
-                  <select 
-                  title='Returns'
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="2023-24">FY 2023-24</option>
-                    <option value="2022-23">FY 2022-23</option>
-                    <option value="2021-22">FY 2021-22</option>
-                  </select>
+                  <select
+            value={selectedYear}
+            onChange={e => setSelectedYear(e.target.value)}
+            title="Returns"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            {years.map(y => (
+              <option key={y.value} value={y.value}>{y.label}</option>
+            ))}
+          </select>
                   <button
                   title='Export'
                   type='button'

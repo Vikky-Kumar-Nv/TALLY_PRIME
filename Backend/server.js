@@ -70,10 +70,8 @@ app.use('/api/admin/login', adminloginRoute);
 const ledgerDropdown = require("./routes/ledgerDropdown");
 app.use("/api/ledger-dropdown", ledgerDropdown);
 
-
 const salesOrders = require('./routes/salesOrders');
 app.use('/api/sales-orders', salesOrders);
-
 
 const DebitNoteVoucher = require('./routes/DebitNoteVoucher');
 app.use('/api/DebitNoteVoucher', DebitNoteVoucher);
@@ -92,6 +90,23 @@ app.use('/api/DayBookCards', DayBookCards);
 
 const daybookTable = require('./routes/daybookTable');
 app.use('/api/daybookTable', daybookTable);
+
+const gstRoutes = require("./routes/gst");
+app.use("/api/gst", gstRoutes);
+
+const gstr3bRoutes = require("./routes/gstr3b");
+app.use("/api/gstr3b", gstr3bRoutes);
+
+const gstRatesRoutes = require("./routes/gstRates");
+app.use("/api/gst-rates", gstRatesRoutes);
+
+
+const tds24qRoutes = require("./routes/tds_24q");
+app.use("/api/tds24q", tds24qRoutes);
+const tds26qRouter = require("./routes/tds_26q");
+app.use(tds26qRouter);
+
+
 
 // ✅ MySQL Connection
 const db = mysql.createConnection({
