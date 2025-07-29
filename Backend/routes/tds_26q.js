@@ -1,18 +1,6 @@
-// POST /api/tds24q/create
 const express = require("express");
 const router = express.Router();
-const db = require("../db"); // assumes you have mysql2 setup
-
-
-// Utility to insert multiple challans or deductees
-async function insertMultiple(table, returnId, dataArray, fields) {
-  if (!dataArray.length) return;
-  const placeholders = dataArray.map(() => `(${new Array(fields.length).fill("?").join(",")})`).join(",");
-  const values = dataArray.flatMap(data => fields.map(f => data[f]));
-  
-  const sql = `INSERT INTO ${table} (return_id, ${fields.join(",")}) VALUES ${placeholders}`;
-  await db.query(sql, [returnId, ...values]);
-}
+const db = require("../db");
 
 // POST: create a new Form 26Q return with data
 router.post("/api/tds26q", async (req, res) => {
@@ -79,46 +67,27 @@ router.post("/api/tds26q", async (req, res) => {
 
       // 2. Insert challan details
       if (challanDetails && challanDetails.length) {
-        const challanFields = [
-          "serial_no", "bsr_code", "date_of_deposit", "challan_serial_no", "tax", "surcharge", "education_cess",
-          "other_charges", "interest", "penalty", "fee", "total_amount", "transfer_voucher_no", "status"
-        ];
-        const challanData = challanDetails.map((ch, index) => ({
-          serial_no: ch.serialNo || index + 1,
-          bsr_code: ch.bsrCode,
-          date_of_deposit: ch.dateOfDeposit,
-          challan_serial_no: ch.challanSerialNo,
-          tax: ch.tax || 0,
-          surcharge: ch.surcharge || 0,
-          education_cess: ch.educationCess || 0,
-          other_charges: ch.other || 0,
-          interest: ch.interest || 0,
-          penalty: ch.penalty || 0,
-          fee: ch.fee || 0,
-          total_amount: ch.total || 0,
-          transfer_voucher_no: ch.transferVoucherNo || null,
-          status: ch.status || "Deposited"
-        }));
+        const placeholders = challanDetails.map(() =>
+          "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        ).join(",");
 
-        const placeholders = challanDetails.map(() => 
-          "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(",");
-
-        const values = challanData.flatMap(ch => [
-          returnId,
-          ch.serial_no,
-          ch.bsr_code,
-          ch.date_of_deposit,
-          ch.challan_serial_no,
-          ch.tax,
-          ch.surcharge,
-          ch.education_cess,
-          ch.other_charges,
-          ch.interest,
-          ch.penalty,
-          ch.fee,
-          ch.total_amount,
-          ch.transfer_voucher_no,
-          ch.status
+        // Map fields in the same order as columns (15 per row including return_id)
+        const values = challanDetails.flatMap((ch, index) => [
+          returnId, // 1
+          ch.serialNo || index + 1, // 2
+          ch.bsrCode || '', // 3
+          ch.dateOfDeposit || null, // 4
+          ch.challanSerialNo || '', // 5
+          ch.tax || 0, // 6
+          ch.surcharge || 0, // 7
+          ch.educationCess || 0, // 8
+          ch.other || 0, // 9 (other_charges)
+          ch.interest || 0, // 10
+          ch.penalty || 0, // 11
+          ch.fee || 0, // 12
+          ch.total || 0, // 13 (total_amount)
+          ch.transferVoucherNo || null, // 14
+          ch.status || 'Deposited' // 15
         ]);
 
         const insertChallansSql = `
@@ -132,49 +101,28 @@ router.post("/api/tds26q", async (req, res) => {
 
       // 3. Insert deductee details
       if (deducteeDetails && deducteeDetails.length) {
-        const deducteeFields = [
-          "serial_no", "pan_of_deductee", "name_of_deductee", "amount_paid", "tax_deducted", "tax_deposited",
-          "date_of_payment", "nature_of_payment", "section_deducted", "rate_of_deduction", "certificate_no", "date_of_certificate",
-          "amount_paid_credited", "gst_no", "remark_code"
-        ];
-        const deducteeData = deducteeDetails.map((de, index) => ({
-          serial_no: de.serialNo || index + 1,
-          pan_of_deductee: de.panOfDeductee,
-          name_of_deductee: de.nameOfDeductee,
-          amount_paid: de.amountPaid || 0,
-          tax_deducted: de.amountOfTax || 0,
-          tax_deposited: de.taxDeposited || 0,
-          date_of_payment: de.dateOfPayment,
-          nature_of_payment: de.natureOfPayment || null,
-          section_deducted: de.sectionUnderDeducted,
-          rate_of_deduction: de.rateOfDeduction || 0,
-          certificate_no: de.certSerialNo || null,
-          date_of_certificate: de.dateOfTDSCertificate || null,
-          amount_paid_credited: de.amountPaidCredited || 0,
-          gst_no: de.gstIdentificationNo || null,
-          remark_code: de.remarkCode || null,
-        }));
-
         const placeholders = deducteeDetails.map(() =>
-          "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").join(",");
+          "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        ).join(",");
 
-        const values = deducteeData.flatMap(dd => [
-          returnId,
-          dd.serial_no,
-          dd.pan_of_deductee,
-          dd.name_of_deductee,
-          dd.amount_paid,
-          dd.tax_deducted,
-          dd.tax_deposited,
-          dd.date_of_payment,
-          dd.nature_of_payment,
-          dd.section_deducted,
-          dd.rate_of_deduction,
-          dd.certificate_no,
-          dd.date_of_certificate,
-          dd.amount_paid_credited,
-          dd.gst_no,
-          dd.remark_code
+        // Map fields in the same order as columns (16 per row including return_id)
+        const values = deducteeDetails.flatMap((de, index) => [
+          returnId, // 1
+          de.serialNo || index + 1, // 2
+          de.panOfDeductee || '', // 3
+          de.nameOfDeductee || '', // 4
+          de.amountPaid || 0, // 5
+          de.amountOfTax || 0, // 6 (tax_deducted)
+          de.taxDeposited || 0, // 7
+          de.dateOfPayment || null, // 8
+          de.natureOfPayment || null, // 9
+          de.sectionUnderDeducted || '', // 10
+          de.rateOfDeduction || 0, // 11
+          de.certSerialNo || null, // 12
+          de.dateOfTDSCertificate || null, // 13
+          de.amountPaidCredited || 0, // 14
+          de.gstIdentificationNo || null, // 15
+          de.remarkCode || null // 16
         ]);
 
         const insertDeducteesSql = `
@@ -225,7 +173,7 @@ router.get("/api/tds26q", async (req, res) => {
       LEFT JOIN tds_26q_challans c ON r.id = c.return_id
       WHERE r.assessment_year = ?
       GROUP BY r.id
-      ORDER BY r.createdAt DESC
+      ORDER BY createdAt DESC
     `;
     const [rows] = await db.query(sql, [year]);
 
