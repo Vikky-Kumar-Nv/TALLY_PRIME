@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FileText, Upload, ArrowLeft, Save, Plus, Trash2, Eye, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -199,6 +199,10 @@ const Form27QPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'list' | 'create' | 'upload'>('list');
   const [errors] = useState<Record<string, string>>({});
+const [returnList, setReturnList] = useState<any[]>([]);
+const [listLoading, setListLoading] = useState(false);
+const [selectedYear] = useState('2024-25');
+const [selectedQuarter] = useState('');
 
   // Form data state
   const [collectorDetails, setCollectorDetails] = useState<CollectorDetails>({
@@ -426,6 +430,59 @@ const Form27QPage: React.FC = () => {
       totalTaxDeposited: collecteeDetails.reduce((sum, item) => sum + item.taxDeposited, 0)
     };
   }, [collecteeDetails, challanDetails]);
+useEffect(() => {
+  if (activeTab !== 'list') return;
+  setListLoading(true);
+  const params = [];
+  if (selectedYear) params.push(`year=${selectedYear}`);
+  if (selectedQuarter) params.push(`quarter=${selectedQuarter}`);
+  const url = `http://localhost:5000/api/tcs27q${params.length ? '?' + params.join('&') : ''}`;
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      setReturnList(Array.isArray(data) ? data : []);
+      setListLoading(false);
+    })
+    .catch(() => {
+      setReturnList([]);
+      setListLoading(false);
+    });
+}, [activeTab, selectedYear, selectedQuarter]);
+
+
+  const handleSaveForm = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  // Optional: Add frontend validation here before submission
+
+  const payload = {
+    collectorDetails, 
+    challanDetails, 
+    collecteeDetails, 
+    verification
+  };
+
+  try {
+    const response = await fetch('http://localhost:5000/api/tcs27q', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      alert('Form 27Q saved successfully!');
+      // Optionally reset form or navigate elsewhere
+    } else {
+      alert('Failed to save: ' + (data.error || 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error saving Form 27Q:', error);
+    alert('Failed to save form due to network or server error.');
+  }
+};
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -510,41 +567,34 @@ const Form27QPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      <tr>
-                        <td className="px-4 py-3 text-sm text-gray-800">AEFT12345B</td>
-                        <td className="px-4 py-3 text-sm text-gray-800">Q1 (Apr-Jun)</td>
-                        <td className="px-4 py-3 text-sm text-gray-800">2024-25</td>
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Filed</span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-800">15-Jul-2024</td>
-                        <td className="px-4 py-3 text-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-800" title="View Return">
-                            <Eye size={16} />
-                          </button>
-                          <button className="text-green-600 hover:text-green-800" title="Download">
-                            <FileText size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-3 text-sm text-gray-800">AEFT12345B</td>
-                        <td className="px-4 py-3 text-sm text-gray-800">Q4 (Jan-Mar)</td>
-                        <td className="px-4 py-3 text-sm text-gray-800">2023-24</td>
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Draft</span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-800">-</td>
-                        <td className="px-4 py-3 text-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-800" title="Edit Draft">
-                            <Eye size={16} />
-                          </button>
-                          <button className="text-red-600 hover:text-red-800" title="Delete Draft">
-                            <Trash2 size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    </tbody>
+  {listLoading ? (
+    <tr><td colSpan={6} className="p-4 text-center text-gray-500">Loading...</td></tr>
+  ) : returnList.length === 0 ? (
+    <tr><td colSpan={6} className="p-4 text-center text-gray-500">No returns found for the selected period.</td></tr>
+  ) : returnList.map(ret => (
+    <tr key={ret.id}>
+      <td className="px-4 py-3 text-sm text-gray-800">{ret.tan}</td>
+      <td className="px-4 py-3 text-sm text-gray-800">{ret.quarter}</td>
+      <td className="px-4 py-3 text-sm text-gray-800">{ret.financial_year}</td>
+      <td className="px-4 py-3">
+        <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+          Filed
+        </span>
+      </td>
+      <td className="px-4 py-3 text-sm text-gray-800">
+        {new Date(ret.created_at).toLocaleDateString('en-GB')}
+      </td>
+      <td className="px-4 py-3 text-center space-x-2">
+        <button className="text-blue-600 hover:text-blue-800" title="View Return">
+          <Eye size={16} />
+        </button>
+        <button className="text-green-600 hover:text-green-800" title="Download">
+          <FileText size={16} />
+        </button>
+      </td>
+    </tr>
+  ))}
+</tbody>
                   </table>
                 </div>
               </div>
@@ -561,10 +611,7 @@ const Form27QPage: React.FC = () => {
                   </div>
                   <div className="flex gap-2">
                     <ActionButton
-                      onClick={() => {
-                        console.log('Return saved as draft');
-                        alert('Return saved as draft successfully');
-                      }}
+                      onClick={() => handleSaveForm(new Event('submit') as unknown as React.FormEvent)}
                       icon={Save}
                       label="Save as Draft"
                       variant="primary"

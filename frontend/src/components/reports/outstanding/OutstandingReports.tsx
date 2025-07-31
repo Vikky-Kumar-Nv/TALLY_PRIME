@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, FileText, Building, TrendingUp, TrendingDown, ArrowLeft, Receipt, CreditCard } from 'lucide-react';
@@ -13,6 +13,23 @@ const OutstandingReports: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<string | null>(null);
+const [summary, setSummary] = useState<{totalReceivables: number, totalPayables: number, netOutstanding: number} | null>(null);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchSummary() {
+      setSummaryError(null);
+      try {
+        const res = await fetch('http://localhost:5000/api/outstanding-summary');
+        if (!res.ok) throw new Error('Failed to load summary');
+        setSummary(await res.json());
+      } catch (e:any) {
+        setSummaryError(e.message || 'Failed to load summary');
+        setSummary(null);
+      }
+    }
+    fetchSummary();
+  }, []);
 
   const sections = [
     {
@@ -192,44 +209,45 @@ const OutstandingReports: React.FC = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className={`text-2xl font-bold mb-1 ${
-                theme === 'dark' ? 'text-green-400' : 'text-green-600'
-              }`}>
-                ₹2,45,680
-              </div>
-              <div className={`text-sm ${
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-              }`}>
-                Total Receivables
-              </div>
+            <div className={`text-2xl font-bold mb-1 ${
+              theme === 'dark' ? 'text-green-400' : 'text-green-600'
+            }`}>
+              {summary ? 
+                summary.totalReceivables.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) 
+                : 'Loading...'}
             </div>
-            
-            <div className="text-center">
-              <div className={`text-2xl font-bold mb-1 ${
-                theme === 'dark' ? 'text-red-400' : 'text-red-600'
-              }`}>
-                ₹1,89,450
-              </div>
-              <div className={`text-sm ${
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-              }`}>
-                Total Payables
-              </div>
-            </div>
-            
-            <div className="text-center">
-              <div className={`text-2xl font-bold mb-1 ${
-                theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
-              }`}>
-                ₹56,230
-              </div>
-              <div className={`text-sm ${
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-              }`}>
-                Net Outstanding
-              </div>
+            <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Total Receivables
             </div>
           </div>
+            
+            <div className="text-center">
+            <div className={`text-2xl font-bold mb-1 ${
+              theme === 'dark' ? 'text-red-400' : 'text-red-600'
+            }`}>
+              {summary ? 
+                summary.totalPayables.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) 
+                : 'Loading...'}
+            </div>
+            <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Total Payables
+            </div>
+          </div>
+            
+            <div className="text-center">
+            <div className={`text-2xl font-bold mb-1 ${
+              theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
+            }`}>
+              {summary ? 
+                summary.netOutstanding.toLocaleString('en-IN', { style: 'currency', currency: 'INR' }) 
+                : 'Loading...'}
+            </div>
+            <div className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+              Net Outstanding
+            </div>
+          </div>
+          </div>
+          {summaryError && <div className="text-center text-red-600 mt-2">{summaryError}</div>}
         </div>
       </div>
     </div>

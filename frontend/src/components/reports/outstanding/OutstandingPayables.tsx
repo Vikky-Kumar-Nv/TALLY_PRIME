@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { 
   Search, Download, AlertTriangle, 
@@ -41,118 +41,10 @@ const OutstandingPayables: React.FC = () => {
   const [sortBy, setSortBy] = useState<'amount' | 'overdue' | 'supplier' | 'risk'>('amount');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Mock data - यह actual API से आएगा
-  const suppliersData: SupplierOutstanding[] = useMemo(() => [
-    {
-      id: '1',
-      supplierName: 'Reliable Suppliers Ltd',
-      supplierGroup: 'Sundry Creditors',
-      supplierAddress: '456 Industrial Area, Mumbai, Maharashtra 400020',
-      supplierPhone: '+91 9876543210',
-      supplierEmail: 'accounts@reliablesuppliers.com',
-      supplierGSTIN: '27RELSU1234F1Z5',
-      totalOutstanding: 385000,
-      currentDue: 285000,
-      overdue: 100000,
-      creditLimit: 500000,
-      creditDays: 30,
-      lastPayment: {
-        date: '2024-11-25',
-        amount: 200000
-      },
-      oldestBillDate: '2024-09-10',
-      totalBills: 6,
-      riskCategory: 'Medium',
-      ageingBreakdown: {
-        '0-30': 285000,
-        '31-60': 60000,
-        '61-90': 25000,
-        '90+': 15000
-      }
-    },
-    {
-      id: '2',
-      supplierName: 'Global Trading Co',
-      supplierGroup: 'Sundry Creditors',
-      supplierAddress: '789 Port Area, Chennai, Tamil Nadu 600001',
-      supplierPhone: '+91 9988776655',
-      supplierEmail: 'finance@globaltrading.com',
-      supplierGSTIN: '33GLOBA5678C1D2',
-      totalOutstanding: 550000,
-      currentDue: 250000,
-      overdue: 300000,
-      creditLimit: 600000,
-      creditDays: 45,
-      lastPayment: {
-        date: '2024-10-20',
-        amount: 150000
-      },
-      oldestBillDate: '2024-08-05',
-      totalBills: 9,
-      riskCategory: 'High',
-      ageingBreakdown: {
-        '0-30': 250000,
-        '31-60': 150000,
-        '61-90': 100000,
-        '90+': 50000
-      }
-    },
-    {
-      id: '3',
-      supplierName: 'Tech Hardware Solutions',
-      supplierGroup: 'Sundry Creditors',
-      supplierAddress: '321 Tech Street, Bangalore, Karnataka 560001',
-      supplierPhone: '+91 8877665544',
-      supplierEmail: 'billing@techhardware.com',
-      supplierGSTIN: '29TECHS1234E5F6',
-      totalOutstanding: 175000,
-      currentDue: 175000,
-      overdue: 0,
-      creditLimit: 300000,
-      creditDays: 30,
-      lastPayment: {
-        date: '2024-12-05',
-        amount: 125000
-      },
-      oldestBillDate: '2024-11-25',
-      totalBills: 3,
-      riskCategory: 'Low',
-      ageingBreakdown: {
-        '0-30': 175000,
-        '31-60': 0,
-        '61-90': 0,
-        '90+': 0
-      }
-    },
-    {
-      id: '4',
-      supplierName: 'Elite Manufacturing',
-      supplierGroup: 'Sundry Creditors',
-      supplierAddress: '654 Manufacturing Hub, Pune, Maharashtra 411001',
-      supplierPhone: '+91 7766554433',
-      supplierEmail: 'payments@elitemanuf.com',
-      supplierGSTIN: '27ELITE123G4H5',
-      totalOutstanding: 720000,
-      currentDue: 220000,
-      overdue: 500000,
-      creditLimit: 800000,
-      creditDays: 60,
-      lastPayment: {
-        date: '2024-09-15',
-        amount: 280000
-      },
-      oldestBillDate: '2024-07-01',
-      totalBills: 12,
-      riskCategory: 'Critical',
-      ageingBreakdown: {
-        '0-30': 220000,
-        '31-60': 200000,
-        '61-90': 150000,
-        '90+': 150000
-      }
-    }
-  ], []);
-
+  // Add state for fetched data, loading, error
+  const [suppliersData, setSuppliersData] = useState<SupplierOutstanding[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   // Filtering and sorting logic
   const filteredData = useMemo(() => {
     const filtered = suppliersData.filter(supplier => {
@@ -235,6 +127,36 @@ const OutstandingPayables: React.FC = () => {
       default: return 'text-gray-600 bg-gray-100';
     }
   };
+// Fetch data on filters change
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('searchTerm', searchTerm);
+        if (selectedGroup) params.append('supplierGroup', selectedGroup);
+        if (selectedRisk) params.append('riskCategory', selectedRisk);
+        if (sortBy) params.append('sortBy', sortBy);
+        if (sortOrder) params.append('sortOrder', sortOrder);
+
+        const res = await fetch(`http://localhost:5000/api/outstanding-payables?${params.toString()}`);
+        if (!res.ok) {
+          throw new Error(`${res.status} - ${await res.text()}`);
+        }
+        const data: SupplierOutstanding[] = await res.json();
+        setSuppliersData(data);
+      } catch (e: any) {
+        setError(e.message || 'Failed to load data');
+        setSuppliersData([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, [searchTerm, selectedGroup, selectedRisk, sortBy, sortOrder]);
 
   return (
     <div className="space-y-6">

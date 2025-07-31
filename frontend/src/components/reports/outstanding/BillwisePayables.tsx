@@ -42,111 +42,42 @@ const BillwisePayables: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showInterestCalculator, setShowInterestCalculator] = useState(false);
   const [showBillDetails, setShowBillDetails] = useState(false);
-
+const [payablesData, setPayablesData] = useState<PayableBillDetails[]>([]);
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string|null>(null);
   // Mock data - यह actual API से आएगा
-  const payablesData: PayableBillDetails[] = useMemo(() => [
-    {
-      id: '1',
-      supplierName: 'Reliable Suppliers Ltd',
-      billNo: 'PI/2024/001',
-      billDate: '2024-10-15',
-      dueDate: '2024-11-15',
-      billAmount: 185000,
-      paidAmount: 85000,
-      outstandingAmount: 100000,
-      overdueDays: 35,
-      creditDays: 30,
-      interestAmount: 1750,
-      voucherType: 'Purchase',
-      reference: 'PO/REL/001',
-      narration: 'Raw materials purchase',
-      ageingBucket: '31-60',
-      supplierGroup: 'Sundry Creditors',
-      supplierAddress: '456 Industrial Area, Mumbai',
-      supplierPhone: '+91 9876543210',
-      supplierGSTIN: '27RELSU1234F1Z5',
-      creditLimit: 500000,
-      riskCategory: 'Medium',
-      poNumber: 'PO/2024/001',
-      grnNumber: 'GRN/2024/001'
-    },
-    {
-      id: '2',
-      supplierName: 'Global Trading Co',
-      billNo: 'PI/2024/002',
-      billDate: '2024-09-20',
-      dueDate: '2024-10-20',
-      billAmount: 95000,
-      paidAmount: 0,
-      outstandingAmount: 95000,
-      overdueDays: 71,
-      creditDays: 30,
-      interestAmount: 3325,
-      voucherType: 'Purchase',
-      reference: 'Import/GT/456',
-      narration: 'Import goods',
-      ageingBucket: '61-90',
-      supplierGroup: 'Sundry Creditors',
-      supplierAddress: '789 Port Area, Chennai',
-      supplierPhone: '+91 9988776655',
-      supplierGSTIN: '33GLOBA5678C1D2',
-      creditLimit: 300000,
-      riskCategory: 'High',
-      poNumber: 'PO/2024/002',
-      grnNumber: 'GRN/2024/002'
-    },
-    {
-      id: '3',
-      supplierName: 'Tech Hardware Solutions',
-      billNo: 'PI/2024/003',
-      billDate: '2024-12-01',
-      dueDate: '2025-01-01',
-      billAmount: 75000,
-      paidAmount: 25000,
-      outstandingAmount: 50000,
-      overdueDays: 0,
-      creditDays: 30,
-      interestAmount: 0,
-      voucherType: 'Purchase',
-      reference: 'THS/2024/789',
-      narration: 'Computer equipment',
-      ageingBucket: '0-30',
-      supplierGroup: 'Sundry Creditors',
-      supplierAddress: '321 Tech Street, Bangalore',
-      supplierPhone: '+91 8877665544',
-      supplierGSTIN: '29TECHS1234E5F6',
-      creditLimit: 200000,
-      riskCategory: 'Low',
-      poNumber: 'PO/2024/003',
-      grnNumber: 'GRN/2024/003'
-    },
-    {
-      id: '4',
-      supplierName: 'Elite Manufacturing',
-      billNo: 'PI/2024/004',
-      billDate: '2024-08-10',
-      dueDate: '2024-09-10',
-      billAmount: 220000,
-      paidAmount: 50000,
-      outstandingAmount: 170000,
-      overdueDays: 112,
-      creditDays: 30,
-      interestAmount: 9520,
-      voucherType: 'Purchase',
-      reference: 'EM/BULK/001',
-      narration: 'Bulk manufacturing supplies',
-      ageingBucket: '90+',
-      supplierGroup: 'Sundry Creditors',
-      supplierAddress: '654 Manufacturing Hub, Pune',
-      supplierPhone: '+91 7766554433',
-      supplierGSTIN: '27ELITE123G4H5',
-      creditLimit: 600000,
-      riskCategory: 'Critical',
-      poNumber: 'PO/2024/004',
-      grnNumber: 'GRN/2024/004'
-    }
-  ], []);
+  React.useEffect(() => {
+  async function fetchData() {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      if (searchTerm)          params.append('searchTerm', searchTerm);
+      if (selectedSupplier)    params.append('selectedSupplier', selectedSupplier);
+      if (selectedAgeingBucket)params.append('selectedAgeingBucket', selectedAgeingBucket);
+      if (selectedRiskCategory)params.append('selectedRiskCategory', selectedRiskCategory);
+      if (sortBy)              params.append('sortBy', sortBy);
+      if (sortOrder)           params.append('sortOrder', sortOrder);
 
+      const res = await fetch(`http://localhost:5000/api/billwise-payables?${params.toString()}`);
+      if (!res.ok) throw new Error(await res.text() || `Error: ${res.status}`);
+      setPayablesData(await res.json());
+    } catch (e:any) {
+      setError(e.message || "Fetch error");
+      setPayablesData([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+  fetchData();
+}, [
+  searchTerm,
+  selectedSupplier,
+  selectedAgeingBucket,
+  selectedRiskCategory,
+  sortBy,
+  sortOrder
+]);
   // Filtering and sorting logic
   const filteredData = useMemo(() => {
     const filtered = payablesData.filter(bill => {
@@ -249,6 +180,9 @@ const BillwisePayables: React.FC = () => {
               Complete bill-wise payables analysis - Tally Style
             </p>
           </div>
+          {loading && <div className="py-6 text-center">Loading...</div>}
+          {error && <div className="py-6 text-center text-red-600">{error}</div>}
+
           <div className="flex space-x-2">
             <button 
               onClick={() => setShowInterestCalculator(!showInterestCalculator)}

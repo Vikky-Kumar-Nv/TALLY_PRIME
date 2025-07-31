@@ -100,13 +100,71 @@ app.use("/api/gstr3b", gstr3bRoutes);
 const gstRatesRoutes = require("./routes/gstRates");
 app.use("/api/gst-rates", gstRatesRoutes);
 
+// const stockSummaryRouter = require('./routes/stockSummary');
+// app.use('/api', stockSummaryRouter);
 
 const tds24qRoutes = require("./routes/tds_24q");
 app.use("/api/tds24q", tds24qRoutes);
 const tds26qRouter = require("./routes/tds_26q");
 app.use(tds26qRouter);
+const tds27qRouter = require("./routes/tds_27q");
+app.use(tds27qRouter);
 
+const tds27eqRouter = require("./routes/tds_27eq");
+app.use(tds27eqRouter);
 
+const deducteesRouter = require('./routes/deductees');
+app.use(deducteesRouter);
+
+const trialBalanceRouter = require('./routes/trialBalance');
+app.use(trialBalanceRouter);
+
+const profitLossRouter = require('./routes/profitloss'); // Assuming you saved route above as profitLoss.js
+app.use(profitLossRouter);
+
+const balanceSheetRouter = require('./routes/balanceSheet');
+app.use(balanceSheetRouter);
+
+// Remember to have your mysql2 pool connection in db.js and export it properly.
+const groupSummaryRouter = require('./routes/groupSummary');
+app.use(groupSummaryRouter);
+// Remember to have your mysql2 pool connection in db.js and export it properly.
+const cashflowRouter = require('./routes/cashFlow');
+app.use(cashflowRouter);
+
+const stockSummaryRouter = require('./routes/stockSummary');
+app.use(stockSummaryRouter);
+
+const movementAnalysisRouter = require('./routes/movementAnalysis');
+app.use(movementAnalysisRouter);
+
+const ageingAnalysisRouter = require('./routes/ageingAnalysis');
+app.use(ageingAnalysisRouter);
+
+const godownSummaryRouter = require('./routes/godownSummary');
+app.use(godownSummaryRouter);
+
+const fifoRouter = require('./routes/fifo');
+app.use(fifoRouter);
+
+const outstandingRouter = require('./routes/outstandingReceivables');
+app.use(outstandingRouter);
+
+const outstandingPayablesRouter = require('./routes/outstandingPayables');
+app.use(outstandingPayablesRouter);
+
+const billwiseReceivablesRouter = require('./routes/billwiseReceivables');
+app.use(billwiseReceivablesRouter);
+
+// in your app.js or server.js
+const billwisePayablesRouter = require('./routes/billwisePayables');
+app.use(billwisePayablesRouter);
+
+const outstandingLedgerRouter = require('./routes/outstandingLedger');
+app.use(outstandingLedgerRouter);
+
+const outstandingSummaryRouter = require('./routes/outstandingSummary');
+app.use(outstandingSummaryRouter);
 
 // ✅ MySQL Connection
 const db = mysql.createConnection({

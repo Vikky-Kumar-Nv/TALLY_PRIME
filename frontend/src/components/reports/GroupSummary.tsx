@@ -1,66 +1,119 @@
-import React, { useState } from 'react';
-import { useAppContext } from '../../context/AppContext';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Printer, Download, Filter } from 'lucide-react';
-import type { Ledger, LedgerGroup } from '../../types';
+
+interface Ledger {
+  id: number;
+  name: string;
+  group_id: number;
+  opening_balance: number;
+  balance_type: 'debit' | 'credit';
+  group_name: string;
+  group_type: string | null;
+}
+
+interface LedgerGroup {
+  id: number;
+  name: string;
+  type: string | null;
+}
 
 const GroupSummary: React.FC = () => {
-  const { theme, ledgers, ledgerGroups } = useAppContext();
   const navigate = useNavigate();
   const { groupType } = useParams<{ groupType: string }>();
+
+  const [ledgers, setLedgers] = useState<Ledger[]>([]);
+  const [ledgerGroups, setLedgerGroups] = useState<LedgerGroup[]>([]);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'consolidated' | 'monthly'>('consolidated');
 
-  // Map group types to display names
+  // Map group types to display names for header
   const groupDisplayNames: Record<string, string> = {
-    'loans': 'Loans (Liability)',
+    loans: 'Loans (Liability)',
     'current-liabilities': 'Current Liabilities',
     'current-assets': 'Current Assets',
     'fixed-assets': 'Fixed Assets',
-    'capital': 'Capital Account',
-    'sales': 'Sales',
-    'purchase': 'Purchases',
+    capital: 'Capital Account',
+    sales: 'Sales',
+    purchase: 'Purchases',
     'direct-expenses': 'Direct Expenses',
     'indirect-expenses': 'Indirect Expenses',
-    'indirect-income': 'Indirect Income'
+    'indirect-income': 'Indirect Income',
   };
 
-  // Get ledgers for the specific group type
-  const getGroupLedgers = () => {
-    return ledgers.filter((ledger: Ledger) => {
-      const group = ledgerGroups.find((g: LedgerGroup) => g.id === ledger.groupId);
-      return group?.type === groupType;
-    });
+  // Fetch ledger groups and ledgers filtered by groupType (optional)
+  useEffect(() => {
+    async function fetchGroupSummary() {
+      setLoading(true);
+      setError(null);
+      try {
+        // Call backend API with optional query param for groupType filtering
+        const url = groupType
+          ? `http://localhost:5000/api/group-summary?groupType=${encodeURIComponent(groupType)}`
+          : 'http://localhost:5000/api/group-summary';
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Failed to load group summary data');
+        const data = await res.json();
+
+        // Normalize ledger balances (ensure opening_balance is number)
+        const normalizedLedgers = data.ledgers.map((l: any) => ({
+          ...l,
+          opening_balance: Number(l.opening_balance) || 0,
+        }));
+
+        setLedgers(normalizedLedgers);
+        setLedgerGroups(data.ledgerGroups || []);
+      } catch (err: any) {
+        setError(err.message || 'Unexpected error');
+        setLedgers([]);
+        setLedgerGroups([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchGroupSummary();
+  }, [groupType]);
+
+  // Filter ledgers belonging to current groupType param
+  const groupLedgers = ledgers.filter(ledger =>
+    ledger.group_type === groupType
+  );
+
+  // Sum up opening balances of the group ledgers
+  const groupTotal = groupLedgers.reduce(
+    (sum, ledger) => sum + ledger.opening_balance,
+    0
+  );
+
+  // Get group display name for header
+  const displayName = groupDisplayNames[groupType || ''] || groupType || 'Group Summary';
+
+  // Helper to get ledger group's name from groupId (fallback to empty string)
+  const getGroupName = (groupId: number) => {
+    return ledgerGroups.find(group => group.id === groupId)?.name || '';
   };
 
-  // Get group total
-  const getGroupTotal = () => {
-    return getGroupLedgers().reduce((sum: number, ledger: Ledger) => sum + ledger.openingBalance, 0);
-  };
-
-  // Get group name for ledger
-  const getGroupName = (groupId: string) => {
-    return ledgerGroups.find((group: LedgerGroup) => group.id === groupId)?.name || '';
-  };
-
-  // Generate monthly-wise data (mock data for demonstration)
+  // Generate mock monthly-wise data for demonstration (you can replace this with real data)
   const generateMonthlyData = (ledger: Ledger) => {
     const months = [
       'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep',
-      'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'
+      'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar',
     ];
-    
+
     return months.map(month => ({
       month,
-      opening: Math.floor(ledger.openingBalance * (0.8 + Math.random() * 0.4)),
-      current: Math.floor(Math.random() * 10000 - 5000), // Random transactions
-      closing: function() { return this.opening + this.current; }
+      opening: Math.floor(ledger.opening_balance * (0.8 + Math.random() * 0.4)),
+      current: Math.floor(Math.random() * 10000 - 5000), // Random delta +/- 5000
+      closing() { return this.opening + this.current; }
     }));
   };
 
-  const groupLedgers = getGroupLedgers();
-  const groupTotal = getGroupTotal();
-  const displayName = groupDisplayNames[groupType || ''] || groupType;
+  // You can replace this with your actual theme logic or context
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   return (
     <div className='pt-[56px] px-4'>
@@ -216,43 +269,31 @@ const GroupSummary: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {groupLedgers.length > 0 ? (
-                  groupLedgers.map((ledger: Ledger) => (
-                    <tr 
-                      key={ledger.id}
-                      className={`${
-                        theme === 'dark' ? 'border-b border-gray-700 hover:bg-gray-700' : 'border-b border-gray-200 hover:bg-gray-50'
-                      } cursor-pointer`}
-                      onClick={() => navigate(`/app/reports/ledger?ledgerId=${ledger.id}`)}
+              {groupLedgers.map((ledger) => (
+                <tr
+                  key={ledger.id}
+                  className="border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={() => navigate(`/app/reports/ledger?ledgerId=${ledger.id}`)}
+                >
+                  <td className="px-4 py-3 font-medium">{ledger.name}</td>
+                  <td className="px-4 py-3">{getGroupName(ledger.group_id)}</td>
+                  <td className="px-4 py-3 text-right font-mono">{ledger.opening_balance.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-right font-mono">0</td> {/* Replace with actual current period value if available */}
+                  <td className="px-4 py-3 text-right font-mono">{ledger.opening_balance.toLocaleString()}</td>
+                  <td className="px-4 py-3 text-center">
+                    <span
+                      className={`px-2 py-1 rounded text-xs ${
+                        ledger.balance_type === 'debit'
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                      }`}
                     >
-                      <td className="px-4 py-3 font-medium">{ledger.name}</td>
-                      <td className="px-4 py-3">{getGroupName(ledger.groupId)}</td>
-                      <td className="px-4 py-3 text-right font-mono">
-                        {ledger.openingBalance.toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono">0</td>
-                      <td className="px-4 py-3 text-right font-mono">
-                        {ledger.openingBalance.toLocaleString()}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          ledger.balanceType === 'debit'
-                            ? theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'
-                            : theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {ledger.balanceType?.toUpperCase() || 'N/A'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center opacity-70">
-                      No ledgers found for this group
-                    </td>
-                  </tr>
-                )}
-              </tbody>
+                      {ledger.balance_type?.toUpperCase() || 'N/A'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
               <tfoot>
                 <tr className={`font-bold ${
                   theme === 'dark' ? 'border-t-2 border-gray-600' : 'border-t-2 border-gray-300'

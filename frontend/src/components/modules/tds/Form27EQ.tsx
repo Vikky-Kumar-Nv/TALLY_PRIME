@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { FileText, Upload, ArrowLeft, Save, Plus, Trash2, Eye, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -176,7 +176,10 @@ const Form27EQ: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'list' | 'create' | 'upload'>('list');
   // We need errors state but we'll use it later for validation
   const [errors] = useState<Record<string, string>>({});
-
+const [returnList, setReturnList] = useState([]);
+const [selectedYear] = useState("2024-25");
+const [selectedQuarter] = useState("");
+const [loading, setLoading] = useState(false);
   // Form data state
   const [collectorDetails, setCollectorDetails] = useState<CollectorDetails>({
     tan: '',
@@ -421,6 +424,57 @@ const Form27EQ: React.FC = () => {
   // const switchTab = (tab: 'list' | 'create' | 'upload') => {
   //   setActiveTab(tab);
   // };
+  
+useEffect(() => {
+  if (activeTab !== "list") return;
+  setLoading(true);
+  const params = new URLSearchParams();
+  if (selectedYear) params.append("year", selectedYear);
+  if (selectedQuarter) params.append("quarter", selectedQuarter);
+
+  fetch(`http://localhost:5000/api/tcs27eq?${params.toString()}`)
+    .then((res) => res.json())
+    .then((data) => {
+      setReturnList(data);
+      setLoading(false);
+    })
+    .catch(() => {
+      setReturnList([]);
+      setLoading(false);
+    });
+}, [activeTab, selectedYear, selectedQuarter]);
+const handleSaveForm = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  // Optional: validate the form fields here.
+
+  const payload = {
+    collectorDetails,
+    challanDetails,
+    collecteeDetails,
+    verification,
+  };
+
+  try {
+    const response = await fetch("http://localhost:5000/api/tcs27eq", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      alert("Form 27EQ saved successfully!");
+      // Optional: Reset form or navigate away
+    } else {
+      alert("Failed to save: " + (data.error || "Unknown error"));
+    }
+  } catch (error) {
+    console.error("Error saving Form 27EQ:", error);
+    alert("Error during saving the form.");
+  }
+};
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -503,32 +557,39 @@ const Form27EQ: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      <tr>
-                        <td className="px-4 py-3 text-sm text-gray-800">AEFT12345B</td>
-                        <td className="px-4 py-3 text-sm text-gray-800">Q1 (Apr-Jun)</td>
-                        <td className="px-4 py-3 text-sm text-gray-800">2024-25</td>
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Filed</span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-800">15-Jul-2024</td>
-                        <td className="px-4 py-3 text-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-800" title="View Return"><Eye size={16} /></button>
-                          <button className="text-green-600 hover:text-green-800" title="Download"><FileText size={16} /></button>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-3 text-sm text-gray-800">AEFT12345B</td>
-                        <td className="px-4 py-3 text-sm text-gray-800">Q4 (Jan-Mar)</td>
-                        <td className="px-4 py-3 text-sm text-gray-800">2023-24</td>
-                        <td className="px-4 py-3">
-                          <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Draft</span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-800">-</td>
-                        <td className="px-4 py-3 text-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-800" title="Edit Draft"><Eye size={16} /></button>
-                          <button className="text-red-600 hover:text-red-800" title="Delete Draft"><Trash2 size={16} /></button>
-                        </td>
-                      </tr>
+                      
+                      {returnList.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="px-4 py-3 text-center text-gray-500">No returns found.</td>
+                        </tr>
+                      ) : (
+                        returnList.map((ret: any, idx: number) => (
+                          <tr key={idx}>
+                            <td className="px-4 py-3 text-sm text-gray-800">{ret.tan}</td>
+                            <td className="px-4 py-3 text-sm text-gray-800">{ret.quarter || '-'}</td>
+                            <td className="px-4 py-3 text-sm text-gray-800">{ret.financialYear || '-'}</td>
+                            <td className="px-4 py-3">
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                ret.status === 'Filed'
+                                  ? 'bg-green-100 text-green-800'
+                                  : ret.status === 'Draft'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-gray-100 text-gray-800'
+                              }`}>
+                                {ret.status || 'Draft'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-gray-800">{ret.filingDate || '-'}</td>
+                            <td className="px-4 py-3 text-center space-x-2">
+                              <button className="text-blue-600 hover:text-blue-800" title="View Return"><Eye size={16} /></button>
+                              <button className="text-green-600 hover:text-green-800" title="Download"><FileText size={16} /></button>
+                              {ret.status === 'Draft' && (
+                                <button className="text-red-600 hover:text-red-800" title="Delete Draft"><Trash2 size={16} /></button>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -546,14 +607,11 @@ const Form27EQ: React.FC = () => {
                   </div>
                   <div className="flex gap-2">
                     <ActionButton
-                      onClick={() => {
-                        console.log('Return saved as draft');
-                        alert('Return saved as draft successfully');
-                      }}
-                      icon={Save}
-                      label="Save as Draft"
-                      variant="primary"
-                    />
+                                          onClick={() => handleSaveForm(new Event('submit') as unknown as React.FormEvent)}
+                                          icon={Save}
+                                          label="Save as Draft"
+                                          variant="primary"
+                                        />
                   </div>
                 </div>
 
@@ -578,6 +636,7 @@ const Form27EQ: React.FC = () => {
                       ]}
                       required
                     />
+                    
                     <FormField
                       label="PAN of Collector"
                       name="panOfCollector"
