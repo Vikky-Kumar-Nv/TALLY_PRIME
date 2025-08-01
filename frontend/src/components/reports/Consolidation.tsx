@@ -610,7 +610,9 @@ const Consolidation: React.FC = () => {
   };
 
   return (
-    <div className="pt-[56px] px-4 min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className={`pt-[56px] px-4 min-h-screen ${
+      theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
+    }`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
@@ -724,9 +726,15 @@ const Consolidation: React.FC = () => {
                     type="checkbox"
                     checked={filters.companies.length === companies.length}
                     onChange={handleSelectAllCompanies}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className={`rounded text-blue-600 focus:ring-blue-500 ${
+                      theme === 'dark' 
+                        ? 'border-gray-600 bg-gray-700' 
+                        : 'border-gray-300 bg-white'
+                    }`}
                   />
-                  <span className="text-sm font-medium">All Companies</span>
+                  <span className={`text-sm font-medium ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>All Companies</span>
                 </label>
                 {companies.map((company) => (
                   <label key={company.id} className="flex items-center space-x-2 cursor-pointer">
@@ -734,10 +742,18 @@ const Consolidation: React.FC = () => {
                       type="checkbox"
                       checked={filters.companies.includes(company.id)}
                       onChange={() => handleCompanyToggle(company.id)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className={`rounded text-blue-600 focus:ring-blue-500 ${
+                        theme === 'dark' 
+                          ? 'border-gray-600 bg-gray-700' 
+                          : 'border-gray-300 bg-white'
+                      }`}
                     />
-                    <span className="text-sm">{company.name} ({company.code})</span>
-                    <span className="text-xs text-gray-500">
+                    <span className={`text-sm ${
+                      theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                    }`}>{company.name} ({company.code})</span>
+                    <span className={`text-xs ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
                       [{company.accessibleUsers?.length || 0} users]
                     </span>
                   </label>
@@ -757,9 +773,15 @@ const Consolidation: React.FC = () => {
                     type="checkbox"
                     checked={filters.employees.length === employees.length}
                     onChange={handleSelectAllEmployees}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className={`rounded text-blue-600 focus:ring-blue-500 ${
+                      theme === 'dark' 
+                        ? 'border-gray-600 bg-gray-700' 
+                        : 'border-gray-300 bg-white'
+                    }`}
                   />
-                  <span className="text-sm font-medium">All Employees</span>
+                  <span className={`text-sm font-medium ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>All Employees</span>
                 </label>
                 {employees.map((employee) => (
                   <label key={employee.id} className="flex items-center space-x-2 cursor-pointer">
@@ -767,10 +789,18 @@ const Consolidation: React.FC = () => {
                       type="checkbox"
                       checked={filters.employees.includes(employee.id)}
                       onChange={() => handleEmployeeToggle(employee.id)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className={`rounded text-blue-600 focus:ring-blue-500 ${
+                        theme === 'dark' 
+                          ? 'border-gray-600 bg-gray-700' 
+                          : 'border-gray-300 bg-white'
+                      }`}
                     />
-                    <span className="text-sm">{employee.name}</span>
-                    <span className="text-xs text-gray-500">
+                    <span className={`text-sm ${
+                      theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                    }`}>{employee.name}</span>
+                    <span className={`text-xs ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
                       [{employee.accessibleCompanies.length} companies]
                     </span>
                   </label>
@@ -816,12 +846,24 @@ const Consolidation: React.FC = () => {
             <table className="w-full">
               <thead className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
                 <tr>
-                  <th className="text-left p-3 font-semibold">Employee</th>
-                  <th className="text-left p-3 font-semibold">Role</th>
-                  <th className="text-left p-3 font-semibold">Accessible Companies</th>
-                  <th className="text-right p-3 font-semibold">Total Sales Access</th>
-                  <th className="text-right p-3 font-semibold">Total Profit Access</th>
-                  <th className="text-center p-3 font-semibold">Last Login</th>
+                  <th className={`text-left p-3 font-semibold ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Employee</th>
+                  <th className={`text-left p-3 font-semibold ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Role</th>
+                  <th className={`text-left p-3 font-semibold ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Accessible Companies</th>
+                  <th className={`text-right p-3 font-semibold ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Total Sales Access</th>
+                  <th className={`text-right p-3 font-semibold ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Total Profit Access</th>
+                  <th className={`text-center p-3 font-semibold ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Last Login</th>
                 </tr>
               </thead>
               <tbody>
@@ -841,9 +883,11 @@ const Consolidation: React.FC = () => {
                     </td>
                     <td className="p-3">
                       <span className={`px-2 py-1 rounded-full text-xs ${
-                        user.role.includes('Admin') ? 'bg-red-100 text-red-800' :
-                        user.role.includes('Manager') ? 'bg-blue-100 text-blue-800' :
-                        'bg-green-100 text-green-800'
+                        user.role.includes('Admin') 
+                          ? theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800'
+                          : user.role.includes('Manager') 
+                          ? theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'
+                          : theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'
                       }`}>
                         {user.role}
                       </span>
@@ -986,11 +1030,29 @@ const Consolidation: React.FC = () => {
             </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={salesChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="company" />
-                <YAxis />
-                <Tooltip formatter={(value: number) => formatCurrency(value * 1000000)} />
-                <Legend />
+                <CartesianGrid 
+                  strokeDasharray="3 3" 
+                  stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} 
+                />
+                <XAxis 
+                  dataKey="company" 
+                  tick={{ fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }} 
+                />
+                <YAxis 
+                  tick={{ fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }} 
+                />
+                <Tooltip 
+                  formatter={(value: number) => formatCurrency(value * 1000000)}
+                  contentStyle={{
+                    backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff',
+                    border: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
+                    borderRadius: '8px',
+                    color: theme === 'dark' ? '#f9fafb' : '#111827'
+                  }}
+                />
+                <Legend 
+                  wrapperStyle={{ color: theme === 'dark' ? '#f9fafb' : '#111827' }}
+                />
                 <Bar dataKey="sales" fill="#3b82f6" name="Sales (Cr)" />
                 <Bar dataKey="profit" fill="#10b981" name="Profit (Cr)" />
               </BarChart>
@@ -1006,11 +1068,29 @@ const Consolidation: React.FC = () => {
             </h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={profitTrendData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value: number) => formatCurrency(value * 10000)} />
-                <Legend />
+                <CartesianGrid 
+                  strokeDasharray="3 3" 
+                  stroke={theme === 'dark' ? '#374151' : '#e5e7eb'} 
+                />
+                <XAxis 
+                  dataKey="month" 
+                  tick={{ fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+                />
+                <YAxis 
+                  tick={{ fill: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+                />
+                <Tooltip 
+                  formatter={(value: number) => formatCurrency(value * 10000)}
+                  contentStyle={{
+                    backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff',
+                    border: `1px solid ${theme === 'dark' ? '#374151' : '#e5e7eb'}`,
+                    borderRadius: '8px',
+                    color: theme === 'dark' ? '#f9fafb' : '#111827'
+                  }}
+                />
+                <Legend 
+                  wrapperStyle={{ color: theme === 'dark' ? '#f9fafb' : '#111827' }}
+                />
                 <Line 
                   type="monotone" 
                   dataKey="profit" 
@@ -1036,13 +1116,27 @@ const Consolidation: React.FC = () => {
                 theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
               } sticky top-0`}>
                 <tr>
-                  <th className="text-left p-4 font-semibold">Company</th>
-                  <th className="text-right p-4 font-semibold">Sales</th>
-                  <th className="text-right p-4 font-semibold">Net Profit</th>
-                  <th className="text-right p-4 font-semibold">Assets</th>
-                  <th className="text-right p-4 font-semibold">Cash & Bank</th>
-                  <th className="text-center p-4 font-semibold">Entered By</th>
-                  <th className="text-center p-4 font-semibold">Actions</th>
+                  <th className={`text-left p-4 font-semibold ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Company</th>
+                  <th className={`text-right p-4 font-semibold ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Sales</th>
+                  <th className={`text-right p-4 font-semibold ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Net Profit</th>
+                  <th className={`text-right p-4 font-semibold ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Assets</th>
+                  <th className={`text-right p-4 font-semibold ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Cash & Bank</th>
+                  <th className={`text-center p-4 font-semibold ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Entered By</th>
+                  <th className={`text-center p-4 font-semibold ${
+                    theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
+                  }`}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -1156,9 +1250,11 @@ const Consolidation: React.FC = () => {
                       {user.name}
                     </h4>
                     <span className={`px-2 py-1 rounded-full text-xs ${
-                      user.role.includes('Admin') ? 'bg-red-100 text-red-800' :
-                      user.role.includes('Manager') ? 'bg-blue-100 text-blue-800' :
-                      'bg-green-100 text-green-800'
+                      user.role.includes('Admin') 
+                        ? theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800'
+                        : user.role.includes('Manager') 
+                        ? theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'
+                        : theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'
                     }`}>
                       {user.role}
                     </span>
