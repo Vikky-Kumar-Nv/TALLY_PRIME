@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { Search, Filter, Download, Calendar, Clock, AlertTriangle } from 'lucide-react';
+import type { Ledger } from '../../../types';
 
 interface OutstandingLedgerData {
   id: number;
@@ -22,6 +23,7 @@ const OutstandingLedger: React.FC = () => {
   const [selectedLedger, setSelectedLedger] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
+  const [ledgers, setLedgers] = useState<Ledger[]>([]);
 
   // Mock ledger options
   const ledgerOptions = [
@@ -36,141 +38,50 @@ const OutstandingLedger: React.FC = () => {
     'Swift Logistics',
     'Alpha Systems'
   ];
+    const [outstandingData, setOutstandingData] = useState<OutstandingLedgerData[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
   // Mock outstanding data - grouped by ledger
-  const outstandingData: OutstandingLedgerData[] = [
-    {
-      id: 1,
-      ledgerName: 'ABC Enterprises',
-      entries: [
-        {
-          id: 1,
-          date: '2024-12-15',
-          refNo: 'Sales',
-          particular: 'Sales Invoice',
-          openingAmount: 50000,
-          pendingAmount: 35000,
-          dueOn: '2025-01-15',
-          overdueByDays: 0
-        },
-        {
-          id: 2,
-          date: '2024-11-20',
-          refNo: 'Sales',
-          particular: 'Sales Invoice',
-          openingAmount: 25000,
-          pendingAmount: 25000,
-          dueOn: '2024-12-20',
-          overdueByDays: 20
-        },
-        {
-          id: 3,
-          date: '2024-10-10',
-          refNo: 'Sales',
-          particular: 'Sales Invoice',
-          openingAmount: 75000,
-          pendingAmount: 15000,
-          dueOn: '2024-11-10',
-          overdueByDays: 61
-        }
-      ]
-    },
-    {
-      id: 2,
-      ledgerName: 'XYZ Corporation',
-      entries: [
-        {
-          id: 4,
-          date: '2024-12-01',
-          refNo: 'Sales',
-          particular: 'Sales Invoice',
-          openingAmount: 80000,
-          pendingAmount: 40000,
-          dueOn: '2025-01-01',
-          overdueByDays: 8
-        },
-        {
-          id: 5,
-          date: '2024-11-15',
-          refNo: 'Sales',
-          particular: 'Sales Invoice',
-          openingAmount: 30000,
-          pendingAmount: 20000,
-          dueOn: '2024-12-15',
-          overdueByDays: 25
-        }
-      ]
-    },
-    {
-      id: 3,
-      ledgerName: 'Reliable Suppliers',
-      entries: [
-        {
-          id: 6,
-          date: '2024-12-10',
-          refNo: 'Purchase',
-          particular: 'Purchase Invoice',
-          openingAmount: 120000,
-          pendingAmount: 85000,
-          dueOn: '2025-01-10',
-          overdueByDays: 0
-        },
-        {
-          id: 7,
-          date: '2024-11-05',
-          refNo: 'Purchase',
-          particular: 'Purchase Invoice',
-          openingAmount: 45000,
-          pendingAmount: 45000,
-          dueOn: '2024-12-05',
-          overdueByDays: 35
-        }
-      ]
-    },
-    {
-      id: 4,
-      ledgerName: 'Tech Solutions Ltd',
-      entries: [
-        {
-          id: 8,
-          date: '2024-12-20',
-          refNo: 'Sales',
-          particular: 'Sales Invoice',
-          openingAmount: 95000,
-          pendingAmount: 70000,
-          dueOn: '2025-01-20',
-          overdueByDays: 0
-        },
-        {
-          id: 9,
-          date: '2024-10-15',
-          refNo: 'Sales',
-          particular: 'Sales Invoice',
-          openingAmount: 35000,
-          pendingAmount: 35000,
-          dueOn: '2024-11-15',
-          overdueByDays: 76
-        }
-      ]
-    },
-    {
-      id: 5,
-      ledgerName: 'Global Trading Co',
-      entries: [
-        {
-          id: 10,
-          date: '2024-11-30',
-          refNo: 'Sales',
-          particular: 'Sales Invoice',
-          openingAmount: 65000,
-          pendingAmount: 50000,
-          dueOn: '2024-12-30',
-          overdueByDays: 10
-        }
-      ]
-    }
-  ];
+  
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams();
+        if (selectedLedger) params.append('ledgerName', selectedLedger);
+        if (searchTerm) params.append('searchTerm', searchTerm);
+        if (dateRange.from) params.append('from', dateRange.from);
+        if (dateRange.to)   params.append('to', dateRange.to);
 
+        const res = await fetch(`http://localhost:5000/api/outstanding-ledger?${params.toString()}`);
+        if (!res.ok) throw new Error(await res.text());
+        setOutstandingData(await res.json());
+      } catch (e: any) {
+        setError(e.message || 'Error fetching data');
+        setOutstandingData([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [selectedLedger, searchTerm, dateRange.from, dateRange.to]);
+
+  useEffect(() => {
+      const fetchLedgers = async () => {
+        try {
+          const res = await fetch("http://localhost:5000/api/ledger");
+          const data = await res.json();
+          setLedgers(data);
+        } catch (err) {
+          console.error("Failed to load ledgers", err);
+        }
+      };
+  
+      fetchLedgers();
+    }, []);
+  
   const filteredData = outstandingData.filter(ledger => {
     const matchesLedger = !selectedLedger || ledger.ledgerName === selectedLedger;
     const matchesSearch = !searchTerm || 
@@ -230,7 +141,9 @@ const OutstandingLedger: React.FC = () => {
         }`}>
           Filters
         </h3>
-        
+        {loading && <div className="py-6 text-center">Loading...</div>}
+        {error && <div className="py-6 text-center text-red-600">{error}</div>}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Ledger Dropdown */}
           <div>
@@ -240,22 +153,16 @@ const OutstandingLedger: React.FC = () => {
               Select Ledger
             </label>
             <select
-              title="Select Ledger"
-              value={selectedLedger}
-              onChange={(e) => setSelectedLedger(e.target.value)}
-              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                theme === 'dark'
-                  ? 'border-gray-600 bg-gray-700 text-white'
-                  : 'border-gray-300 bg-white text-gray-900'
-              }`}
-            >
-              <option value="">All Ledgers</option>
-              {ledgerOptions.map((ledger) => (
-                <option key={ledger} value={ledger}>
-                  {ledger}
-                </option>
-              ))}
-            </select>
+                              name="ledgerId"
+                              required
+                              title="Select party ledger"
+                              className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
+                            >
+                              <option value="">Select Party Ledger</option>
+                              {ledgers.filter(l => l.type !== 'cash' && l.type !== 'bank').map((ledger: Ledger) => (
+                                <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
+                              ))}
+                            </select>
           </div>
 
           {/* Search */}

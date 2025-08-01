@@ -3,6 +3,7 @@ import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import type { VoucherEntry, StockItem, Godown } from '../../../types';
 import { Save, Plus, Trash2, ArrowLeft } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const StockJournalVoucher: React.FC = () => {
   const { theme, stockItems, godowns = [], updateStockItem, addVoucher } = useAppContext();
@@ -130,34 +131,56 @@ const StockJournalVoucher: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      alert('Please fix the errors before submitting');
-      return;
-    }
-
-    const newVoucher: VoucherEntry = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...formData
-    };
-    addVoucher(newVoucher);
-
-    // Update stock quantities
-    formData.entries.forEach(entry => {
-      if (entry.itemId && entry.quantity) {
-        const stockItem = stockItems.find(item => item.id === entry.itemId);
-        if (stockItem) {
-          const newBalance = entry.type === 'source'
-            ? stockItem.openingBalance - entry.quantity
-            : stockItem.openingBalance + entry.quantity;
-          updateStockItem(entry.itemId, { openingBalance: newBalance });
-        }
+  const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      // if (!isBalanced) {
+      //   alert('Total debit must equal total credit');
+      //   return;
+      // }
+  
+      const employeeId = localStorage.getItem('employee_id');
+  
+      const formattedEntries = formData.entries.map(entry => ({
+        id: entry.id,
+        ledgerId: entry.ledgerId,
+        batchNumber: entry.batchNumber || '',
+        quantity: parseFloat((entry.quantity || 0).toString()),
+        rate: parseFloat((entry.rate || 0).toString()),
+        amount: parseFloat((entry.amount || 0).toString()),
+        type: entry.type,
+      }));
+  
+      const payload = {
+        date: formData.date,
+        number: formData.number || 'Auto',
+        narration: formData.narration,
+        type: 'journal',
+        employee_id: employeeId,
+        entries: formattedEntries,
+      };
+  
+      try {
+        const response = await fetch('http://localhost:5000/api/StockJournal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+  
+        if (!response.ok) throw new Error('Failed to save voucher');
+  
+        addVoucher(await response.json());
+       Swal.fire({
+                 icon: 'success',
+                 title: 'Success',
+                 text: "Voucher created Successfully",
+               }).then(() => {
+                 navigate('/app/vouchers'); // or your route to go back
+               });
+      } catch (err) {
+        console.error(err);
+        alert('Failed to save voucher.');
       }
-    });
-
-    navigate('/app/vouchers');
-  };
+    };
 
   const sourceEntries = formData.entries.filter(e => e.type === 'source');
   const destEntries = formData.entries.filter(e => e.type === 'destination');

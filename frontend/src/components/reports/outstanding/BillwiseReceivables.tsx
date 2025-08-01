@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { 
   Search, Download, AlertTriangle, 
@@ -32,127 +32,68 @@ interface BillDetails {
 
 const BillwiseReceivables: React.FC = () => {
   const { theme } = useAppContext();
+
+  // Your existing states
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedParty, setSelectedParty] = useState('');
   const [selectedAgeingBucket, setSelectedAgeingBucket] = useState('');
   const [selectedRiskCategory, setSelectedRiskCategory] = useState('');
   const [sortBy, setSortBy] = useState<'amount' | 'overdue' | 'party' | 'date'>('amount');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [showInterestCalculator, setShowInterestCalculator] = useState(false);
-  const [showBillDetails, setShowBillDetails] = useState(false);
+const [showInterestCalculator, setShowInterestCalculator] = useState(false);
+const [showBillDetails, setShowBillDetails] = useState(false);
 
-  // Mock data - यह actual API से आएगा
-  const billsData: BillDetails[] = useMemo(() => [
-    {
-      id: '1',
-      partyName: 'ABC Enterprises',
-      billNo: 'SI/2024/001',
-      billDate: '2024-10-15',
-      dueDate: '2024-11-15',
-      billAmount: 125000,
-      receivedAmount: 75000,
-      outstandingAmount: 50000,
-      overdueDays: 45,
-      creditDays: 30,
-      interestAmount: 1250,
-      voucherType: 'Sales',
-      reference: 'PO/ABC/001',
-      narration: 'Supply of materials',
-      ageingBucket: '31-60',
-      partyGroup: 'Sundry Debtors',
-      partyAddress: '123 Business Street, Mumbai',
-      partyPhone: '+91 9876543210',
-      partyGSTIN: '27ABCDE1234F1Z5',
-      creditLimit: 200000,
-      riskCategory: 'Medium'
-    },
-    {
-      id: '2',
-      partyName: 'XYZ Corporation',
-      billNo: 'SI/2024/002',
-      billDate: '2024-09-20',
-      dueDate: '2024-10-20',
-      billAmount: 85000,
-      receivedAmount: 0,
-      outstandingAmount: 85000,
-      overdueDays: 71,
-      creditDays: 30,
-      interestAmount: 2975,
-      voucherType: 'Sales',
-      reference: 'Order/XYZ/456',
-      narration: 'Product delivery',
-      ageingBucket: '61-90',
-      partyGroup: 'Sundry Debtors',
-      partyAddress: '456 Corporate Avenue, Delhi',
-      partyPhone: '+91 9988776655',
-      partyGSTIN: '07XYZAB5678C1D2',
-      creditLimit: 150000,
-      riskCategory: 'High'
-    },
-    {
-      id: '3',
-      partyName: 'Tech Solutions Ltd',
-      billNo: 'SI/2024/003',
-      billDate: '2024-12-01',
-      dueDate: '2025-01-01',
-      billAmount: 60000,
-      receivedAmount: 20000,
-      outstandingAmount: 40000,
-      overdueDays: 0,
-      creditDays: 30,
-      interestAmount: 0,
-      voucherType: 'Sales',
-      reference: 'TSL/2024/789',
-      narration: 'Software services',
-      ageingBucket: '0-30',
-      partyGroup: 'Sundry Debtors',
-      partyAddress: '789 Tech Park, Bangalore',
-      partyPhone: '+91 8877665544',
-      partyGSTIN: '29TECHS1234E5F6',
-      creditLimit: 100000,
-      riskCategory: 'Low'
-    },
-    {
-      id: '4',
-      partyName: 'Global Trading Co',
-      billNo: 'SI/2024/004',
-      billDate: '2024-08-10',
-      dueDate: '2024-09-10',
-      billAmount: 150000,
-      receivedAmount: 30000,
-      outstandingAmount: 120000,
-      overdueDays: 112,
-      creditDays: 30,
-      interestAmount: 6720,
-      voucherType: 'Sales',
-      reference: 'GTC/IMP/001',
-      narration: 'Export supplies',
-      ageingBucket: '90+',
-      partyGroup: 'Sundry Debtors',
-      partyAddress: '321 Export House, Chennai',
-      partyPhone: '+91 7766554433',
-      partyGSTIN: '33GLOBAL123G4H5',
-      creditLimit: 300000,
-      riskCategory: 'Critical'
+  // New state for fetched bills
+  const [billsData, setBillsData] = useState<BillDetails[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+
+  // Fetch data
+  useEffect(() => {
+    async function fetchBills() {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('searchTerm', searchTerm);
+        if (selectedParty) params.append('partyName', selectedParty);
+        if (selectedAgeingBucket) params.append('ageingBucket', selectedAgeingBucket);
+        if (selectedRiskCategory) params.append('riskCategory', selectedRiskCategory);
+        if (sortBy) params.append('sortBy', sortBy);
+        if (sortOrder) params.append('sortOrder', sortOrder);
+
+        const res = await fetch(`http://localhost:5000/api/billwise-receivables?${params.toString()}`);
+        if (!res.ok) {
+          throw new Error(`Error ${res.status} - ${await res.text()}`);
+        }
+        const data: BillDetails[] = await res.json();
+        setBillsData(data);
+      } catch (e: any) {
+        setError(e.message || 'Failed to load data');
+        setBillsData([]);
+      } finally {
+        setLoading(false);
+      }
     }
-  ], []);
+    fetchBills();
+  }, [searchTerm, selectedParty, selectedAgeingBucket, selectedRiskCategory, sortBy, sortOrder]);
 
-  // Filtering and sorting logic
   const filteredData = useMemo(() => {
     const filtered = billsData.filter(bill => {
       const matchesSearch = !searchTerm || 
         bill.partyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         bill.billNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
         bill.reference?.toLowerCase().includes(searchTerm.toLowerCase());
-      
+
       const matchesParty = !selectedParty || bill.partyName === selectedParty;
       const matchesAgeing = !selectedAgeingBucket || bill.ageingBucket === selectedAgeingBucket;
       const matchesRisk = !selectedRiskCategory || bill.riskCategory === selectedRiskCategory;
-      
+
       return matchesSearch && matchesParty && matchesAgeing && matchesRisk;
     });
 
-    // Sorting logic
+
     filtered.sort((a, b) => {
       let comparison = 0;
       switch (sortBy) {
@@ -172,26 +113,30 @@ const BillwiseReceivables: React.FC = () => {
       return sortOrder === 'desc' ? -comparison : comparison;
     });
 
+
     return filtered;
   }, [billsData, searchTerm, selectedParty, selectedAgeingBucket, selectedRiskCategory, sortBy, sortOrder]);
 
-  // Summary calculations
+
+  // *** Summary calculations ***
   const summaryData = useMemo(() => {
     const total = filteredData.reduce((sum, bill) => sum + bill.outstandingAmount, 0);
     const overdue = filteredData.filter(bill => bill.overdueDays > 0).reduce((sum, bill) => sum + bill.outstandingAmount, 0);
     const current = total - overdue;
     const totalInterest = filteredData.reduce((sum, bill) => sum + bill.interestAmount, 0);
-    
+
     const ageingBreakdown = {
       '0-30': filteredData.filter(b => b.ageingBucket === '0-30').reduce((sum, b) => sum + b.outstandingAmount, 0),
       '31-60': filteredData.filter(b => b.ageingBucket === '31-60').reduce((sum, b) => sum + b.outstandingAmount, 0),
       '61-90': filteredData.filter(b => b.ageingBucket === '61-90').reduce((sum, b) => sum + b.outstandingAmount, 0),
-      '90+': filteredData.filter(b => b.ageingBucket === '90+').reduce((sum, b) => sum + b.outstandingAmount, 0)
+      '90+': filteredData.filter(b => b.ageingBucket === '90+').reduce((sum, b) => sum + b.outstandingAmount, 0),
     };
 
     return { total, overdue, current, totalInterest, ageingBreakdown };
   }, [filteredData]);
 
+  // Filtering and sorting logic
+  
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',

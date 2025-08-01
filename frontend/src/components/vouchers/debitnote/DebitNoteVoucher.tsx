@@ -181,38 +181,82 @@ const DebitNoteVoucher: React.FC = () => {
 
   const { totalDebit, totalCredit, isBalanced } = calculateTotals();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate based on mode
-    if (formData.mode === 'item-invoice') {
-      if (!formData.partyId) {
-        alert('Please select a party');
-        return;
-      }
-      if (!formData.salesLedgerId) {
-        alert('Please select a sales ledger');
-        return;
-      }
-      if (!formData.entries.some((entry: VoucherEntryLine) => entry.itemId)) {
-        alert('Please add at least one item');
-        return;
-      }
-    } else {
-      if (!isBalanced) {
-        alert('Total debit must equal total credit');
-        return;
-      }
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  // ✅ Validation based on mode
+  if (formData.mode === 'item-invoice') {
+    if (!formData.partyId) {
+      alert('Please select a party');
+      return;
     }
-    
-    const newVoucher: VoucherEntry = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...formData
+    if (!formData.salesLedgerId) {
+      alert('Please select a sales ledger');
+      return;
+    }
+    if (!formData.entries.some((entry: VoucherEntryLine) => entry.itemId)) {
+      alert('Please add at least one item');
+      return;
+    }
+  } else {
+    if (!isBalanced) {
+      alert('Total debit must equal total credit');
+      return;
+    }
+  }
+
+  try {
+    const empId = localStorage.getItem('employee_id'); // Get empId from localStorage
+    if (!empId) {
+      alert('Employee ID not found. Please login again.');
+      return;
+    }
+
+    // ✅ Prepare payload for API
+    const payload = {
+      empId: empId,
+      date: formData.date,
+      number: formData.number || '', // Allow empty if Auto
+      mode: formData.mode,
+      partyId: formData.partyId || null,
+      salesLedgerId: formData.salesLedgerId || null,
+      narration: formData.narration || '',
+      entries: formData.entries.map((entry) => ({
+        itemId: entry.itemId || null,
+        hsnCode: entry.hsnCode || '',
+        quantity: entry.quantity || 0,
+        rate: entry.rate || 0,
+        discount: entry.discount || 0,
+        amount: entry.amount || 0,
+        ledgerId: entry.ledgerId || null,
+        type: entry.type || null
+      }))
     };
-    
-    addVoucher(newVoucher);
-    navigate('/app/vouchers');
-  };
+
+    console.log('Payload:', payload);
+
+    // ✅ Send to backend
+    const response = await fetch('http://localhost:5000/api/DebitNoteVoucher', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      alert('✅ Debit Note saved successfully');
+      navigate('/app/vouchers');
+    } else {
+      alert('❌ Failed: ' + (result.message || 'Unknown error'));
+    }
+  } catch (error) {
+    console.error('Error saving debit note:', error);
+    alert('Error saving debit note. Check console for details.');
+  }
+};
+
 
   return (
     <div className='pt-[56px] px-4 '>

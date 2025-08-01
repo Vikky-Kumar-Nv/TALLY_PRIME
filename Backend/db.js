@@ -6,6 +6,8 @@ const db = mysql.createPool({
   user: 'root',
   password: '',
   database: 'dbEnegix'
+
+  
 });
 
 module.exports = db;

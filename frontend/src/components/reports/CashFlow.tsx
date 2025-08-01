@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Printer, Download, Filter, TrendingUp, TrendingDown } from 'lucide-react';
@@ -17,26 +17,13 @@ const CashFlow: React.FC = () => {
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [selectedYear, setSelectedYear] = useState('2024-25');
 
-  // Mock cash flow data for each month
-  const cashFlowData: MonthlyCashFlow[] = [
-    { month: 'April', monthCode: 'Apr-24', inflow: 2500000, outflow: 1800000, netFlow: 700000 },
-    { month: 'May', monthCode: 'May-24', inflow: 2200000, outflow: 2100000, netFlow: 100000 },
-    { month: 'June', monthCode: 'Jun-24', inflow: 2800000, outflow: 2300000, netFlow: 500000 },
-    { month: 'July', monthCode: 'Jul-24', inflow: 3100000, outflow: 2600000, netFlow: 500000 },
-    { month: 'August', monthCode: 'Aug-24', inflow: 2900000, outflow: 2700000, netFlow: 200000 },
-    { month: 'September', monthCode: 'Sep-24', inflow: 3200000, outflow: 2400000, netFlow: 800000 },
-    { month: 'October', monthCode: 'Oct-24', inflow: 2700000, outflow: 2800000, netFlow: -100000 },
-    { month: 'November', monthCode: 'Nov-24', inflow: 3500000, outflow: 2900000, netFlow: 600000 },
-    { month: 'December', monthCode: 'Dec-24', inflow: 4100000, outflow: 3200000, netFlow: 900000 },
-    { month: 'January', monthCode: 'Jan-25', inflow: 2800000, outflow: 2500000, netFlow: 300000 },
-    { month: 'February', monthCode: 'Feb-25', inflow: 3000000, outflow: 2700000, netFlow: 300000 },
-    { month: 'March', monthCode: 'Mar-25', inflow: 3600000, outflow: 3100000, netFlow: 500000 }
-  ];
+  const [cashFlowData, setCashFlowData] = useState<MonthlyCashFlow[]>([]);
 
   // Calculate totals
-  const totalInflow = cashFlowData.reduce((sum, month) => sum + month.inflow, 0);
-  const totalOutflow = cashFlowData.reduce((sum, month) => sum + month.outflow, 0);
-  const totalNetFlow = totalInflow - totalOutflow;
+ 
+const [totalInflow, setTotalInflow] = useState<number>(0);
+const [totalOutflow, setTotalOutflow] = useState<number>(0);
+const [totalNetFlow, setTotalNetFlow] = useState<number>(0);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -53,6 +40,22 @@ const CashFlow: React.FC = () => {
       state: { monthData }
     });
   };
+useEffect(() => {
+  async function fetchCashFlow() {
+    try {
+      const res = await fetch(`http://localhost:5000/api/cash-flow?financialYear=${selectedYear}`);
+      if (!res.ok) throw new Error('Failed to load cash flow data');
+      const data = await res.json();
+      setCashFlowData(data.cashFlowData);
+      setTotalInflow(data.totalInflow);
+      setTotalOutflow(data.totalOutflow);
+      setTotalNetFlow(data.totalNetFlow);
+    } catch (e) {
+      // handle errors
+    }
+  }
+  fetchCashFlow();
+}, [selectedYear]);
 
   return (
     <div className='pt-[56px] px-4 '>

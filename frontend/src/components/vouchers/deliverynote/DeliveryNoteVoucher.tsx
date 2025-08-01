@@ -3,6 +3,7 @@ import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import type { VoucherEntry, Ledger } from '../../../types';
 import { Save, Plus, Trash2, ArrowLeft } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const DeliveryNoteVoucher: React.FC = () => {
   const { theme, ledgers, addVoucher } = useAppContext();
@@ -67,20 +68,38 @@ const DeliveryNoteVoucher: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isBalanced) {
-      alert('Total debit must equal total credit');
-      return;
+        alert('Total debit must equal total credit');
+        return;
     }
-    
-    const newVoucher: VoucherEntry = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...formData
+
+    const employeeId = localStorage.getItem('employee_id');
+
+    const payload = {
+        ...formData,
+        employee_id: employeeId,
     };
-    
-    addVoucher(newVoucher);
-    navigate('/app/vouchers');
-  };
+
+    fetch('http://localhost:5000/api/DeliveryItem', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(() => {
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Delivery Note Saved Successfully.',
+            confirmButtonColor: '#3085d6'
+        }).then(() => {
+            navigate('/app/vouchers');
+        });
+    })
+    .catch(err => console.error(err));
+};
+
 
   return (
     <div className='pt-[56px] px-4 '>

@@ -1,10 +1,42 @@
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Package, Upload } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
-
+interface StockItem {
+  id: string;
+  name: string;
+  stockGroupId: string;
+  unit: string;
+  openingBalance: number;
+  hsnCode?: string;
+  gstRate?: number;
+  taxType?: string;
+}
 const StockItemList = () => {
-  const { theme, stockItems = [], stockGroups = [], units = [] } = useAppContext();
+  const { theme, stockGroups = [], units = [] } = useAppContext();
   const navigate = useNavigate();
+  const [stockItems, setStockItems] = useState<StockItem[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/stock-items');
+        const json = await res.json();
+
+        if (json.success) {
+          setStockItems(json.data);
+        } else {
+          console.error('API returned failure:', json.message);
+        }
+      } catch (err) {
+        console.error('❌ Failed to fetch stock items:', err);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+
 
   const handleDelete = (id: string) => {
     const itemToDelete = stockItems.find(item => item.id === id);

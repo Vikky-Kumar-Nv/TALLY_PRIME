@@ -44,12 +44,9 @@ const PageContent: React.FC = () => {
 };
 
 const MainContent: React.FC = () => {
-  const { isAuthenticated } = useAdmin();
   const { theme } = useTheme();
 
-  if (!isAuthenticated) {
-    return <Login />;
-  }
+  
 
   return (
     <div className={`flex h-screen overflow-hidden ${theme === 'dark' ? 'bg-gray-900 text-gray-200' : 'bg-gray-50 text-gray-900'}`}>

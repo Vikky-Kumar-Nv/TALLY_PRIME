@@ -2,6 +2,38 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db'); // your mysql2 pool connection
 
+// GET all stock items with optional joins
+router.get('/', async (req, res) => {
+  const connection = await db.getConnection();
+  try {
+    const [rows] = await connection.execute(`
+      SELECT 
+        s.id,
+        s.name,
+        s.stockGroupId,
+        sg.name AS stockGroupName,
+        s.unit,
+        u.name AS unitName,
+        s.openingBalance,
+        s.hsnCode,
+        s.gstRate,
+        s.taxType
+      FROM stock_items s
+      LEFT JOIN stock_groups sg ON s.stockGroupId = sg.id
+      LEFT JOIN stock_units u ON s.unit = u.id
+    `);
+
+    res.json({ success: true, data: rows });
+  } catch (err) {
+    console.error("🔥 Error fetching stock items:", err);
+    res.status(500).json({ success: false, message: 'Error fetching stock items' });
+  } finally {
+    connection.release();
+  }
+});
+
+
+
 router.post('/', async (req, res) => {
   const connection = await db.getConnection(); // ✅ get a connection
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { ArrowLeft, Printer, Download, Filter } from 'lucide-react';
@@ -28,21 +28,145 @@ interface GroupSummary {
 type SummaryData = ItemSummary | GroupSummary;
 
 const StockSummary: React.FC = () => {
-  const { theme, stockItems, stockGroups, companyInfo } = useAppContext();
+  const { theme, stockGroups, stockItems, companyInfo } = useAppContext();
   const navigate = useNavigate();
-  const [showFilterPanel, setShowFilterPanel] = useState(false);
-  const [view, setView] = useState<'Item' | 'Group'>('Item');
+   const [showFilterPanel, setShowFilterPanel] = useState(false);
+   const [view, setView] = useState<'Item' | 'Group'>('Item'); 
+   const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [filters, setFilters] = useState({
-    fromDate: companyInfo?.financialYear || '2025-04-01',
-    toDate: new Date().toISOString().split('T')[0],
+    fromDate: companyInfo?.financialYear ? companyInfo.financialYear.split('-')[0] + '-04-01' : '2025-04-01',
+    toDate: new Date().toISOString().slice(0, 10),
     stockGroupId: '',
     stockItemId: '',
     godownId: '',
     batchId: '',
-    period: 'Monthly' as 'Daily' | 'Weekly' | 'Fortnightly' | 'Monthly' | 'Quarterly' | 'Half-Yearly' | 'Yearly',
+    period: 'Monthly',
     basis: 'Quantity' as 'Quantity' | 'Value' | 'Cost',
-    showProfit: false,
+    show: false,
   });
+// Fetch data on filters change
+  useEffect(() => {
+    async function fetchSummary() {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams();
+        if (filters.fromDate) params.append('fromDate', filters.fromDate);
+        if (filters.toDate) params.append('toDate', filters.toDate);
+        if (filters.stockGroupId) params.append('stockGroupId', filters.stockGroupId);
+        if (filters.stockItemId) params.append('stockItemId', filters.stockItemId);
+        if (filters.godownId) params.append('godownId', filters.godownId);
+        if (filters.batchId) params.append('batchId', filters.batchId);
+        if (filters.period) params.append('period', filters.period);
+        if (filters.basis) params.append('basis', filters.basis);
+        if (filters.show) params.append('show', String(filters.show));
+
+        const response = await fetch(`http://localhost:5000/api/stock-summary?${params.toString()}`);
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(text || `Error: ${response.status}`);
+        }
+        const json = await response.json();
+
+        setData(json);
+      }
+      catch (e: any) {
+        setError(e.message || 'Failed to load data');
+        setData([]);
+      }
+      finally {
+        setLoading(false);
+      }
+    }
+    fetchSummary();
+  }, [filters]);
+// Compute grouped data if view is Group, else use data directly
+  const groupedData = useMemo(() => {
+    if (view === 'Group') {
+      const groupsMap = new Map<string, any>();
+      data.forEach(item => {
+        const groupId = item.item?.stockGroupId || item.group?.id || 'unknown';
+        if (!groupsMap.has(groupId)) {
+          const group = stockGroups.find(g => g.id === groupId);
+          if (!group) return;
+          groupsMap.set(groupId, {
+            group,
+            inwardQty: 0,
+            outwardQty: 0,
+            closingQty: 0,
+            closingValue: 0,
+            profit: 0
+          });
+        }
+        const grp = groupsMap.get(groupId);
+        grp.inwardQty += item.inwardQty ?? 0;
+        grp.outwardQty += item.outwardQty ?? 0;
+        grp.closingQty += item.closingQty ?? 0;
+        grp.closingValue += item.closingValue ?? 0;
+        grp.profit += item.profit ?? 0;
+      });
+      return Array.from(groupsMap.values());
+    }
+    return data;
+  }, [data, view, stockGroups]);
+
+  // Define your columns (adjust accessors/renderers for your data)
+  const columns = useMemo(() => [
+  {
+    header: view === 'Item' ? 'Stock Item' : 'Stock Group',
+    accessor: 'name',
+    align: 'left' as const,
+    render: (row: any) =>
+      view === 'Item' ? row.name : row.group?.name || '',
+  },
+  {
+    header: 'Unit',
+    accessor: 'unit',
+    align: 'left' as const,
+    render: (row: any) => view === 'Item' ? row.unit : '',
+  },
+  {
+    header: 'Opening Qty',
+    accessor: 'openingBalance',
+    align: 'right' as const,
+    render: (row: any) => view === 'Item' ? (row.openingBalance?.toLocaleString() ?? '0') : '',
+  },
+  {
+    header: 'Inward Qty',
+    accessor: 'inwardQty',
+    align: 'right' as const,
+    render: (row: any) => row.inwardQty?.toLocaleString() ?? '0',
+  },
+  {
+    header: 'Outward Qty',
+    accessor: 'outwardQty',
+    align: 'right' as const,
+    render: (row: any) => row.outwardQty?.toLocaleString() ?? '0',
+  },
+  {
+    header: 'Closing Qty',
+    accessor: 'closingQty',
+    align: 'right' as const,
+    render: (row: any) => row.closingQty?.toLocaleString() ?? '0',
+  },
+  {
+    header: 'Closing Value',
+    accessor: 'closingValue',
+    align: 'right' as const,
+    render: (row: any) => `₹${row.closingValue?.toLocaleString() ?? '0'}`,
+  },
+  ...(filters.show
+    ? [{
+        header: 'Profit',
+        accessor: 'profit',
+        align: 'right' as const,
+        render: (row: any) => `₹${row.profit?.toLocaleString() ?? '0'}`,
+      }]
+    : []),
+], [view, filters.show]);
 
   // Mock voucher entries
   const [voucherEntries] = useState<VoucherEntry[]>([
@@ -113,7 +237,7 @@ const StockSummary: React.FC = () => {
       const closingValue = filters.basis === 'Cost'
         ? closingQty * (item.standardPurchaseRate || 0)
         : closingQty * (item.standardSaleRate || 0);
-      const profit = filters.showProfit
+      const profit = filters.show
         ? (outwardValue - (outwardQty * (item.standardPurchaseRate || 0)))
         : 0;
       return { item, inwardQty, outwardQty, closingQty, closingValue, profit };
@@ -134,27 +258,23 @@ const StockSummary: React.FC = () => {
     });
   };
 
-  const columns = useMemo(() => [
-    { header: view === 'Item' ? 'Stock Item' : 'Stock Group', accessor: 'name', align: 'left' as const, render: (row: SummaryData) => view === 'Item' ? (row as ItemSummary).item.name : (row as GroupSummary).group.name },
-    { header: 'Unit', accessor: 'unit', align: 'left' as const, render: (row: SummaryData) => view === 'Item' ? (row as ItemSummary).item.unit : '' },
-    { header: 'Opening Qty', accessor: 'openingBalance', align: 'right' as const, render: (row: SummaryData) => view === 'Item' ? (row as ItemSummary).item.openingBalance.toLocaleString() : '' },
-    { header: 'Inward Qty', accessor: 'inwardQty', align: 'right' as const, render: (row: SummaryData) => row.inwardQty.toLocaleString() },
-    { header: 'Outward Qty', accessor: 'outwardQty', align: 'right' as const, render: (row: SummaryData) => row.outwardQty.toLocaleString() },
-    { header: 'Closing Qty', accessor: 'closingQty', align: 'right' as const, render: (row: SummaryData) => row.closingQty.toLocaleString() },
-    { header: 'Closing Value', accessor: 'closingValue', align: 'right' as const, render: (row: SummaryData) => `₹${row.closingValue.toLocaleString()}` },
-    ...(filters.showProfit ? [{ header: 'Profit', accessor: 'profit', align: 'right' as const, render: (row: SummaryData) => `₹${row.profit.toLocaleString()}` }] : []),
-  ], [view, filters.showProfit]);
+  // Footer totals
+  const footer = useMemo(() => {
+    return [
+      { accessor: 'name', value: 'Total' },
+      { accessor: 'unit', value: '' },
+      { accessor: 'openingQty', value: data.reduce((sum, r) => sum + (r.item?.openingBalance || 0), 0).toLocaleString() },
+      { accessor: 'inwardQty', value: data.reduce((sum, r) => sum + (r.inwardQty || 0), 0).toLocaleString() },
+      { accessor: 'outwardQty', value: data.reduce((sum, r) => sum + (r.outwardQty || 0), 0).toLocaleString() },
+      { accessor: 'closingQty', value: data.reduce((sum, r) => sum + (r.closingQty || 0), 0).toLocaleString() },
+      { accessor: 'closingValue', value: `₹${data.reduce((sum, r) => sum + (r.closingValue || 0), 0).toLocaleString()}` },
+      ...(filters.show ? [{ accessor: 'profit', value: `₹${data.reduce((sum, r) => sum + (r.profit || 0), 0).toLocaleString()}` }] : []),
+    ];
+  }, [data, filters.show]);
 
-  const data = view === 'Item' ? calculateSummary(filteredItems) : calculateGroupSummary();
+
   
-  const footer = useMemo(() => [
-    { accessor: 'name', value: 'Total' },
-    { accessor: 'inwardQty', value: data.reduce((sum, row) => sum + row.inwardQty, 0).toLocaleString() },
-    { accessor: 'outwardQty', value: data.reduce((sum, row) => sum + row.outwardQty, 0).toLocaleString() },
-    { accessor: 'closingQty', value: data.reduce((sum, row) => sum + row.closingQty, 0).toLocaleString() },
-    { accessor: 'closingValue', value: `₹${data.reduce((sum, row) => sum + row.closingValue, 0).toLocaleString()}` },
-    ...(filters.showProfit ? [{ accessor: 'profit', value: `₹${data.reduce((sum, row) => sum + row.profit, 0).toLocaleString()}` }] : []),
-  ], [data, filters.showProfit]);
+  
 
   const handlePrint = useCallback(() => {
     const printWindow = window.open('', '_blank');
@@ -267,31 +387,35 @@ const StockSummary: React.FC = () => {
         </div>
       </div>
 
-      <FilterPanel
-        theme={theme}
-        show={showFilterPanel}
-        onToggle={() => setShowFilterPanel(!showFilterPanel)}
-        filters={filters}
-        onFilterChange={setFilters}
-        stockGroups={stockGroups}
-        stockItems={stockItems}
-        godowns={companyInfo?.godowns || []}
-      />
-
+      
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
-        <div className="mb-4 text-center">
-          <h2 className="text-xl font-bold">Stock Summary Report</h2>
-          <p className="text-sm opacity-75">From {filters.fromDate} to {filters.toDate}</p>
-        </div>
+  <div className="mb-4 text-center">
+    <h2 className="text-xl font-bold">Stock Summary Report</h2>
+    <p className="text-sm opacity-75">
+      From {filters.fromDate} to {filters.toDate}
+    </p>
+  </div>
 
-        <ReportTable
-          theme={theme}
-          columns={columns}
-          data={data}
-          footer={footer}
-          onRowClick={(row) => navigate(`/reports/movement-analysis?itemId=${view === 'Item' ? (row as ItemSummary).item.id : ''}&groupId=${view === 'Group' ? (row as GroupSummary).group.id : ''}`)}
-        />
-      </div>
+  {loading && <p>Loading...</p>}
+  {error && <p className="text-red-600">{error}</p>}
+
+  {!loading && !error && (
+    <ReportTable
+      theme={theme}
+      columns={columns}
+      data={view === 'Group' ? groupedData : data}
+      footer={footer}
+      onRowClick={(row) =>
+        navigate(
+          `/reports/movement-analysis?itemId=${
+            view === 'Item' ? (row as ItemSummary).item.id ?? '' : ''
+          }&groupId=${view === 'Group' ? (row as GroupSummary).group.id ?? '' : ''}`
+        )
+      }
+    />
+  )}
+</div>
+
 
       <div className={`mt-6 p-4 rounded ${theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'}`}>
         <p className="text-sm text-gray-700 dark:text-gray-300">

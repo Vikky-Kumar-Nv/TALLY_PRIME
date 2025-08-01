@@ -1,10 +1,13 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate, useParams } from 'react-router-dom';
 import type { VoucherEntry, Godown } from '../../../types';
 import { Save, Plus, Trash2, ArrowLeft, Printer, Calendar, User, Package } from 'lucide-react';
 import Swal from 'sweetalert2';
+
+
+
 
 // DRY Constants for Tailwind Classes
 const FORM_STYLES = {
@@ -24,7 +27,23 @@ const SalesOrder: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
   const printRef = useRef<HTMLDivElement>(null);
+// Inside SalesOrder component
+const [salesLedgers, setSalesLedgers] = useState<{ id: string; name: string; type: string }[]>([]);
 
+useEffect(() => {
+  const fetchSalesLedgers = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/ledger-dropdown'); // ✅ Laravel API endpoint
+      const data = await response.json();
+
+      setSalesLedgers(data);
+    } catch (error) {
+      console.error('Error fetching sales ledgers:', error);
+    }
+  };
+
+  fetchSalesLedgers();
+}, []);
   // Safe fallbacks for context data
   const safeStockItems = stockItems || [
     { id: '1', name: 'Laptop HP Pavilion', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 50, standardSaleRate: 45000 },
@@ -283,42 +302,47 @@ const SalesOrder: React.FC = () => {
     return { subtotal, cgstTotal, sgstTotal, igstTotal, discountTotal, total };
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (!validateForm()) {
-      alert('Please fix the errors before submitting');
-      return;
-    }
+  const empId = localStorage.getItem('employee_id'); // ✅ Get from localStorage
+  if (!empId) {
+    Swal.fire('Error!', 'Employee ID not found. Please log in again.', 'error');
+    return;
+  }
 
-    try {
-      if (isEditMode && id) {
-        updateVoucher(id, formData);
-        await Swal.fire({
-          title: 'Success',
-          text: 'Sales order updated successfully!',
-          icon: 'success',
-          confirmButtonText: 'OK'
-        });
-      } else {
-        const newVoucher: VoucherEntry = {
-          ...formData,
-          id: Math.random().toString(36).substring(2, 9)
-        };
-        addVoucher(newVoucher);
-        await Swal.fire({
-          title: 'Success',
-          text: 'Sales order saved successfully!',
-          icon: 'success',
-          confirmButtonText: 'OK'
-        });
-      }
-      navigate('/app/vouchers');
-    } catch (err) {
-      console.error('Error:', err);
-      Swal.fire('Error', 'Failed to save sales order', 'error');
-    }
+  if (formData.entries.length === 0) {
+    Swal.fire('Error!', 'Please add at least one item.', 'error');
+    return;
+  }
+
+  const payload = {
+    ...formData,
+    empId // ✅ Include empId
   };
+
+  try {
+    const response = await fetch('http://localhost:5000/api/sales-orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    if (data.success) {
+      Swal.fire('Success!', 'Sales Order saved successfully.', 'success');
+      navigate('/app/vouchers');
+    } else {
+      Swal.fire('Error!', data.message || 'Failed to save Sales Order.', 'error');
+    }
+  } catch (error) {
+    console.error('Error submitting Sales Order:', error);
+    Swal.fire('Error!', 'An error occurred while saving the Sales Order.', 'error');
+  }
+};
+
 
   const { subtotal = 0, cgstTotal = 0, sgstTotal = 0, igstTotal = 0, discountTotal = 0, total = 0 } = calculateTotals();
 
@@ -426,32 +450,33 @@ const SalesOrder: React.FC = () => {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1" htmlFor="salesLedgerId">
-                  Sales Ledger <span className="text-red-500">*</span>
-                </label>              
-                <select
-                  id="salesLedgerId"
-                  name="salesLedgerId"
-                  value={formData.salesLedgerId || ''}
-                  onChange={handleChange}
-                  title="Select Sales Ledger"
-                  required
-                  className={FORM_STYLES.select(theme, !!errors.salesLedgerId)}
-                >
-                  <option value="">-- Select Sales Ledger --</option>
-                  {safeLedgers
-                    .filter(ledger => ledger.type === 'sales' || ledger.name.toLowerCase().includes('sales'))
-                    .map(ledger => (
-                      <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
-                    ))
-                  }
-                  {/* Fallback options if no sales ledgers found */}
-                  <option value="sales-general">Sales - General</option>
-                  <option value="sales-local">Sales - Local</option>
-                  <option value="sales-export">Sales - Export</option>
-                </select>
-                {errors.salesLedgerId && <p className="text-red-500 text-xs mt-1">{errors.salesLedgerId}</p>}
-              </div>
+  <label className="block text-sm font-medium mb-1" htmlFor="salesLedgerId">
+    Sales Ledger <span className="text-red-500">*</span>
+  </label>
+ <select
+  id="salesLedgerId"
+  name="salesLedgerId"
+  value={formData.salesLedgerId || ''}
+  onChange={handleChange}
+  required
+  className={FORM_STYLES.select(theme, !!errors.salesLedgerId)}
+>
+  <option value="">-- Select Sales Ledger --</option>
+  {salesLedgers.length > 0 ? (
+    salesLedgers.map((ledger) => (
+      <option key={ledger.id} value={ledger.id}>
+        {ledger.name}
+      </option>
+    ))
+  ) : (
+    <option disabled>No Sales Ledgers Found</option>
+  )}
+</select>
+
+  {errors.salesLedgerId && <p className="text-red-500 text-xs mt-1">{errors.salesLedgerId}</p>}
+</div>
+
+
             </div>
 
             {/* Order Details */}

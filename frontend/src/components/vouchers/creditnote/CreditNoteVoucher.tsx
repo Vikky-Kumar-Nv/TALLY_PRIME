@@ -167,28 +167,55 @@ const CreditNoteVoucher: React.FC = () => {
     
   const isBalanced = formData.mode === 'as-voucher' ? totalDebit === totalCredit : true;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validation based on mode
-    if (formData.mode === 'as-voucher' && !isBalanced) {
-      alert('Total debit must equal total credit');
-      return;
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  console.log("Submitting Voucher Data:", formData);
+
+  if (formData.mode === 'as-voucher' && !isBalanced) {
+    alert('Total debit must equal total credit');
+    return;
+  }
+
+  if ((formData.mode === 'item-invoice' || formData.mode === 'accounting-invoice') && !formData.partyId) {
+    alert('Please select a party');
+    return;
+  }
+
+  // Get employee_id from localStorage
+  const employee_id = localStorage.getItem('employee_id');
+
+  try {
+    const response = await fetch('http://localhost:5000/api/CreditNotevoucher', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...formData,
+        employee_id: employee_id,   // 👈 Add this field
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Server Error Response:", errorText);
+      throw new Error(`Server returned status ${response.status}`);
     }
-    
-    if ((formData.mode === 'item-invoice' || formData.mode === 'accounting-invoice') && !formData.partyId) {
-      alert('Please select a party');
-      return;
-    }
-    
-    const newVoucher: VoucherEntry = {
-      id: Math.random().toString(36).substring(2, 9),
-      ...formData
-    };
-    
-    addVoucher(newVoucher);
+
+    const data = await response.json();
+    console.log('Server Response:', data);
+
+    alert(data.message || 'Credit Note Voucher saved successfully!');
+
     navigate('/app/vouchers');
-  };
+  } catch (error) {
+    console.error('Error while saving voucher:', error);
+    alert('Failed to save the voucher. Please check console for details.');
+  }
+};
+
+
 
   return (
     <div className='pt-[56px] px-4 '>
