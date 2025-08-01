@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Save, X, ArrowLeft, Plus } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 import type {GodownAllocation, Godown, UnitOfMeasurement, StockGroup, GstClassification } from '../../../types';
+import Swal from 'sweetalert2';
 
 // Interface for InputField props
 interface InputFieldProps {
@@ -297,7 +298,7 @@ const StockItemForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
-      alert('Please fix the errors before submitting.');
+      Swal.fire('Validation Error', 'Please fix the errors before submitting.', 'warning');
       return;
     }
 
@@ -317,15 +318,28 @@ const StockItemForm = () => {
     .then(res => res.json())
     .then(data => {
       if (data.success) {
-        alert('Stock item saved successfully');
-        navigate('/app/masters/stock-item');
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Stock item saved successfully!',
+        }).then(() => {
+          navigate('/app/masters/stock-item');
+        });
       } else {
-        alert('Failed to save stock item');
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Failed to save stock item',
+        });
       }
     })
     .catch(err => {
       console.error(err);
-      alert('An error occurred');
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'An error occurred',
+      });
     });
 };
 
