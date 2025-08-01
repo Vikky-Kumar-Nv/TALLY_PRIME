@@ -353,7 +353,7 @@ interface AppContextProps {
   addLedger: (ledger: Ledger) => void;
   addVoucher: (voucher: VoucherEntry) => void;
   updateVoucher: (id: string, updates: Partial<VoucherEntry>) => void;
-  addStockItem: (item: StockItem) => void;
+  addStockItem: (item: Omit<StockItem, 'id'>) => void;
   addStockGroup: (group: StockGroup) => void;
   addGstClassification: (classification: GstClassification) => void;
   addUnit: (unit: UnitOfMeasurement) => void;
@@ -628,7 +628,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     );
   };
 
-  const addStockItem = (item: StockItem) => {
+  const addStockItem = (item: Omit<StockItem, 'id'>) => {
     setStockItems(prev => [...prev, { ...item, id: Math.random().toString(36).substring(2, 9) }]);
   };
 

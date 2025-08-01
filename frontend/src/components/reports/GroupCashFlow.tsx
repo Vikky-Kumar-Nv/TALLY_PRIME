@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../../context/AppContext';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft, Printer, Download, Filter, Search } from 'lucide-react';
 
 interface GroupCashFlowTransaction {
@@ -16,8 +16,22 @@ interface GroupCashFlowTransaction {
 const GroupCashFlow: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
+  const location = useLocation();
   const { accountName } = useParams<{ accountName: string }>();
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Get the state passed from CashFlowSummary
+  const locationState = location.state as { accountData?: { name: string; amount: number }; period?: string; monthCode?: string } | null;
+
+  // Function to handle back navigation
+  const handleBackNavigation = () => {
+    if (locationState?.monthCode) {
+      navigate(`/app/reports/cash-flow-summary/${locationState.monthCode}`);
+    } else {
+      // Fallback to cash flow main page
+      navigate('/app/reports/cash-flow');
+    }
+  };
 
   // Mock transaction data for the selected account
   const getTransactionsForAccount = (account: string): GroupCashFlowTransaction[] => {
@@ -172,9 +186,7 @@ const GroupCashFlow: React.FC = () => {
         <button
           type="button"
           title='Back to Cash Flow Summary'
-          onClick={() => navigate('/app/reports/cash-flow-summary/4', { 
-            state: { monthData: { month: 'April' } } 
-          })}
+          onClick={handleBackNavigation}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}

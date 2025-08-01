@@ -28,6 +28,8 @@ export type CompanyInfo = {
   lutBondNumber?: string;
   lutBondValidity?: string;
   taxLiabilityOnAdvanceReceipts?: boolean;
+  maintainBy?: 'self' | 'accountant';
+  accountantName?: string;
   godowns?: Godown[];
 };
 

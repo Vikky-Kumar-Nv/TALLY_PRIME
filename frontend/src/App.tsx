@@ -23,6 +23,7 @@ import StockCategoryForm from './components/masters/stock/StockCategoryForm';
 import StockItemList from './components/masters/stock/StockItemList';
 import StockItemForm from './components/masters/stock/StockItemForm';
 import StockItemEdit from './components/masters/stock/StockItemEdit'; 
+import BulkStockItemCreate from './components/masters/stock/BulkStockItemCreate'; 
 import BatchList from './components/masters/batch/BatchList';
 import BatchSelectionPage from './components/masters/batch/BatchSelectionPage';
 import StockGroupList from './components/masters/stock/StockGroupList';
@@ -93,9 +94,11 @@ import TrialBalance from './components/reports/TrialBalance';
 import ProfitLoss from './components/reports/ProfitLoss';
 import BalanceSheet from './components/reports/BalanceSheet';
 import GroupSummary from './components/reports/GroupSummary';
+import GroupSummaryIndex from './components/reports/GroupSummaryIndex';
 import CashFlow from './components/reports/CashFlow';
 import CashFlowSummary from './components/reports/CashFlowSummary';
 import GroupCashFlow from './components/reports/GroupCashFlow';
+import FundFlow from './components/reports/FundFlow';
 import LedgerVouchers from './components/reports/LedgerVouchers';
 import VoucherView from './components/vouchers/view/VoucherView';
 import StockSummary from './components/reports/StockSummary';
@@ -104,8 +107,13 @@ import AgeingAnalysis from './components/reports/AgeingAnalysis';
 import GodownSummary from './components/reports/GodownSummary';
 import GSTAnalysis from './components/reports/GSTAnalysis';
 import OutstandingReports from './components/reports/outstanding/OutstandingReports';
-
-
+import SalesReport from './components/reports/SalesReport';
+import SalesInvoiceMatching from './components/reports/SalesInvoiceMatching';
+import PurchaseReport1 from './components/reports/PurchaseReport1';
+import PurchaseInvoiceMatching1 from './components/reports/PurchaseInvoiceMatching';
+import B2B from './components/reports/B2B';
+import B2C from './components/reports/B2C'; 
+import Consolidation from './components/reports/Consolidation'; 
 
 // GST Module Components
 
@@ -142,6 +150,8 @@ import FraudDetection from './components/audit/FraudDetection';
 import Form3CB from './components/audit/Form3CB';
 import Form3CA from './components/audit/Form3CA';
 import Form3CD from './components/modules/audit/Form3CD'; 
+import Form26QB from './components/modules/tds/Form26QB';
+import Form26QC from './components/modules/tds/Form26QC';
 
 
 //Audit Modules
@@ -264,6 +274,7 @@ function App() {
             <Route path="masters/stock-category/edit/:id" element={<StockCategoryForm />} />
             <Route path="masters/stock-item" element={<StockItemList />} />
             <Route path="masters/stock-item/create" element={<StockItemForm />} />
+            <Route path="masters/stock-item/bulk-create" element={<BulkStockItemCreate />} />
             <Route path="masters/stock-item/edit/:id" element={<StockItemForm />} />
             <Route path="masters/stock-item/edit-stock/:id" element={<StockItemEdit />} />
             <Route path="masters/stock-item/batches" element={<BatchList />} />
@@ -337,8 +348,10 @@ function App() {
              {/* <Route path="reports/trading-account" element={<TradingAccount />} /> */}
             <Route path="reports/profit-loss" element={<ProfitLoss />} />
             <Route path="reports/balance-sheet" element={<BalanceSheet />} />
+            <Route path="reports/group-summary" element={<GroupSummaryIndex />} />
             <Route path="reports/group-summary/:groupType" element={<GroupSummary />} />
             <Route path="reports/cash-flow" element={<CashFlow />} />
+            <Route path="reports/fund-flow" element={<FundFlow />} />
             <Route path="reports/cash-flow-summary/:monthCode" element={<CashFlowSummary />} />
             <Route path="reports/group-cash-flow/:accountName" element={<GroupCashFlow />} />
             <Route path="reports/ledger-vouchers/:ledgerName" element={<LedgerVouchers />} />
@@ -350,6 +363,19 @@ function App() {
             <Route path="reports/ageing-analysis" element={<AgeingAnalysis />} />
              <Route path="reports/godown-summary" element={<GodownSummary />} />
             
+            {/* Sales Reports Routes */}
+            <Route path="reports/sales-report" element={<SalesReport />} />
+            <Route path="reports/sales-invoice-matching" element={<SalesInvoiceMatching />} />
+
+            {/* Purchase Reports Routes */}
+            <Route path="reports/purchase-report" element={<PurchaseReport1 />} />
+            <Route path="reports/purchase-invoice-matching" element={<PurchaseInvoiceMatching1 />} />
+
+            {/* B2B and B2C Routes */}
+            <Route path="reports/b2b" element={<B2B />} />
+            <Route path="reports/b2c" element={<B2C />} />
+              <Route path="reports/consolidation" element={<Consolidation />} />
+                   
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
             
@@ -375,7 +401,7 @@ function App() {
             <Route path="gst/summary" element={<GSTSummary />} />
 
             {/* TDS Module Routes */}
-            <Route path="tds" element={<TDSModule />} />
+               <Route path="tds" element={<TDSModule />} />
                <Route path='tds/form-24q' element={<Form24Q />} />
                <Route path='tds/form-26q' element={<Form26Q />} />
                <Route path='tds/form-27q' element={<Form27QPage />} />
@@ -386,6 +412,8 @@ function App() {
                <Route path='tds/compliance' element={<ComplianceCheck2 />} />
                <Route path='tds/deductees' element={<DeducteeMaster />} />
                <Route path="tds/tan" element={<TANRegistration />} />
+              <Route path='tds/form-26qb' element={<Form26QB />} />
+              <Route path='tds/form-26qc' element={<Form26QC />} />
 
             {/* Audit Module Routes */}
                 <Route path="audit" element={<AuditModule />} />

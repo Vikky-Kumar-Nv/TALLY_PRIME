@@ -41,8 +41,8 @@ const CashFlowSummary: React.FC = () => {
         }
         const data: CashFlowSummaryData = await response.json();
         setCashFlowData(data);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load cash flow summary');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to load cash flow summary');
       } finally {
         setLoading(false);
       }
