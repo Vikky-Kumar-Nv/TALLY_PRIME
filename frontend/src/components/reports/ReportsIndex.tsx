@@ -10,7 +10,8 @@ import {
   FileText,
   PieChart,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  BookCopy
 } from 'lucide-react';
 
 const ReportsIndex: React.FC = () => {
@@ -23,14 +24,15 @@ const ReportsIndex: React.FC = () => {
       items: [
         { icon: <BookOpen size={20} />, name: 'Day Book', path: '/app/reports/day-book' },
         { icon: <FileText size={20} />, name: 'Ledger', path: '/app/reports/ledger' },
-        { icon: <FileText size={20} />, name: 'Group Summary', path: '/app/masters/group' },
+        { icon: <FileText size={20} />, name: 'Group Summary', path: '/app/reports/group-summary' },
         { icon: <BarChart2 size={20} />, name: 'Trial Balance', path: '/app/reports/trial-balance' },
         // { icon: <TrendingUp size={20} />, name: 'Trading Account', path: '/app/reports/trading-account' },
         { icon: <TrendingUp size={20} />, name: 'Profit & Loss', path: '/app/reports/profit-loss' },
         { icon: <DollarSign size={20} />, name: 'Balance Sheet', path: '/app/reports/balance-sheet' },
         { icon: <PieChart size={20} />, name: 'Cash Flow', path: '/app/reports/cash-flow' },
         { icon: <PieChart size={20} />, name: 'Fund Flow', path: '/app/reports/fund-flow' },
-        { icon: <AlertTriangle size={20} />, name: 'Outstanding', path: '/app/reports/outstanding' }
+        { icon: <AlertTriangle size={20} />, name: 'Outstanding', path: '/app/reports/outstanding' },
+        { icon: <BookCopy size={20} />, name: 'Consolidation', path: '/app/reports/consolidation' }
       ]
     },
     {
@@ -40,8 +42,8 @@ const ReportsIndex: React.FC = () => {
         { icon: <Activity size={20} />, name: 'Movement Analysis', path: '/app/reports/movement-analysis' },
         { icon: <Calendar size={20} />, name: 'Ageing Analysis', path: '/app/reports/ageing-analysis' },
         { icon: <BarChart2 size={20} />, name: 'Godown Summary', path: '/app/reports/godown-summary' },
-         { icon: <BarChart2 size={20} />, name: 'Bills Receivable', path: '/app/reports/bill-receivable' },
-         { icon: <BarChart2 size={20} />, name: 'Bills Payable', path: '/app/reports/bill-payable' }
+        //  { icon: <BarChart2 size={20} />, name: 'Bills Receivable', path: '/app/reports/bill-receivable' },
+        //  { icon: <BarChart2 size={20} />, name: 'Bills Payable', path: '/app/reports/bill-payable' }
       ]
     },{
       title: 'sales Reports',
@@ -49,6 +51,9 @@ const ReportsIndex: React.FC = () => {
         { icon: <BookOpen size={20} />, name: 'Columner Sales', path: '/app/reports/columner-sales' },
         { icon: <Activity size={20} />, name: 'Sales Report', path: '/app/reports/sales-report' },
         { icon: <Calendar size={20} />, name: 'Sales Invoice Matching', path: '/app/reports/sales-invoice-matching' },
+        { icon: <Calendar size={20} />, name: 'B2B', path: '/app/reports/b2b' },
+        { icon: <Calendar size={20} />, name: 'B2C', path: '/app/reports/b2c' },
+
         // { icon: <BarChart2 size={20} />, name: 'Godown Summary', path: '/app/reports/godown-summary' },
         //  { icon: <BarChart2 size={20} />, name: 'Bills Receivable', path: '/app/reports/bill-receivable' },
         //  { icon: <BarChart2 size={20} />, name: 'Bills Payable', path: '/app/reports/bill-payable' }
@@ -57,6 +62,8 @@ const ReportsIndex: React.FC = () => {
     {
       title: 'Purchase Reports',
       items: [
+        { icon: <Calendar size={20} />, name: 'Purchase Invoice Matching', path: '/app/reports/purchase-invoice-matching' },
+        { icon: <Activity size={20} />, name: 'Purchase Report', path: '/app/reports/purchase-report' },
         // { icon: <BookOpen size={20} />, name: 'Stock Summary', path: '/app/reports/stock-summary' },
         // { icon: <Activity size={20} />, name: 'Movement Analysis', path: '/app/reports/movement-analysis' },
         // { icon: <Calendar size={20} />, name: 'Ageing Analysis', path: '/app/reports/ageing-analysis' },

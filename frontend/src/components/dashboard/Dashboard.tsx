@@ -434,12 +434,18 @@ const Dashboard: React.FC = () => {
                   <span className="opacity-75">PAN:</span>{" "}
                   {companyInfo.panNumber}
                 </p>
-               <p className="text-sm">
-  <span className="opacity-75">
-    {companyInfo.taxType === "VAT" ? "VAT Number:" : "GST Number:"}
-  </span>{" "}
-  {companyInfo.taxType === "VAT" ? companyInfo.vatNumber : companyInfo.gstNumber}
-</p>
+                <p className="text-sm">
+                  <span className="opacity-75">
+                    {companyInfo.taxType === "VAT" ? "VAT Number:" : "GST Number:"}
+                  </span>{" "}
+                  {companyInfo.taxType === "VAT" ? companyInfo.vatNumber : companyInfo.gstNumber}
+                </p>
+                <p className="text-sm">
+                  <span className="opacity-75">Maintained By:</span>{" "}
+                  {companyInfo.maintainBy === "self" 
+                    ? "Self Maintenance" 
+                    : `Accountant${companyInfo.accountantName ? ` (${companyInfo.accountantName})` : ""}`}
+                </p>
 
               </div>
             </div>

@@ -148,7 +148,7 @@ const CashFlowSummary: React.FC = () => {
                   <div key={index} className="flex justify-between items-center py-2">
                     <button
                       onClick={() => navigate(`/app/reports/group-cash-flow/${encodeURIComponent(account.name)}`, {
-                        state: { accountData: account, period: getPeriodRange() }
+                        state: { accountData: account, period: getPeriodRange(), monthCode: monthCode }
                       })}
                       className={`font-medium text-left hover:underline transition-colors ${
                         theme === 'dark' 
@@ -207,7 +207,7 @@ const CashFlowSummary: React.FC = () => {
                   <div key={index} className="flex justify-between items-center py-2">
                     <button
                       onClick={() => navigate(`/app/reports/group-cash-flow/${encodeURIComponent(account.name)}`, {
-                        state: { accountData: account, period: getPeriodRange() }
+                        state: { accountData: account, period: getPeriodRange(), monthCode: monthCode }
                       })}
                       className={`font-medium text-left hover:underline transition-colors ${
                         theme === 'dark' 

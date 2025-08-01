@@ -178,6 +178,8 @@ const CompanyForm: React.FC = () => {
     state: "",
     country: "India",
     taxType: "GST",
+    maintainBy: "self",
+    accountantName: "",
   });
 
   // Security & Access Control States
@@ -221,6 +223,11 @@ const CompanyForm: React.FC = () => {
     { value: "VAT", label: "VAT" }
   ];
 
+  const maintainByOptions = [
+    { value: "self", label: "Self Maintenance" },
+    { value: "accountant", label: "Accountant" }
+  ];
+
   const validateForm = (): boolean => {
     const newErrors: {[key: string]: string} = {};
     
@@ -262,6 +269,11 @@ const CompanyForm: React.FC = () => {
 
     if (company.pin && !pinRegex.test(company.pin)) {
       newErrors.pin = "PIN code must be exactly 6 digits";
+    }
+
+    // Accountant name validation
+    if (company.maintainBy === "accountant" && !company.accountantName?.trim()) {
+      newErrors.accountantName = "Accountant name is required when maintained by accountant";
     }
 
     // Vault password validation
@@ -650,12 +662,50 @@ const CompanyForm: React.FC = () => {
                       : "bg-white border-gray-300 text-black focus:border-blue-500"
                   } outline-none transition-colors`}
                 />
+                  
+                  
                 {((company.taxType === "GST" && errors.gstNumber) || (company.taxType === "VAT" && errors.vatNumber)) && (
                   <p className="text-red-500 text-sm mt-1">
                     {company.taxType === "GST" ? errors.gstNumber : errors.vatNumber}
                   </p>
                 )}
               </div>
+              <div>
+                <SelectField
+                  id="maintainBy"
+                  name="maintainBy"
+                  label="Account Maintain By"
+                  value={company.maintainBy || "self"}
+                  onChange={handleChange}
+                  options={maintainByOptions}
+                  icon={<User size={16} />}
+                  theme={theme}
+                />
+              </div>
+              {company.maintainBy === "accountant" && (
+                <div>
+                  <label className="block text-sm font-medium mb-1" htmlFor="accountantName">
+                    <User size={16} className="inline mr-1" />
+                    Accountant Name
+                  </label>
+                  <input
+                    type="text"
+                    id="accountantName"
+                    name="accountantName"
+                    value={company.accountantName || ""}
+                    onChange={handleChange}
+                    placeholder="Enter accountant name"
+                    className={`w-full p-2 rounded border ${
+                      theme === "dark"
+                        ? "bg-gray-700 border-gray-600 text-white focus:border-blue-500"
+                        : "bg-white border-gray-300 text-black focus:border-blue-500"
+                    } outline-none transition-colors`}
+                  />
+                  {errors.accountantName && (
+                    <p className="text-red-500 text-sm mt-1">{errors.accountantName}</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

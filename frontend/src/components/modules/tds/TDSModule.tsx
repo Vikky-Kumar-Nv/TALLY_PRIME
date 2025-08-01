@@ -20,6 +20,8 @@ const TDSModule: React.FC = () => {
         { icon: <FileText size={20} />, name: 'Form 26Q', path: '/app/tds/form-26q' },
         { icon: <FileText size={20} />, name: 'Form 27Q', path: '/app/tds/form-27q' },
          { icon: <FileText size={20} />, name: 'Form 27EQ', path: '/app/tds/form-27eq' },
+         { icon: <FileText size={20} />, name: 'Form 26QB', path: '/app/tds/form-26qb' },
+         { icon: <FileText size={20} />, name: 'Form 26QC', path: '/app/tds/form-26qc' },
         
       ]
     },

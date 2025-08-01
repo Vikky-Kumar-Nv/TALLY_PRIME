@@ -66,9 +66,9 @@ const GroupSummary: React.FC = () => {
     <div className='pt-[56px] px-4'>
       <div className="flex items-center mb-6">
         <button
-          title='Back to Balance Sheet'
+          title='Back to Group Summary'
           type="button"
-          onClick={() => navigate('/app/reports/balance-sheet')}
+          onClick={() => navigate('/app/reports/group-summary')}
           className={`mr-4 p-2 rounded-full ${
             theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'
           }`}

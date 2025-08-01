@@ -1,16 +1,33 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Package } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Upload } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 
 const StockItemList = () => {
-  const { theme, stockItems = [], stockGroups = [], units = [], updateStockItem, addStockItem } = useAppContext();
+  const { theme, stockItems = [], stockGroups = [], units = [] } = useAppContext();
   const navigate = useNavigate();
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this stock item?')) {
-      addStockItem({ ...stockItems.find(item => item.id === id)!, id: '' }); // Remove by filtering
-      updateStockItem(id, { id: '' }); // Dummy update to trigger re-render
+    const itemToDelete = stockItems.find(item => item.id === id);
+    if (!itemToDelete) {
+      alert('Stock item not found.');
+      return;
     }
+
+    if (window.confirm(`Are you sure you want to delete "${itemToDelete.name}"? This action cannot be undone.`)) {
+      // TODO: Implement proper delete functionality when deleteStockItem is available in context
+      // For now, we'll just show a message since deletion requires backend integration
+      alert('Delete functionality requires backend integration. Please implement the delete API endpoint and update the context.');
+      console.log('Stock item to delete:', itemToDelete);
+    }
+  };
+
+  const handleEdit = (id: string) => {
+    const itemToEdit = stockItems.find(item => item.id === id);
+    if (!itemToEdit) {
+      alert('Stock item not found.');
+      return;
+    }
+    navigate(`/app/masters/stock-item/edit/${id}`);
   };
 
   return (
@@ -28,6 +45,17 @@ const StockItemList = () => {
           >
             <Package size={18} />
             <span>Batch Management</span>
+          </Link>
+          <Link
+            to="/app/masters/stock-item/bulk-create"
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              theme === 'dark' 
+                ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+                : 'bg-purple-600 hover:bg-purple-700 text-white'
+            }`}
+          >
+            <Upload size={18} />
+            <span>Bulk Creation</span>
           </Link>
           <Link
             to="/app/masters/stock-item/create"
@@ -136,7 +164,7 @@ const StockItemList = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                           <button
                             title='Edit Stock Item'
-                            onClick={() => navigate(`/app/masters/stock-item/edit/${item.id}`)}
+                            onClick={() => handleEdit(item.id)}
                             className={`mr-2 p-1 rounded ${
                               theme === 'dark' 
                                 ? 'text-blue-400 hover:text-blue-300 hover:bg-gray-600' 
