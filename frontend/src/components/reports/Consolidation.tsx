@@ -20,6 +20,7 @@ import {
   UserCheck
 } from 'lucide-react';  //AlertCircle,
 import * as XLSX from 'xlsx';
+import { ConsolidationConfigIntegration } from '../../utils/consolidation-config-integration';
 import { 
   LineChart, 
   Line, 
@@ -96,7 +97,7 @@ interface FilterState {
   consolidationType: 'all' | 'by-user' | 'by-company';
 }
 
-type ViewType = 'summary' | 'user-access' | 'detailed' | 'comparison';
+type ViewType = 'summary' | 'user-access' | 'detailed' | 'comparison' | 'consolidate';
 
 const Consolidation: React.FC = () => {
   const { theme } = useAppContext();
@@ -119,333 +120,215 @@ const Consolidation: React.FC = () => {
     consolidationType: 'all'
   });
 
-  // Mock Companies Data with Employee Access
+  // Role-Based Access Control Integration with Config Module
+  const currentUserId = 'EMP001'; // This would come from your auth system
+  const userRole = ConsolidationConfigIntegration.getUserRole(currentUserId);
+  const userAccessibleCompanies = ConsolidationConfigIntegration.getAccessibleCompanies(currentUserId, userRole);
+  const hierarchicalReport = ConsolidationConfigIntegration.getHierarchicalReport(currentUserId);
+  
+  console.log(`Current User: ${currentUserId}, Role: ${userRole}`);
+  console.log(`Accessible Companies: ${userAccessibleCompanies.join(', ')}`);
+  console.log(`Hierarchical Report:`, hierarchicalReport);
+
+  // Companies Data based on Real Business Structure
   const companies = useMemo((): Company[] => [
     {
       id: 'COMP001',
-      name: 'TechCorp Industries Ltd',
-      code: 'TCI',
-      type: 'manufacturing',
+      name: 'R K Sales',
+      code: 'RKS',
+      type: 'trading',
       gstin: '29AABCT1332L1Z4',
       status: 'active',
-      financialYear: '2025-26',
+      financialYear: '2024-25',
       accessibleUsers: ['EMP001', 'EMP002', 'EMP003', 'EMP005']
     },
     {
       id: 'COMP002',
-      name: 'Global Trading Co',
-      code: 'GTC',
+      name: 'Sikha Sales',
+      code: 'SS',
       type: 'trading',
       gstin: '27AABCT1332L1Z5',
       status: 'active',
-      financialYear: '2025-26',
+      financialYear: '2024-25',
       accessibleUsers: ['EMP001', 'EMP002', 'EMP004']
     },
     {
       id: 'COMP003',
-      name: 'Service Solutions Pvt Ltd',
-      code: 'SSPL',
-      type: 'service',
+      name: 'M P Traders',
+      code: 'MPT',
+      type: 'trading',
       gstin: '19AABCT1332L1Z6',
       status: 'active',
-      financialYear: '2025-26',
+      financialYear: '2024-25',
       accessibleUsers: ['EMP001', 'EMP003', 'EMP005', 'EMP006']
-    },
-    {
-      id: 'COMP004',
-      name: 'Digital Innovations Hub',
-      code: 'DIH',
-      type: 'service',
-      gstin: '09AABCT1332L1Z7',
-      status: 'active',
-      financialYear: '2025-26',
-      accessibleUsers: ['EMP001', 'EMP002', 'EMP007']
-    },
-    {
-      id: 'COMP005',
-      name: 'Manufacturing Enterprises',
-      code: 'ME',
-      type: 'manufacturing',
-      gstin: '07AABCT1332L1Z8',
-      status: 'active',
-      financialYear: '2025-26',
-      accessibleUsers: ['EMP001', 'EMP004', 'EMP006', 'EMP008']
-    },
-    {
-      id: 'COMP006',
-      name: 'Retail Network Ltd',
-      code: 'RNL',
-      type: 'trading',
-      gstin: '29AABCT1332L1Z9',
-      status: 'active',
-      financialYear: '2025-26',
-      accessibleUsers: ['EMP001', 'EMP005', 'EMP007', 'EMP008']
     }
   ], []);
 
-  // Mock Employees Data with Company Access
+  // Role-Based Employee Data with Real Business Roles
   const employees = useMemo((): Employee[] => [
     {
       id: 'EMP001',
-      name: 'Rajesh Kumar (Super Admin)',
-      email: 'rajesh.kumar@company.com',
+      name: 'Super Admin (Owner)',
+      email: 'owner@company.com',
       role: 'Super Admin',
       department: 'Management',
       status: 'active',
-      accessibleCompanies: ['COMP001', 'COMP002', 'COMP003', 'COMP004', 'COMP005', 'COMP006'],
-      permissions: ['view_all', 'edit_all', 'export_all', 'admin'],
+      accessibleCompanies: ['COMP001', 'COMP002', 'COMP003'],
+      permissions: ['view_all', 'edit_all', 'export_all', 'admin', 'assign_access'],
       createdAt: '2023-01-15',
-      lastLogin: '2025-07-31 10:30:00'
+      lastLogin: '2025-08-01 10:30:00'
     },
     {
       id: 'EMP002',
-      name: 'Priya Sharma (Finance Manager)',
-      email: 'priya.sharma@company.com',
-      role: 'Finance Manager',
+      name: 'Admin - Finance Head',
+      email: 'finance.admin@company.com',
+      role: 'Admin',
       department: 'Finance',
       status: 'active',
-      accessibleCompanies: ['COMP001', 'COMP002', 'COMP004'],
-      permissions: ['view_financial', 'edit_vouchers', 'export_reports'],
+      accessibleCompanies: ['COMP001', 'COMP002'], // Assigned by Super Admin
+      permissions: ['view_assigned', 'edit_assigned', 'export_reports', 'assign_employee_access'],
       createdAt: '2023-02-20',
-      lastLogin: '2025-07-31 09:15:00'
+      lastLogin: '2025-08-01 09:15:00'
     },
     {
       id: 'EMP003',
-      name: 'Amit Verma (Operations Head)',
-      email: 'amit.verma@company.com',
-      role: 'Operations Manager',
+      name: 'Admin - Operations Head',
+      email: 'operations.admin@company.com',
+      role: 'Admin',
       department: 'Operations',
       status: 'active',
-      accessibleCompanies: ['COMP001', 'COMP003'],
-      permissions: ['view_operations', 'edit_inventory', 'export_reports'],
+      accessibleCompanies: ['COMP003'], // Assigned by Super Admin
+      permissions: ['view_assigned', 'edit_assigned', 'export_reports', 'assign_employee_access'],
       createdAt: '2023-03-10',
-      lastLogin: '2025-07-30 16:45:00'
+      lastLogin: '2025-07-31 16:45:00'
     },
     {
       id: 'EMP004',
-      name: 'Sunita Patel (Accountant)',
-      email: 'sunita.patel@company.com',
-      role: 'Senior Accountant',
+      name: 'Employee - Accountant',
+      email: 'accountant@company.com',
+      role: 'Employee',
       department: 'Accounts',
       status: 'active',
-      accessibleCompanies: ['COMP002', 'COMP005'],
-      permissions: ['view_accounting', 'edit_transactions', 'export_basic'],
+      accessibleCompanies: ['COMP001'], // Assigned by Admin EMP002
+      permissions: ['view_assigned', 'edit_transactions_assigned'],
       createdAt: '2023-04-05',
-      lastLogin: '2025-07-31 08:30:00'
+      lastLogin: '2025-08-01 08:30:00'
     },
     {
       id: 'EMP005',
-      name: 'Vikash Singh (Sales Manager)',
-      email: 'vikash.singh@company.com',
-      role: 'Sales Manager',
+      name: 'Employee - Sales Executive',
+      email: 'sales@company.com',
+      role: 'Employee',
       department: 'Sales',
       status: 'active',
-      accessibleCompanies: ['COMP001', 'COMP003', 'COMP006'],
-      permissions: ['view_sales', 'edit_orders', 'export_sales'],
+      accessibleCompanies: ['COMP002'], // Assigned by Admin EMP002
+      permissions: ['view_assigned', 'edit_sales_assigned'],
       createdAt: '2023-05-12',
-      lastLogin: '2025-07-31 11:20:00'
+      lastLogin: '2025-08-01 11:20:00'
     },
     {
       id: 'EMP006',
-      name: 'Kavita Joshi (HR Manager)',
-      email: 'kavita.joshi@company.com',
-      role: 'HR Manager',
-      department: 'Human Resources',
+      name: 'Employee - Data Entry Operator',
+      email: 'dataentry@company.com',
+      role: 'Employee',
+      department: 'Operations',
       status: 'active',
-      accessibleCompanies: ['COMP003', 'COMP005'],
-      permissions: ['view_hr', 'edit_employees', 'export_hr'],
+      accessibleCompanies: ['COMP003'], // Assigned by Admin EMP003
+      permissions: ['view_assigned', 'edit_basic_assigned'],
       createdAt: '2023-06-18',
-      lastLogin: '2025-07-30 14:10:00'
-    },
-    {
-      id: 'EMP007',
-      name: 'Deepak Agarwal (IT Head)',
-      email: 'deepak.agarwal@company.com',
-      role: 'IT Manager',
-      department: 'Information Technology',
-      status: 'active',
-      accessibleCompanies: ['COMP004', 'COMP006'],
-      permissions: ['view_system', 'edit_config', 'export_technical'],
-      createdAt: '2023-07-25',
-      lastLogin: '2025-07-31 07:45:00'
-    },
-    {
-      id: 'EMP008',
-      name: 'Neha Gupta (Junior Accountant)',
-      email: 'neha.gupta@company.com',
-      role: 'Junior Accountant',
-      department: 'Accounts',
-      status: 'active',
-      accessibleCompanies: ['COMP005', 'COMP006'],
-      permissions: ['view_basic', 'edit_limited'],
-      createdAt: '2023-08-15',
-      lastLogin: '2025-07-30 17:30:00'
+      lastLogin: '2025-07-31 14:10:00'
     }
   ], []);
 
-  // Mock Financial Data with Extended Companies and Employee Tracking
+  // Real Financial Data based on Screenshots (Balance Sheet format)
   const financialData = useMemo((): FinancialData[] => [
     {
+      // R K Sales Company Data
       companyId: 'COMP001',
-      companyName: 'TechCorp Industries Ltd',
-      capitalAccount: 10000000,
-      openingBalance: 2500000,
-      sales: 15000000,
-      purchases: 8500000,
-      directExpenses: 1200000,
-      indirectExpenses: 2800000,
-      grossProfit: 5300000,
-      netProfit: 2500000,
-      stockInHand: 3500000,
-      cashInHand: 250000,
-      bankBalance: 1750000,
-      sundryDebtors: 2200000,
-      sundryCreditors: 1800000,
-      currentAssets: 7700000,
-      currentLiabilities: 3200000,
-      fixedAssets: 12000000,
-      investments: 500000,
-      loans: 4500000,
-      provisions: 800000,
-      enteredBy: 'EMP002',
-      lastModifiedBy: 'EMP003',
-      lastModified: '2025-07-30 15:30:00'
-    },
-    {
-      companyId: 'COMP002',
-      companyName: 'Global Trading Co',
-      capitalAccount: 5000000,
-      openingBalance: 1200000,
-      sales: 12000000,
-      purchases: 7200000,
-      directExpenses: 800000,
-      indirectExpenses: 2200000,
-      grossProfit: 3800000,
-      netProfit: 1600000,
-      stockInHand: 2800000,
-      cashInHand: 180000,
-      bankBalance: 1320000,
-      sundryDebtors: 1800000,
-      sundryCreditors: 1400000,
-      currentAssets: 6100000,
-      currentLiabilities: 2600000,
-      fixedAssets: 8000000,
-      investments: 300000,
-      loans: 3000000,
-      provisions: 500000,
+      companyName: 'R K Sales',
+      capitalAccount: 1515969, // Proprietors Capital A/C
+      openingBalance: 530382, // Cash & Bank Balance
+      sales: 15108770, // From Trading Account
+      purchases: 3525660, // Purchase GST 18%
+      directExpenses: 337560, // Gross Profit on Sales
+      indirectExpenses: 346269, // Net Profit
+      grossProfit: 337560,
+      netProfit: 346269,
+      stockInHand: 2818470, // Closing Stock
+      cashInHand: 215350, // Cash-In-Hand
+      bankBalance: 315032, // BOI + SBI Balance (212532 + 102500)
+      sundryDebtors: 38222, // Sundry Debtors
+      sundryCreditors: 305650, // Sundry Creditors
+      currentAssets: 3387074, // Current Assets calculation
+      currentLiabilities: 305650, // Current Liabilities
+      fixedAssets: 0, // Not shown in screenshot
+      investments: 0,
+      loans: 1325440, // Rakhraj Finvest Co.
+      provisions: 35000, // Sundry Payables
       enteredBy: 'EMP004',
       lastModifiedBy: 'EMP002',
-      lastModified: '2025-07-31 11:15:00'
+      lastModified: '2025-07-31 15:30:00'
     },
     {
-      companyId: 'COMP003',
-      companyName: 'Service Solutions Pvt Ltd',
-      capitalAccount: 3000000,
-      openingBalance: 800000,
-      sales: 8000000,
-      purchases: 2400000,
-      directExpenses: 600000,
-      indirectExpenses: 3200000,
-      grossProfit: 5000000,
-      netProfit: 1800000,
-      stockInHand: 400000,
-      cashInHand: 120000,
-      bankBalance: 880000,
-      sundryDebtors: 1200000,
-      sundryCreditors: 800000,
-      currentAssets: 2600000,
-      currentLiabilities: 1500000,
-      fixedAssets: 4500000,
-      investments: 200000,
-      loans: 2000000,
-      provisions: 300000,
+      // Sikha Sales Company Data
+      companyId: 'COMP002', 
+      companyName: 'Sikha Sales',
+      capitalAccount: 4800062, // Proprietors Capital A/C
+      openingBalance: 3053436, // Cash & Bank Balance
+      sales: 59872225, // From Trading Account
+      purchases: 12462574, // Purchase GST 18%
+      directExpenses: 541418, // Gross Profit on Sales
+      indirectExpenses: 730062, // Net Profit
+      grossProfit: 541418,
+      netProfit: 730062,
+      stockInHand: 5187121, // Closing Stock
+      cashInHand: 141281, // Cash-In-Hand
+      bankBalance: 2912155, // BOI + SBI Balance (2886271 + 25884)
+      sundryDebtors: 4123585, // Sundry Debtors
+      sundryCreditors: 2315991, // Sundry Creditors
+      currentAssets: 12363942, // Current Assets calculation
+      currentLiabilities: 2315991, // Current Liabilities
+      fixedAssets: 0,
+      investments: 0,
+      loans: 2723954, // Rakhraj Finvest Co.
+      provisions: 173492, // Sundry Payables
       enteredBy: 'EMP005',
-      lastModifiedBy: 'EMP006',
-      lastModified: '2025-07-29 14:20:00'
-    },
-    {
-      companyId: 'COMP004',
-      companyName: 'Digital Innovations Hub',
-      capitalAccount: 8000000,
-      openingBalance: 1500000,
-      sales: 6500000,
-      purchases: 2800000,
-      directExpenses: 450000,
-      indirectExpenses: 1800000,
-      grossProfit: 3250000,
-      netProfit: 1450000,
-      stockInHand: 320000,
-      cashInHand: 95000,
-      bankBalance: 755000,
-      sundryDebtors: 980000,
-      sundryCreditors: 650000,
-      currentAssets: 2150000,
-      currentLiabilities: 1200000,
-      fixedAssets: 5500000,
-      investments: 180000,
-      loans: 2200000,
-      provisions: 280000,
-      enteredBy: 'EMP007',
       lastModifiedBy: 'EMP002',
-      lastModified: '2025-07-31 09:45:00'
+      lastModified: '2025-08-01 11:15:00'
     },
     {
-      companyId: 'COMP005',
-      companyName: 'Manufacturing Enterprises',
-      capitalAccount: 15000000,
-      openingBalance: 3200000,
-      sales: 18500000,
-      purchases: 11200000,
-      directExpenses: 1800000,
-      indirectExpenses: 3500000,
-      grossProfit: 5500000,
-      netProfit: 2000000,
-      stockInHand: 4200000,
-      cashInHand: 180000,
-      bankBalance: 2220000,
-      sundryDebtors: 2800000,
-      sundryCreditors: 2100000,
-      currentAssets: 9400000,
-      currentLiabilities: 3800000,
-      fixedAssets: 18000000,
-      investments: 650000,
-      loans: 6500000,
-      provisions: 950000,
-      enteredBy: 'EMP008',
-      lastModifiedBy: 'EMP004',
-      lastModified: '2025-07-30 16:10:00'
-    },
-    {
-      companyId: 'COMP006',
-      companyName: 'Retail Network Ltd',
-      capitalAccount: 7000000,
-      openingBalance: 1800000,
-      sales: 14200000,
-      purchases: 9800000,
-      directExpenses: 950000,
-      indirectExpenses: 2150000,
-      grossProfit: 3450000,
-      netProfit: 1300000,
-      stockInHand: 3100000,
-      cashInHand: 145000,
-      bankBalance: 1255000,
-      sundryDebtors: 1650000,
-      sundryCreditors: 1320000,
-      currentAssets: 6150000,
-      currentLiabilities: 2580000,
-      fixedAssets: 9500000,
-      investments: 420000,
-      loans: 3800000,
-      provisions: 630000,
-      enteredBy: 'EMP005',
-      lastModifiedBy: 'EMP008',
-      lastModified: '2025-07-31 12:30:00'
+      // M P Traders (Consolidated Total - Individual breakdown)
+      companyId: 'COMP003',
+      companyName: 'M P Traders',
+      capitalAccount: 6316031, // Total Capital A/C
+      openingBalance: 3583818, // Total Cash & Bank Balance
+      sales: 74980995, // Total Trading Account Sales
+      purchases: 15988234, // Total Purchases
+      directExpenses: 878978, // Total Gross Profit
+      indirectExpenses: 1076331, // Total Net Profit  
+      grossProfit: 878978,
+      netProfit: 1076331,
+      stockInHand: 8005591, // Total Closing Stock
+      cashInHand: 356631, // Total Cash-In-Hand
+      bankBalance: 3227187, // Total Bank Balance
+      sundryDebtors: 4161807, // Total Sundry Debtors
+      sundryCreditors: 2621641, // Total Sundry Creditors
+      currentAssets: 15751016, // Total Current Assets
+      currentLiabilities: 2621641, // Total Current Liabilities
+      fixedAssets: 0,
+      investments: 0,
+      loans: 4049394, // Total Loans
+      provisions: 208492, // Total Sundry Payables
+      enteredBy: 'EMP006',
+      lastModifiedBy: 'EMP003',
+      lastModified: '2025-07-31 16:10:00'
     }
   ], []);
 
-  // Filtered data based on selected companies and employees
+  // Filtered data based on role-based access and selected filters
   const filteredFinancialData = useMemo(() => {
-    let data = financialData;
+    // First filter by role-based access control
+    let data = financialData.filter(item => userAccessibleCompanies.includes(item.companyId));
     
     if (filters.companies.length > 0) {
       data = data.filter(item => filters.companies.includes(item.companyId));
@@ -459,11 +342,22 @@ const Consolidation: React.FC = () => {
     }
     
     return data;
-  }, [financialData, filters.companies, filters.employees]);
+  }, [financialData, filters.companies, filters.employees, userAccessibleCompanies]);
+
+  // Role-based filtering for companies and employees
+  const accessibleCompanies = useMemo(() => {
+    return companies.filter(company => userAccessibleCompanies.includes(company.id));
+  }, [companies, userAccessibleCompanies]);
+
+  const accessibleEmployees = useMemo(() => {
+    return employees.filter(employee => 
+      employee.accessibleCompanies.some(companyId => userAccessibleCompanies.includes(companyId))
+    );
+  }, [employees, userAccessibleCompanies]);
 
   // Get employees with access to selected company
   const getCompanyUsers = (companyId: string) => {
-    return employees.filter(emp => emp.accessibleCompanies.includes(companyId));
+    return accessibleEmployees.filter(emp => emp.accessibleCompanies.includes(companyId));
   };
 
   // Consolidated totals
@@ -499,9 +393,9 @@ const Consolidation: React.FC = () => {
     { month: 'Jul', profit: 350 }
   ], []);
 
-  // User access analysis
+  // User access analysis (only for employees accessible to current user)
   const userAccessData = useMemo(() => {
-    return employees.map(emp => ({
+    return accessibleEmployees.map(emp => ({
       ...emp,
       accessibleCompaniesData: companies.filter(comp => 
         emp.accessibleCompanies.includes(comp.id)
@@ -513,7 +407,7 @@ const Consolidation: React.FC = () => {
         .filter(item => emp.accessibleCompanies.includes(item.companyId))
         .reduce((sum, item) => sum + item.netProfit, 0)
     }));
-  }, [employees, companies, financialData]);
+  }, [accessibleEmployees, companies, financialData]);
 
   const formatCurrency = (amount: number, symbol: string = '₹') => {
     if (amount >= 10000000) {
@@ -553,14 +447,14 @@ const Consolidation: React.FC = () => {
   const handleSelectAllCompanies = () => {
     setFilters(prev => ({
       ...prev,
-      companies: prev.companies.length === companies.length ? [] : companies.map(c => c.id)
+      companies: prev.companies.length === accessibleCompanies.length ? [] : accessibleCompanies.map(c => c.id)
     }));
   };
 
   const handleSelectAllEmployees = () => {
     setFilters(prev => ({
       ...prev,
-      employees: prev.employees.length === employees.length ? [] : employees.map(e => e.id)
+      employees: prev.employees.length === accessibleEmployees.length ? [] : accessibleEmployees.map(e => e.id)
     }));
   };
 
@@ -621,8 +515,8 @@ const Consolidation: React.FC = () => {
             title="Back to Reports"
             className={`p-2 rounded-lg mr-3 transition-colors ${
               theme === 'dark' 
-                ? 'bg-gray-800 hover:bg-gray-700 text-white' 
-                : 'bg-white hover:bg-gray-100 text-gray-700 shadow-sm'
+                ? 'hover:bg-gray-700 text-gray-300' 
+                : 'hover:bg-gray-100 text-gray-700 shadow-sm'
             }`}
           >
             <ArrowLeft size={20} />
@@ -631,9 +525,19 @@ const Consolidation: React.FC = () => {
             <h1 className="text-3xl font-bold flex items-center text-gray-900 dark:text-white">
               <Building2 className="mr-3 text-blue-600" size={32} />
               Multi-Company Consolidation Report
+              <span className={`ml-4 px-3 py-1 rounded-full text-xs font-medium ${
+                userRole === 'Super Admin' 
+                  ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                  : userRole === 'Admin'
+                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                  : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+              }`}>
+                {userRole} Access
+              </span>
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Comprehensive financial reporting across all group companies with employee access control
+              Role-based financial reporting with access to {accessibleCompanies.length} companies 
+              ({hierarchicalReport.reportScope} scope)
             </p>
           </div>
         </div>
@@ -644,8 +548,8 @@ const Consolidation: React.FC = () => {
             title="Refresh Data"
             className={`p-2 rounded-lg transition-colors ${
               theme === 'dark' 
-                ? 'bg-gray-800 hover:bg-gray-700' 
-                : 'bg-white hover:bg-gray-100 shadow-sm'
+                ? 'hover:bg-gray-700 text-gray-300' 
+                : 'hover:bg-gray-200 text-gray-700'
             } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
@@ -656,7 +560,7 @@ const Consolidation: React.FC = () => {
             className={`p-2 rounded-lg transition-colors ${
               showFilterPanel
                 ? (theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
-                : (theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-100 shadow-sm')
+                : (theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-200 text-gray-700')
             }`}
           >
             <Filter size={16} />
@@ -667,7 +571,7 @@ const Consolidation: React.FC = () => {
             className={`p-2 rounded-lg transition-colors ${
               showUserAccessPanel
                 ? (theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white')
-                : (theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-100 shadow-sm')
+                : (theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-200 text-gray-700')
             }`}
           >
             <Users size={16} />
@@ -676,7 +580,7 @@ const Consolidation: React.FC = () => {
             <button
               onClick={() => handleExport('excel')}
               className={`p-2 rounded-lg transition-colors ${
-                theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-100 shadow-sm'
+                theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-200 text-gray-700'
               }`}
               title="Export to Excel"
             >
@@ -688,8 +592,8 @@ const Consolidation: React.FC = () => {
 
       {/* Filter Panel */}
       {showFilterPanel && (
-        <div className={`p-6 rounded-xl mb-6 shadow-lg ${
-          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+        <div className={`p-6 rounded-xl mb-6 ${
+          theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-lg'
         }`}>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Consolidation Type */}
@@ -705,7 +609,7 @@ const Consolidation: React.FC = () => {
                 className={`w-full p-3 rounded-lg border transition-colors ${
                   theme === 'dark' 
                     ? 'bg-gray-700 border-gray-600 text-white' 
-                    : 'bg-white border-gray-300 text-black'
+                    : 'bg-white border-gray-300 text-gray-900'
                 } focus:ring-2 focus:ring-blue-500 outline-none`}
               >
                 <option value="all">All Companies Consolidation</option>
@@ -724,7 +628,7 @@ const Consolidation: React.FC = () => {
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={filters.companies.length === companies.length}
+                    checked={filters.companies.length === accessibleCompanies.length}
                     onChange={handleSelectAllCompanies}
                     className={`rounded text-blue-600 focus:ring-blue-500 ${
                       theme === 'dark' 
@@ -734,9 +638,9 @@ const Consolidation: React.FC = () => {
                   />
                   <span className={`text-sm font-medium ${
                     theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
-                  }`}>All Companies</span>
+                  }`}>All Companies ({accessibleCompanies.length})</span>
                 </label>
-                {companies.map((company) => (
+                {accessibleCompanies.map((company) => (
                   <label key={company.id} className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -771,7 +675,7 @@ const Consolidation: React.FC = () => {
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={filters.employees.length === employees.length}
+                    checked={filters.employees.length === accessibleEmployees.length}
                     onChange={handleSelectAllEmployees}
                     className={`rounded text-blue-600 focus:ring-blue-500 ${
                       theme === 'dark' 
@@ -781,9 +685,9 @@ const Consolidation: React.FC = () => {
                   />
                   <span className={`text-sm font-medium ${
                     theme === 'dark' ? 'text-gray-200' : 'text-gray-800'
-                  }`}>All Employees</span>
+                  }`}>All Employees ({accessibleEmployees.length})</span>
                 </label>
-                {employees.map((employee) => (
+                {accessibleEmployees.map((employee) => (
                   <label key={employee.id} className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -821,7 +725,7 @@ const Consolidation: React.FC = () => {
                 className={`w-full p-3 rounded-lg border transition-colors ${
                   theme === 'dark' 
                     ? 'bg-gray-700 border-gray-600 text-white' 
-                    : 'bg-white border-gray-300 text-black'
+                    : 'bg-white border-gray-300 text-gray-900'
                 } focus:ring-2 focus:ring-blue-500 outline-none`}
               >
                 <option value="2025-26">2025-26</option>
@@ -835,8 +739,8 @@ const Consolidation: React.FC = () => {
 
       {/* User Access Panel */}
       {showUserAccessPanel && (
-        <div className={`p-6 rounded-xl mb-6 shadow-lg ${
-          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+        <div className={`p-6 rounded-xl mb-6 ${
+          theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-lg'
         }`}>
           <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center">
             <Shield className="mr-2" size={20} />
@@ -924,7 +828,8 @@ const Consolidation: React.FC = () => {
           { id: 'summary', label: 'Summary', icon: <BarChart3 size={16} /> },
           { id: 'user-access', label: 'User Access Analysis', icon: <Users size={16} /> },
           { id: 'detailed', label: 'Detailed', icon: <FileText size={16} /> },
-          { id: 'comparison', label: 'Comparison', icon: <Package size={16} /> }
+          { id: 'comparison', label: 'Comparison', icon: <Package size={16} /> },
+          { id: 'consolidate', label: 'Consolidate Report', icon: <Building2 size={16} /> }
         ] as const).map((view) => (
           <button
             key={view.id}
@@ -932,7 +837,7 @@ const Consolidation: React.FC = () => {
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
               selectedView === view.id
                 ? (theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
-                : (theme === 'dark' ? 'bg-gray-800 hover:bg-gray-700 text-gray-300' : 'bg-white hover:bg-gray-100 text-gray-700 shadow-sm')
+                : (theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-200 text-gray-700')
             }`}
           >
             {view.icon}
@@ -944,8 +849,8 @@ const Consolidation: React.FC = () => {
       {/* Summary Cards */}
       {selectedView === 'summary' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className={`p-6 rounded-xl shadow-lg ${
-            theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+          <div className={`p-6 rounded-xl ${
+            theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-lg'
           }`}>
             <div className="flex items-center justify-between">
               <div>
@@ -963,8 +868,8 @@ const Consolidation: React.FC = () => {
             </div>
           </div>
 
-          <div className={`p-6 rounded-xl shadow-lg ${
-            theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+          <div className={`p-6 rounded-xl ${
+            theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-lg'
           }`}>
             <div className="flex items-center justify-between">
               <div>
@@ -982,8 +887,8 @@ const Consolidation: React.FC = () => {
             </div>
           </div>
 
-          <div className={`p-6 rounded-xl shadow-lg ${
-            theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+          <div className={`p-6 rounded-xl ${
+            theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-lg'
           }`}>
             <div className="flex items-center justify-between">
               <div>
@@ -999,8 +904,8 @@ const Consolidation: React.FC = () => {
             </div>
           </div>
 
-          <div className={`p-6 rounded-xl shadow-lg ${
-            theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+          <div className={`p-6 rounded-xl ${
+            theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-lg'
           }`}>
             <div className="flex items-center justify-between">
               <div>
@@ -1022,8 +927,8 @@ const Consolidation: React.FC = () => {
       {selectedView === 'summary' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Sales & Profit Chart */}
-          <div className={`p-6 rounded-xl shadow-lg ${
-            theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+          <div className={`p-6 rounded-xl ${
+            theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-lg'
           }`}>
             <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
               Sales & Profit by Company
@@ -1060,8 +965,8 @@ const Consolidation: React.FC = () => {
           </div>
 
           {/* Profit Trend Chart */}
-          <div className={`p-6 rounded-xl shadow-lg ${
-            theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+          <div className={`p-6 rounded-xl ${
+            theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-lg'
           }`}>
             <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
               Monthly Profit Trend
@@ -1105,8 +1010,8 @@ const Consolidation: React.FC = () => {
       )}
 
       {/* Main Content Area */}
-      <div className={`rounded-xl shadow-lg overflow-hidden ${
-        theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+      <div className={`rounded-xl overflow-hidden ${
+        theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-lg'
       }`}>
         {/* Summary View */}
         {selectedView === 'summary' && (
@@ -1141,67 +1046,239 @@ const Consolidation: React.FC = () => {
               </thead>
               <tbody>
                 {filteredFinancialData.map((company) => (
-                  <tr key={company.companyId} className={`border-b transition-colors ${
-                    theme === 'dark' 
-                      ? 'border-gray-700 hover:bg-gray-750' 
-                      : 'border-gray-200 hover:bg-gray-50'
-                  }`}>
-                    <td className="p-4">
-                      <div>
-                        <div className="font-medium text-gray-900 dark:text-white">
-                          {company.companyName}
+                  <React.Fragment key={company.companyId}>
+                    <tr className={`border-b transition-colors ${
+                      theme === 'dark' 
+                        ? 'border-gray-700 hover:bg-gray-700' 
+                        : 'border-gray-200 hover:bg-gray-50'
+                    }`}>
+                      <td className="p-4">
+                        <div>
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {company.companyName}
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            Capital: {formatCurrency(company.capitalAccount)}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            Users: {getCompanyUsers(company.companyId).length}
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          Capital: {formatCurrency(company.capitalAccount)}
+                      </td>
+                      <td className="p-4 text-right font-medium text-gray-900 dark:text-white">
+                        {formatCurrency(company.sales)}
+                      </td>
+                      <td className="p-4 text-right font-medium">
+                        <span className={company.netProfit > 0 ? 'text-green-600' : 'text-red-600'}>
+                          {formatCurrency(company.netProfit)}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right font-medium text-gray-900 dark:text-white">
+                        {formatCurrency(company.currentAssets + company.fixedAssets)}
+                      </td>
+                      <td className="p-4 text-right font-medium text-blue-600">
+                        {formatCurrency(company.cashInHand + company.bankBalance)}
+                      </td>
+                      <td className="p-4 text-center">
+                        <div className="text-sm">
+                          <div className="font-medium">
+                            {employees.find(emp => emp.id === company.enteredBy)?.name.split('(')[0] || 'Unknown'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Modified: {employees.find(emp => emp.id === company.lastModifiedBy)?.name.split('(')[0] || 'Unknown'}
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {company.lastModified}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-400">
-                          Users: {getCompanyUsers(company.companyId).length}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 text-right font-medium text-gray-900 dark:text-white">
-                      {formatCurrency(company.sales)}
-                    </td>
-                    <td className="p-4 text-right font-medium">
-                      <span className={company.netProfit > 0 ? 'text-green-600' : 'text-red-600'}>
-                        {formatCurrency(company.netProfit)}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right font-medium text-gray-900 dark:text-white">
-                      {formatCurrency(company.currentAssets + company.fixedAssets)}
-                    </td>
-                    <td className="p-4 text-right font-medium text-blue-600">
-                      {formatCurrency(company.cashInHand + company.bankBalance)}
-                    </td>
-                    <td className="p-4 text-center">
-                      <div className="text-sm">
-                        <div className="font-medium">
-                          {employees.find(emp => emp.id === company.enteredBy)?.name.split('(')[0] || 'Unknown'}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Modified: {employees.find(emp => emp.id === company.lastModifiedBy)?.name.split('(')[0] || 'Unknown'}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          {company.lastModified}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-4 text-center">
-                      <button
-                        onClick={() => toggleRowExpansion(company.companyId)}
-                        title="View Details"
-                        className={`p-2 rounded-lg transition-colors ${
-                          theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-200'
-                        }`}
-                      >
-                        {expandedRows.has(company.companyId) ? (
-                          <ChevronDown size={16} />
-                        ) : (
-                          <ChevronRight size={16} />
-                        )}
-                      </button>
-                    </td>
-                  </tr>
+                      </td>
+                      <td className="p-4 text-center">
+                        <button
+                          onClick={() => toggleRowExpansion(company.companyId)}
+                          title="View Details"
+                          className={`p-2 rounded-lg transition-colors ${
+                            theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-200'
+                          }`}
+                        >
+                          {expandedRows.has(company.companyId) ? (
+                            <ChevronDown size={16} />
+                          ) : (
+                            <ChevronRight size={16} />
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                    {/* Expanded Row Content */}
+                    {expandedRows.has(company.companyId) && (
+                      <tr className={`${
+                        theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
+                      }`}>
+                        <td colSpan={7} className="p-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {/* Detailed Financial Metrics */}
+                            <div className={`p-4 rounded-lg ${
+                              theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                            } shadow-sm`}>
+                              <h6 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                                Financial Overview
+                              </h6>
+                              <div className="space-y-1 text-xs">
+                                <div className="flex justify-between">
+                                  <span>Purchases:</span>
+                                  <span className="font-medium">{formatCurrency(company.purchases)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Gross Profit:</span>
+                                  <span className="font-medium text-green-600">{formatCurrency(company.grossProfit)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Direct Expenses:</span>
+                                  <span className="font-medium text-red-500">{formatCurrency(company.directExpenses)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Indirect Expenses:</span>
+                                  <span className="font-medium text-red-500">{formatCurrency(company.indirectExpenses)}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Assets & Liabilities */}
+                            <div className={`p-4 rounded-lg ${
+                              theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                            } shadow-sm`}>
+                              <h6 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                                Assets & Liabilities
+                              </h6>
+                              <div className="space-y-1 text-xs">
+                                <div className="flex justify-between">
+                                  <span>Current Assets:</span>
+                                  <span className="font-medium text-green-600">{formatCurrency(company.currentAssets)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Fixed Assets:</span>
+                                  <span className="font-medium text-blue-600">{formatCurrency(company.fixedAssets)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Current Liabilities:</span>
+                                  <span className="font-medium text-red-500">{formatCurrency(company.currentLiabilities)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Loans:</span>
+                                  <span className="font-medium text-orange-600">{formatCurrency(company.loans)}</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Liquidity Position */}
+                            <div className={`p-4 rounded-lg ${
+                              theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                            } shadow-sm`}>
+                              <h6 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                                Liquidity Position
+                              </h6>
+                              <div className="space-y-1 text-xs">
+                                <div className="flex justify-between">
+                                  <span>Stock in Hand:</span>
+                                  <span className="font-medium text-purple-600">{formatCurrency(company.stockInHand)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Sundry Debtors:</span>
+                                  <span className="font-medium text-blue-600">{formatCurrency(company.sundryDebtors)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Sundry Creditors:</span>
+                                  <span className="font-medium text-red-500">{formatCurrency(company.sundryCreditors)}</span>
+                                </div>
+                                <div className="flex justify-between border-t pt-1">
+                                  <span className="font-semibold">Working Capital:</span>
+                                  <span className={`font-bold ${
+                                    (company.currentAssets - company.currentLiabilities) > 0 ? 'text-green-600' : 'text-red-600'
+                                  }`}>
+                                    {formatCurrency(company.currentAssets - company.currentLiabilities)}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Key Ratios */}
+                            <div className={`p-4 rounded-lg ${
+                              theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                            } shadow-sm`}>
+                              <h6 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                                Key Financial Ratios
+                              </h6>
+                              <div className="space-y-1 text-xs">
+                                <div className="flex justify-between">
+                                  <span>Profit Margin:</span>
+                                  <span className="font-medium text-green-600">
+                                    {formatPercentage((company.netProfit / company.sales) * 100)}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Current Ratio:</span>
+                                  <span className="font-medium text-blue-600">
+                                    {(company.currentAssets / company.currentLiabilities).toFixed(2)}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>ROA:</span>
+                                  <span className="font-medium text-purple-600">
+                                    {formatPercentage((company.netProfit / (company.currentAssets + company.fixedAssets)) * 100)}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Accessible Users:</span>
+                                  <span className="font-medium text-orange-600">
+                                    {getCompanyUsers(company.companyId).length}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Employee Access Details */}
+                          <div className={`mt-4 p-4 rounded-lg ${
+                            theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                          } shadow-sm`}>
+                            <h6 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                              Employee Access & Data Entry
+                            </h6>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs text-gray-500 mb-2">Accessible Employees:</p>
+                                <div className="flex flex-wrap gap-1">
+                                  {getCompanyUsers(company.companyId).map((user) => (
+                                    <span key={user.id} className={`px-2 py-1 rounded text-xs ${
+                                      theme === 'dark' ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-700'
+                                    }`}>
+                                      {user.name.split('(')[0].trim()} ({user.role})
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500 mb-2">Data Entry History:</p>
+                                <div className="text-xs space-y-1">
+                                  <div>
+                                    <span className="font-medium">Entered by:</span> {' '}
+                                    {employees.find(emp => emp.id === company.enteredBy)?.name || 'Unknown'}
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Last Modified by:</span> {' '}
+                                    {employees.find(emp => emp.id === company.lastModifiedBy)?.name || 'Unknown'}
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Last Modified:</span> {' '}
+                                    {company.lastModified}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
                 ))}
                 {/* Totals Row */}
                 <tr className={`border-t-2 font-bold ${
@@ -1871,12 +1948,622 @@ const Consolidation: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Consolidate Report View */}
+        {selectedView === 'consolidate' && (
+          <div className="p-6">
+            <h3 className="text-xl font-semibold mb-6 text-gray-900 dark:text-white flex items-center">
+              <Building2 className="mr-3" size={24} />
+              Complete Consolidation Report
+              <span className="ml-4 text-sm font-normal text-gray-500 dark:text-gray-400">
+                (All Companies • All Employees • All Admin Data • CA Reports)
+              </span>
+            </h3>
+
+            {/* Executive Summary Section */}
+            <div className={`p-6 rounded-xl mb-6 ${
+              theme === 'dark' ? 'bg-gray-700 border border-gray-600' : 'bg-blue-50 border border-blue-200 shadow-sm'
+            }`}>
+              <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center">
+                <TrendingUp className="mr-2" size={20} />
+                Executive Summary
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <h5 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Business Overview</h5>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span>Total Companies:</span>
+                      <span className="font-semibold">{companies.length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Active Employees:</span>
+                      <span className="font-semibold">{employees.filter(emp => emp.status === 'active').length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Admin Users:</span>
+                      <span className="font-semibold">{employees.filter(emp => emp.role.includes('Admin')).length}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Total Sales:</span>
+                      <span className="font-semibold text-green-600">{formatCurrency(consolidatedTotals.totalSales)}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h5 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Financial Performance</h5>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span>Gross Profit:</span>
+                      <span className="font-semibold text-blue-600">{formatCurrency(consolidatedTotals.totalGrossProfit)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Net Profit:</span>
+                      <span className="font-semibold text-green-600">{formatCurrency(consolidatedTotals.totalNetProfit)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Profit Margin:</span>
+                      <span className="font-semibold">{formatPercentage((consolidatedTotals.totalNetProfit / consolidatedTotals.totalSales) * 100)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>ROI:</span>
+                      <span className="font-semibold text-purple-600">{formatPercentage((consolidatedTotals.totalNetProfit / consolidatedTotals.totalAssets) * 100)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h5 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Asset Management</h5>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span>Total Assets:</span>
+                      <span className="font-semibold">{formatCurrency(consolidatedTotals.totalAssets)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Current Ratio:</span>
+                      <span className="font-semibold">{(consolidatedTotals.totalAssets / consolidatedTotals.totalLiabilities).toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Cash Position:</span>
+                      <span className="font-semibold text-blue-600">{formatCurrency(consolidatedTotals.totalCash)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Inventory:</span>
+                      <span className="font-semibold">{formatCurrency(consolidatedTotals.totalStock)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Company-wise Consolidated Analysis */}
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center">
+                <Building2 className="mr-2" size={20} />
+                Company-wise Consolidated Analysis
+              </h4>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[1200px]">
+                  <thead className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                    <tr>
+                      <th className={`text-left p-4 font-semibold w-1/5 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>Company Details</th>
+                      <th className={`text-right p-4 font-semibold w-1/5 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>Financial Performance</th>
+                      <th className={`text-right p-4 font-semibold w-1/5 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>Assets & Position</th>
+                      <th className={`text-center p-4 font-semibold w-1/5 min-w-[200px] ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>Employee Management</th>
+                      <th className={`text-center p-4 font-semibold w-1/5 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>Data Quality</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredFinancialData.map((company) => {
+                      const companyEmployees = getCompanyUsers(company.companyId);
+                      const companyInfo = companies.find(c => c.id === company.companyId);
+                      
+                      return (
+                        <tr key={company.companyId} className={`border-b ${
+                          theme === 'dark' ? 'border-gray-700' : 'border-gray-200'
+                        }`}>
+                          <td className="p-4">
+                            <div>
+                              <div className="font-semibold text-gray-900 dark:text-white text-lg">
+                                {company.companyName}
+                              </div>
+                              <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                <div>Code: {companyInfo?.code} | Type: {companyInfo?.type}</div>
+                                <div>GSTIN: {companyInfo?.gstin}</div>
+                                <div>Status: <span className={`px-2 py-1 rounded-full text-xs ${
+                                  companyInfo?.status === 'active' 
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                    : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                }`}>{companyInfo?.status}</span></div>
+                                <div>Capital: {formatCurrency(company.capitalAccount)}</div>
+                              </div>
+                            </div>
+                          </td>
+                          
+                          <td className="p-4 text-right">
+                            <div className="space-y-2">
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Sales: </span>
+                                <span className="font-semibold text-green-600 text-lg">{formatCurrency(company.sales)}</span>
+                              </div>
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Purchases: </span>
+                                <span className="font-medium">{formatCurrency(company.purchases)}</span>
+                              </div>
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Gross Profit: </span>
+                                <span className="font-semibold text-blue-600">{formatCurrency(company.grossProfit)}</span>
+                              </div>
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Net Profit: </span>
+                                <span className={`font-bold text-lg ${company.netProfit > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                  {formatCurrency(company.netProfit)}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Margin: </span>
+                                <span className="font-medium">{formatPercentage((company.netProfit / company.sales) * 100)}</span>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="p-4 text-right">
+                            <div className="space-y-2">
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Total Assets: </span>
+                                <span className="font-semibold text-purple-600">{formatCurrency(company.currentAssets + company.fixedAssets)}</span>
+                              </div>
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Cash & Bank: </span>
+                                <span className="font-medium text-blue-600">{formatCurrency(company.cashInHand + company.bankBalance)}</span>
+                              </div>
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Stock: </span>
+                                <span className="font-medium">{formatCurrency(company.stockInHand)}</span>
+                              </div>
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Debtors: </span>
+                                <span className="font-medium">{formatCurrency(company.sundryDebtors)}</span>
+                              </div>
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Creditors: </span>
+                                <span className="font-medium text-orange-600">{formatCurrency(company.sundryCreditors)}</span>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="p-4 text-center">
+                            <div className="space-y-3">
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Total Users: </span>
+                                <span className="font-bold text-lg">{companyEmployees.length}</span>
+                              </div>
+                              <div className="space-y-2">
+                                {companyEmployees.map(emp => (
+                                  <div key={emp.id} className="text-xs space-y-1">
+                                    <div className="font-medium text-gray-900 dark:text-white">
+                                      {emp.name.split('(')[0].trim()}
+                                    </div>
+                                    <div>
+                                      <span className={`inline-block px-2 py-1 rounded-full text-xs ${
+                                        emp.role.includes('Admin') 
+                                          ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                          : emp.role.includes('Manager') 
+                                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                          : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                      }`}>
+                                        {emp.role}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
+                                Dept: {[...new Set(companyEmployees.map(emp => emp.department))].join(', ')}
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="p-4 text-center">
+                            <div className="space-y-2">
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Data Entry: </span>
+                                <div className="font-medium">
+                                  {employees.find(emp => emp.id === company.enteredBy)?.name.split('(')[0] || 'Unknown'}
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">Last Modified: </span>
+                                <div className="font-medium">
+                                  {employees.find(emp => emp.id === company.lastModifiedBy)?.name.split('(')[0] || 'Unknown'}
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {company.lastModified}
+                              </div>
+                              <div>
+                                <span className={`px-2 py-1 rounded-full text-xs ${
+                                  company.lastModified && new Date(company.lastModified) > new Date(Date.now() - 7*24*60*60*1000)
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                }`}>
+                                  {company.lastModified && new Date(company.lastModified) > new Date(Date.now() - 7*24*60*60*1000) 
+                                    ? 'Recent' : 'Needs Update'}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Employee Consolidation Report */}
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center">
+                <Users className="mr-2" size={20} />
+                Employee Consolidation Analysis
+              </h4>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {employees.filter(emp => emp.accessibleCompanies.some(companyId => userAccessibleCompanies.includes(companyId))).map((employee) => {
+                  const employeeCompanies = employee.accessibleCompanies
+                    .filter(companyId => userAccessibleCompanies.includes(companyId))
+                    .map(companyId => companies.find(c => c.id === companyId))
+                    .filter(Boolean);
+                  
+                  const employeeFinancialData = financialData.filter(item => 
+                    item.enteredBy === employee.id || item.lastModifiedBy === employee.id
+                  );
+                  
+                  const totalSalesResponsible = employeeFinancialData.reduce((sum, item) => sum + item.sales, 0);
+                  const totalProfitResponsible = employeeFinancialData.reduce((sum, item) => sum + item.netProfit, 0);
+                  
+                  return (
+                    <div key={employee.id} className={`p-4 rounded-lg border ${
+                      theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-200'
+                    }`}>
+                      {/* Employee Header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h5 className="font-semibold text-gray-900 dark:text-white text-lg mb-2">
+                            {employee.name}
+                          </h5>
+                          <div className="flex flex-col space-y-2">
+                            <div>
+                              <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                                employee.role.includes('Admin') 
+                                  ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                  : employee.role.includes('Manager') 
+                                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                  : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              }`}>
+                                {employee.role}
+                              </span>
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">
+                              {employee.department} Department
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex-shrink-0 ml-4">
+                          <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            employee.status === 'active' 
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                          }`}>
+                            {employee.status}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Employee Performance Metrics */}
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <h6 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Access & Responsibility</h6>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span>Companies Access:</span>
+                              <span className="font-semibold">{employeeCompanies.length}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Data Entries:</span>
+                              <span className="font-semibold">{employeeFinancialData.length}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Permissions:</span>
+                              <span className="font-semibold">{employee.permissions.length}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Last Login:</span>
+                              <span className="text-xs">{new Date(employee.lastLogin).toLocaleDateString('hi-IN')}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h6 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Financial Impact</h6>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span>Sales Handled:</span>
+                              <span className="font-semibold text-green-600">{formatCurrency(totalSalesResponsible)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Profit Impact:</span>
+                              <span className="font-semibold text-blue-600">{formatCurrency(totalProfitResponsible)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Avg per Company:</span>
+                              <span className="font-semibold">{formatCurrency(totalSalesResponsible / Math.max(employeeCompanies.length, 1))}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Efficiency Score:</span>
+                              <span className="font-semibold text-purple-600">
+                                {totalSalesResponsible > 0 ? Math.min(100, Math.round((totalProfitResponsible / totalSalesResponsible) * 1000)) : 0}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Company Access Details */}
+                      <div className="border-t pt-3">
+                        <p className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+                          Company Access Details:
+                        </p>
+                        <div className="grid grid-cols-1 gap-2">
+                          {employeeCompanies.map((company) => {
+                            const companyData = financialData.find(item => item.companyId === company.id);
+                            return (
+                              <div key={company.id} className={`p-3 rounded border ${
+                                theme === 'dark' ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200 shadow-sm'
+                              }`}>
+                                <div className="flex justify-between items-center">
+                                  <div>
+                                    <span className="font-medium">{company.name}</span>
+                                    <span className="text-xs text-gray-500 ml-2">({company.code})</span>
+                                  </div>
+                                  <div className="text-right text-sm">
+                                    <div className="text-green-600 font-medium">
+                                      {companyData ? formatCurrency(companyData.sales) : 'No Data'}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                      {companyData ? formatCurrency(companyData.netProfit) : ''}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Administrative Analysis */}
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center">
+                <Shield className="mr-2" size={20} />
+                Administrative & CA Analysis
+              </h4>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Admin Performance */}
+                <div className={`p-4 rounded-lg ${
+                  theme === 'dark' ? 'bg-gray-700' : 'bg-blue-50 shadow-sm'
+                }`}>
+                  <h5 className="font-semibold mb-3 text-gray-900 dark:text-white">Admin Performance</h5>
+                  {employees.filter(emp => emp.role.includes('Admin')).map(admin => {
+                    const adminCompanies = admin.accessibleCompanies.length;
+                    const adminSales = financialData
+                      .filter(item => admin.accessibleCompanies.includes(item.companyId))
+                      .reduce((sum, item) => sum + item.sales, 0);
+                    
+                    return (
+                      <div key={admin.id} className={`mb-3 p-3 rounded ${
+                        theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-sm'
+                      }`}>
+                        <div className="font-medium">{admin.name.split('(')[0]}</div>
+                        <div className="text-sm space-y-1 mt-1">
+                          <div className="flex justify-between">
+                            <span>Companies Managed:</span>
+                            <span className="font-semibold">{adminCompanies}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Total Sales Oversight:</span>
+                            <span className="font-semibold text-green-600">{formatCurrency(adminSales)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Department:</span>
+                            <span>{admin.department}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Data Quality Analysis */}
+                <div className={`p-4 rounded-lg ${
+                  theme === 'dark' ? 'bg-gray-700' : 'bg-green-50 shadow-sm'
+                }`}>
+                  <h5 className="font-semibold mb-3 text-gray-900 dark:text-white">Data Quality Report</h5>
+                  <div className="space-y-3">
+                    <div className={`p-3 rounded ${
+                      theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-sm'
+                    }`}>
+                      <div className="flex justify-between">
+                        <span>Companies with Recent Updates:</span>
+                        <span className="font-semibold text-green-600">
+                          {financialData.filter(item => 
+                            item.lastModified && new Date(item.lastModified) > new Date(Date.now() - 7*24*60*60*1000)
+                          ).length}/{financialData.length}
+                        </span>
+                      </div>
+                    </div>
+                    <div className={`p-3 rounded ${
+                      theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-sm'
+                    }`}>
+                      <div className="flex justify-between">
+                        <span>Data Completeness:</span>
+                        <span className="font-semibold text-blue-600">
+                          {Math.round((financialData.filter(item => item.enteredBy && item.lastModifiedBy).length / financialData.length) * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                    <div className={`p-3 rounded ${
+                      theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-sm'
+                    }`}>
+                      <div className="flex justify-between">
+                        <span>Active Data Contributors:</span>
+                        <span className="font-semibold text-purple-600">{consolidatedTotals.activeUsers}</span>
+                      </div>
+                    </div>
+                    <div className={`p-3 rounded ${
+                      theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-sm'
+                    }`}>
+                      <div className="flex justify-between">
+                        <span>Average Data Age:</span>
+                        <span className="font-semibold">
+                          {Math.round(
+                            financialData
+                              .filter(item => item.lastModified)
+                              .reduce((sum, item) => sum + (Date.now() - new Date(item.lastModified).getTime()), 0) 
+                              / financialData.filter(item => item.lastModified).length 
+                              / (24*60*60*1000)
+                          )} days
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CA & Compliance Status */}
+                <div className={`p-4 rounded-lg ${
+                  theme === 'dark' ? 'bg-gray-700' : 'bg-yellow-50 shadow-sm'
+                }`}>
+                  <h5 className="font-semibold mb-3 text-gray-900 dark:text-white">CA & Compliance</h5>
+                  <div className="space-y-3">
+                    {companies.map(company => {
+                      const companyData = financialData.find(item => item.companyId === company.id);
+                      return (
+                        <div key={company.id} className={`p-3 rounded ${
+                          theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-sm'
+                        }`}>
+                          <div className="font-medium text-sm">{company.name}</div>
+                          <div className="text-xs space-y-1 mt-1">
+                            <div className="flex justify-between">
+                              <span>GSTIN Status:</span>
+                              <span className={`px-2 py-1 rounded-full text-xs ${
+                                company.gstin 
+                                  ? theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'
+                                  : theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800'
+                              }`}>
+                                {company.gstin ? 'Active' : 'Missing'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Financial Year:</span>
+                              <span>{company.financialYear}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Audit Status:</span>
+                              <span className={`px-2 py-1 rounded-full text-xs ${
+                                companyData?.netProfit > 0 
+                                  ? theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'
+                                  : theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {companyData?.netProfit > 0 ? 'Profitable' : 'Review Needed'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Compliance Score:</span>
+                              <span className="font-semibold text-blue-600">
+                                {company.gstin && company.status === 'active' && companyData ? '95%' : '70%'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Final Consolidated Summary */}
+            <div className={`p-6 rounded-xl ${
+              theme === 'dark' ? 'bg-gradient-to-r from-gray-800 to-gray-700 border border-gray-600' : 'bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 shadow-lg'
+            }`}>
+              <h4 className="text-xl font-bold mb-4 text-gray-900 dark:text-white flex items-center">
+                <TrendingUp className="mr-3" size={24} />
+                Final Consolidated Report Summary
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-600 mb-2">
+                    {formatCurrency(consolidatedTotals.totalSales)}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Total Business Volume</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Across {companies.length} Companies
+                  </div>
+                </div>
+                
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-blue-600 mb-2">
+                    {formatCurrency(consolidatedTotals.totalNetProfit)}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Net Profit</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {formatPercentage((consolidatedTotals.totalNetProfit / consolidatedTotals.totalSales) * 100)} Margin
+                  </div>
+                </div>
+                
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-purple-600 mb-2">
+                    {formatCurrency(consolidatedTotals.totalAssets)}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Total Assets</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Strong Portfolio
+                  </div>
+                </div>
+                
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-orange-600 mb-2">
+                    {employees.filter(emp => emp.status === 'active').length}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Active Team</div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {employees.filter(emp => emp.role.includes('Admin')).length} Admins + {employees.filter(emp => !emp.role.includes('Admin')).length} Staff
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-6 pt-4 border-t border-gray-300 dark:border-gray-600 text-center">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <strong>Report Generated:</strong> {new Date().toLocaleDateString('hi-IN')} at {new Date().toLocaleTimeString('hi-IN')} 
+                  | <strong>Generated By:</strong> {employees.find(emp => emp.id === currentUserId)?.name || 'System'} ({userRole})
+                  | <strong>Access Level:</strong> {hierarchicalReport.reportScope}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Loading Overlay */}
       {loading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+          <div className={`p-6 rounded-lg ${
+            theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow-lg'
+          }`}>
             <div className="flex items-center space-x-3">
               <RefreshCw className="animate-spin text-blue-600" size={24} />
               <span className="text-gray-900 dark:text-white">Processing...</span>
@@ -1887,7 +2574,7 @@ const Consolidation: React.FC = () => {
 
       {/* Footer */}
       <div className={`mt-8 p-4 rounded-xl ${
-        theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'
+        theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50 shadow-sm'
       }`}>
         <p className="text-sm text-gray-600 dark:text-gray-400">
           <span className="font-semibold">Tips:</span> Use filters to customize your view, 
