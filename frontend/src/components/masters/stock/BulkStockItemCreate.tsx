@@ -104,70 +104,99 @@ const BulkStockItemCreate: React.FC = () => {
 
     return { isValid: Object.keys(errors).length === 0, errors };
   };
+const uploadCSVFile = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
 
-  const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  try {
+    const response = await fetch('http://localhost:5000/api/stock-items/bulk-csv', {
+      method: 'POST',
+      body: formData,
+    });
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const text = e.target?.result as string;
-        const rows = text.split('\n').map(row => row.split(','));
-        
-        // Skip header row
-        const dataRows = rows.slice(1).filter(row => row.length > 1 && row[0].trim());
-        
-        const newItems: BulkStockItemRow[] = dataRows.map((row, index) => {
-          const item: BulkStockItemRow = {
-            tempId: (index + 1).toString(),
-            name: row[0]?.trim() || '',
-            unit: row[1]?.trim() || 'Piece',
-            openingBalance: parseFloat(row[2]) || 0,
-            openingValue: parseFloat(row[3]) || 0,
-            stockGroupId: '', // Will be mapped from group name
-            gstRate: parseFloat(row[5]) || 18,
-            hsnCode: row[6]?.trim() || '',
-            taxType: (row[7]?.trim() as 'Taxable' | 'Exempt' | 'Nil-rated') || 'Taxable',
-            standardPurchaseRate: parseFloat(row[8]) || 0,
-            standardSaleRate: parseFloat(row[9]) || 0,
-            enableBatchTracking: row[10]?.toLowerCase() === 'true',
-            allowNegativeStock: row[11]?.toLowerCase() === 'true',
-            maintainInPieces: row[12]?.toLowerCase() !== 'false',
-            secondaryUnit: row[13]?.trim() || '',
-            isValid: false,
-            errors: {}
-          };
+    const data = await response.json();
 
-          // Try to find matching stock group
-          const groupName = row[4]?.trim();
-          if (groupName) {
-            const matchingGroup = stockGroups.find(g => 
-              g.name.toLowerCase().includes(groupName.toLowerCase())
-            );
-            if (matchingGroup) {
-              item.stockGroupId = matchingGroup.id;
-            }
-          }
-
-          const { isValid, errors } = validateRow(item);
-          return { ...item, isValid, errors };
-        });
-
-        setBulkItems(newItems);
-        alert(`Successfully loaded ${newItems.length} items from CSV`);
-      } catch (error) {
-        alert('Error parsing CSV file. Please check the format.');
-        console.error('CSV parsing error:', error);
-      }
-    };
-    reader.readAsText(file);
-    
-    // Reset file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+    if (data.success) {
+      alert(`CSV processed successfully. Inserted ${data.inserted || 'N/A'} items.`);
+      // Optionally refresh your stock items or UI here
+    } else {
+      alert('CSV upload failed: ' + data.message);
     }
-  };
+  } catch (error) {
+    alert('Error uploading CSV');
+    console.error(error);
+  }
+};
+const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    uploadCSVFile(file);
+  }
+};
+
+  // const handleCSVUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = event.target.files?.[0];
+  //   if (!file) return;
+
+  //   const reader = new FileReader();
+  //   reader.onload = (e) => {
+  //     try {
+  //       const text = e.target?.result as string;
+  //       const rows = text.split('\n').map(row => row.split(','));
+        
+  //       // Skip header row
+  //       const dataRows = rows.slice(1).filter(row => row.length > 1 && row[0].trim());
+        
+  //       const newItems: BulkStockItemRow[] = dataRows.map((row, index) => {
+  //         const item: BulkStockItemRow = {
+  //           tempId: (index + 1).toString(),
+  //           name: row[0]?.trim() || '',
+  //           unit: row[1]?.trim() || 'Piece',
+  //           openingBalance: parseFloat(row[2]) || 0,
+  //           openingValue: parseFloat(row[3]) || 0,
+  //           stockGroupId: '', // Will be mapped from group name
+  //           gstRate: parseFloat(row[5]) || 18,
+  //           hsnCode: row[6]?.trim() || '',
+  //           taxType: (row[7]?.trim() as 'Taxable' | 'Exempt' | 'Nil-rated') || 'Taxable',
+  //           standardPurchaseRate: parseFloat(row[8]) || 0,
+  //           standardSaleRate: parseFloat(row[9]) || 0,
+  //           enableBatchTracking: row[10]?.toLowerCase() === 'true',
+  //           allowNegativeStock: row[11]?.toLowerCase() === 'true',
+  //           maintainInPieces: row[12]?.toLowerCase() !== 'false',
+  //           secondaryUnit: row[13]?.trim() || '',
+  //           isValid: false,
+  //           errors: {}
+  //         };
+
+  //         // Try to find matching stock group
+  //         const groupName = row[4]?.trim();
+  //         if (groupName) {
+  //           const matchingGroup = stockGroups.find(g => 
+  //             g.name.toLowerCase().includes(groupName.toLowerCase())
+  //           );
+  //           if (matchingGroup) {
+  //             item.stockGroupId = matchingGroup.id;
+  //           }
+  //         }
+
+  //         const { isValid, errors } = validateRow(item);
+  //         return { ...item, isValid, errors };
+  //       });
+
+  //       setBulkItems(newItems);
+  //       alert(`Successfully loaded ${newItems.length} items from CSV`);
+  //     } catch (error) {
+  //       alert('Error parsing CSV file. Please check the format.');
+  //       console.error('CSV parsing error:', error);
+  //     }
+  //   };
+  //   reader.readAsText(file);
+    
+  //   // Reset file input
+  //   if (fileInputRef.current) {
+  //     fileInputRef.current.value = '';
+  //   }
+  // };
 
   const downloadTemplate = () => {
     const csvContent = csvTemplate.map(row => row.join(',')).join('\n');
@@ -179,37 +208,59 @@ const BulkStockItemCreate: React.FC = () => {
     a.click();
     window.URL.revokeObjectURL(url);
   };
+// Assuming bulkItems is an array of validated stock items in your form state
 
-  const handleSaveAll = async () => {
-    const validItems = bulkItems.filter(item => item.isValid);
-    
-    if (validItems.length === 0) {
-      alert('No valid items to save. Please fix the errors and try again.');
-      return;
-    }
+const handleSaveAll = async (bulkItems: BulkStockItemRow[]) => {
+  try {
+    const response = await fetch('http://localhost:5000/api/stock-items/bulk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(bulkItems),
+    });
+    const data = await response.json();
 
-    if (validItems.length !== bulkItems.length) {
-      const proceed = window.confirm(
-        `${bulkItems.length - validItems.length} items have errors and will be skipped. ` +
-        `Do you want to proceed with saving ${validItems.length} valid items?`
-      );
-      if (!proceed) return;
-    }
-
-    try {
-      for (const item of validItems) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { tempId, isValid, errors, ...stockItem } = item;
-        addStockItem(stockItem);
-      }
-      
-      alert(`Successfully created ${validItems.length} stock items!`);
+    if (data.success) {
+      alert(`Successfully uploaded ${data.inserted} items. Skipped ${data.skipped}.`);
       navigate('/app/masters/stock-item');
-    } catch (error) {
-      alert('Error saving stock items. Please try again.');
-      console.error('Save error:', error);
+    } else {
+      alert('Upload failed: ' + data.message);
     }
-  };
+  } catch (error) {
+    alert('Error uploading data');
+    console.error(error);
+  }
+};
+
+  // const handleSaveAll = async () => {
+  //   const validItems = bulkItems.filter(item => item.isValid);
+    
+  //   if (validItems.length === 0) {
+  //     alert('No valid items to save. Please fix the errors and try again.');
+  //     return;
+  //   }
+
+  //   if (validItems.length !== bulkItems.length) {
+  //     const proceed = window.confirm(
+  //       `${bulkItems.length - validItems.length} items have errors and will be skipped. ` +
+  //       `Do you want to proceed with saving ${validItems.length} valid items?`
+  //     );
+  //     if (!proceed) return;
+  //   }
+
+  //   try {
+  //     for (const item of validItems) {
+  //       // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  //       const { tempId, isValid, errors, ...stockItem } = item;
+  //       addStockItem(stockItem);
+  //     }
+      
+  //     alert(`Successfully created ${validItems.length} stock items!`);
+  //     navigate('/app/masters/stock-item');
+  //   } catch (error) {
+  //     alert('Error saving stock items. Please try again.');
+  //     console.error('Save error:', error);
+  //   }
+  // };
 
   const validItemsCount = bulkItems.filter(item => item.isValid).length;
   const totalItemsCount = bulkItems.length;
@@ -252,7 +303,7 @@ const BulkStockItemCreate: React.FC = () => {
           </button>
           
           <button
-            onClick={handleSaveAll}
+            onClick={() => handleSaveAll(bulkItems)}
             disabled={validItemsCount === 0}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
               validItemsCount > 0
@@ -635,7 +686,7 @@ const BulkStockItemCreate: React.FC = () => {
                 <button
                   onClick={() => {
                     setShowPreview(false);
-                    handleSaveAll();
+                    handleSaveAll(bulkItems);
                   }}
                   disabled={validItemsCount === 0}
                   className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${

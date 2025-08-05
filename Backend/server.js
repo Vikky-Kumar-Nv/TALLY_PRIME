@@ -166,6 +166,12 @@ app.use(outstandingLedgerRouter);
 const outstandingSummaryRouter = require('./routes/outstandingSummary');
 app.use(outstandingSummaryRouter);
 
+const bulkStockItemsRouter = require('./routes/bulk-stock-items'); // the above file
+app.use('/api/stock-items', bulkStockItemsRouter);
+
+const ledgerReportRouter = require('./routes/ledger-report');
+app.use('/api/ledger-report', ledgerReportRouter);
+
 // ✅ MySQL Connection
 const db = mysql.createConnection({
   host: '192.145.238.16',

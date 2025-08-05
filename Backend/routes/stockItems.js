@@ -17,6 +17,9 @@ router.get('/', async (req, res) => {
         s.openingBalance,
         s.hsnCode,
         s.gstRate,
+    s.batchNumber,
+        s.batchExpiryDate,
+        s.batchManufacturingDate,
         s.taxType
       FROM stock_items s
       LEFT JOIN stock_groups sg ON s.stockGroupId = sg.id
@@ -35,59 +38,41 @@ router.get('/', async (req, res) => {
 
 
 router.post('/', async (req, res) => {
-  const connection = await db.getConnection();
+  const connection = await db.getConnection(); // ✅ get a connection
 
   try {
-    await connection.beginTransaction();
+    await connection.beginTransaction(); // ✅ begin transaction
 
     const {
-      name, stockGroupId, unit, openingBalance, openingValue,
-      hsnCode, gstRate, taxType, standardPurchaseRate, standardSaleRate,
-      enableBatchTracking, allowNegativeStock, maintainInPieces, secondaryUnit,
-      godownAllocations = [],
-      batches = [] // Expects array of batch objects with batchNumber, expiryDate, manufacturingDate, quantity, costPrice, mrp
-    } = req.body;
+        name, stockGroupId, unit, openingBalance, openingValue,
+        hsnCode, gstRate, taxType, standardPurchaseRate, standardSaleRate,
+        enableBatchTracking, allowNegativeStock, maintainInPieces, secondaryUnit,
+        batchName, batchExpiryDate, batchManufacturingDate,
+        godownAllocations = []
+      } = req.body;
 
-    // Insert stock item without batch columns
     const values = [
       name, stockGroupId ?? null, unit ?? null,
       openingBalance ?? 0, openingValue ?? 0, hsnCode ?? null, gstRate ?? 0,
       taxType ?? 'Taxable', standardPurchaseRate ?? 0, standardSaleRate ?? 0,
       enableBatchTracking ? 1 : 0, allowNegativeStock ? 1 : 0,
-      maintainInPieces ? 1 : 0, secondaryUnit ?? null
-
+      maintainInPieces ? 1 : 0, secondaryUnit ?? null,
+      batchName ?? null, batchExpiryDate ?? null, batchManufacturingDate ?? null,
     ];
 
+    // Insert stock item
     const [result] = await connection.execute(`
       INSERT INTO stock_items (
-        name, stockGroupId, unit, openingBalance, openingValue,
-        hsnCode, gstRate, taxType, standardPurchaseRate, standardSaleRate,
-        enableBatchTracking, allowNegativeStock, maintainInPieces, secondaryUnit
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    name, stockGroupId, unit, openingBalance, openingValue,
+    hsnCode, gstRate, taxType, standardPurchaseRate, standardSaleRate,
+    enableBatchTracking, allowNegativeStock, maintainInPieces, secondaryUnit,
+    batchNumber, batchExpiryDate, batchManufacturingDate
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, values);
 
-    const stockItemId = result.insertId;
+    const stockItemId = result.insertId; // ✅ get inserted ID
 
-    // Insert batches separately to stock_item_batches
-    for (const batch of batches) {
-      await connection.execute(`
-        INSERT INTO stock_item_batches (
-          batchName, stockItemId, batchNumber, manufacturingDate, expiryDate, quantity, availableQuantity, costPrice, mrp
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [
-        batch.batchName || null,
-        stockItemId,
-        batch.batchName,
-        batch.batchManufacturingDate || null,
-        batch.batchExpiryDate || null,
-        batch.quantity || 0,
-        batch.availableQuantity || batch.quantity || 0,
-        batch.costPrice || 0,
-        batch.mrp || 0
-      ]);
-    }
-
-    // Insert godown allocations if any
+    // Insert godown allocations
     for (const alloc of godownAllocations) {
       await connection.execute(`
         INSERT INTO godown_allocations (stockItemId, godownId, quantity, value)
@@ -100,18 +85,17 @@ router.post('/', async (req, res) => {
       ]);
     }
 
-    await connection.commit();
+    await connection.commit(); // ✅ commit transaction
+    res.json({ success: true, message: 'Stock item saved successfully' });
 
-    res.json({ success: true, message: 'Stock item and batches saved successfully' });
-
-  } catch (err) {
-    console.error("🔥 Error saving stock item:", err);
-    await connection.rollback();
-    res.status(500).json({ success: false, message: 'Error saving stock item' });
-  } finally {
-    connection.release();
+  }  catch (err) {
+  console.error("🔥 Error saving stock item:", err); // log full error
+  await connection.rollback();
+  res.status(500).json({ success: false, message: 'Error saving stock item' });
+}
+ finally {
+    connection.release(); // ✅ always release the connection
   }
 });
-
 
 module.exports = router;

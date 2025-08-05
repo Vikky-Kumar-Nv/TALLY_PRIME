@@ -561,7 +561,7 @@ const StockItemForm = () => {
               <InputField
                 id="batchName"
                 name="batchName"
-                label="Batch Name"
+                label="Batch Number"
                 value={formData.batchName}
                 onChange={handleChange}
                 required
