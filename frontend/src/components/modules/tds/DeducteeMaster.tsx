@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Users,
   Search,
   Plus,
   Edit,
-  Download,
-  Upload,
   ArrowLeft,
   Trash2,
 } from "lucide-react";
@@ -50,7 +48,7 @@ const DeducteeMaster: React.FC = () => {
   const navigate = useNavigate();
 
   // Fetch deductees from backend API with filters
-  const fetchDeductees = async () => {
+  const fetchDeductees = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -62,17 +60,18 @@ const DeducteeMaster: React.FC = () => {
       if (!res.ok) throw new Error("Failed to fetch deductees");
       const data: Deductee[] = await res.json();
       setDeductees(data);
-    } catch (err: any) {
-      setError(err.message || "Error fetching deductees");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Error fetching deductees";
+      setError(errorMessage);
       setDeductees([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, selectedCategory]);
 
   useEffect(() => {
     fetchDeductees();
-  }, [searchTerm, selectedCategory]);
+  }, [fetchDeductees]);
 
   // Helper: category color
   const getCategoryColor = (cat: Deductee["category"]) => {
@@ -177,7 +176,7 @@ const DeducteeMaster: React.FC = () => {
       alert("Deductee added successfully");
       setShowAddModal(false);
       fetchDeductees();
-    } catch (err) {
+    } catch {
       alert("Error adding deductee");
     }
   };
@@ -472,6 +471,7 @@ const DeducteeFormModal: React.FC<DeducteeFormModalProps> = ({
             <label className="block mb-1 font-medium">Full Name<span className="text-red-500">*</span></label>
             <input
               type="text"
+              title="Full Name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
@@ -487,6 +487,7 @@ const DeducteeFormModal: React.FC<DeducteeFormModalProps> = ({
             <label className="block mb-1 font-medium">PAN Number<span className="text-red-500">*</span></label>
             <input
               type="text"
+              title="PAN Number"
               value={formData.pan}
               onChange={(e) => setFormData({ ...formData, pan: e.target.value.toUpperCase() })}
               maxLength={10}
@@ -501,6 +502,7 @@ const DeducteeFormModal: React.FC<DeducteeFormModalProps> = ({
           <div>
             <label className="block mb-1 font-medium">Category<span className="text-red-500">*</span></label>
             <select
+              title="Select Category"
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value as typeof categories[number] })}
               className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
@@ -536,6 +538,7 @@ const DeducteeFormModal: React.FC<DeducteeFormModalProps> = ({
             <label className="block mb-1 font-medium">Rate (%)</label>
             <input
               type="number"
+              title="TDS Rate Percentage"
               value={formData.rate}
               onChange={(e) => setFormData({ ...formData, rate: Math.max(0, Number(e.target.value)) })}
               min={0}
@@ -549,6 +552,7 @@ const DeducteeFormModal: React.FC<DeducteeFormModalProps> = ({
             <label className="block mb-1 font-medium">Threshold (₹)</label>
             <input
               type="number"
+              title="TDS Threshold Amount"
               value={formData.threshold}
               onChange={(e) => setFormData({ ...formData, threshold: Math.max(0, Number(e.target.value)) })}
               min={0}
@@ -562,6 +566,7 @@ const DeducteeFormModal: React.FC<DeducteeFormModalProps> = ({
             <label className="block mb-1 font-medium">Email Address</label>
             <input
               type="email"
+              title="Email Address"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -573,6 +578,7 @@ const DeducteeFormModal: React.FC<DeducteeFormModalProps> = ({
             <label className="block mb-1 font-medium">Phone Number</label>
             <input
               type="tel"
+              title="Phone Number"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -584,6 +590,7 @@ const DeducteeFormModal: React.FC<DeducteeFormModalProps> = ({
             <label className="block mb-1 font-medium">Address</label>
             <textarea
               rows={3}
+              title="Address"
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-y"
@@ -594,6 +601,7 @@ const DeducteeFormModal: React.FC<DeducteeFormModalProps> = ({
           <div>
             <label className="block mb-1 font-medium">Status</label>
             <select
+              title="Status"
               value={formData.status}
               onChange={(e) =>
                 setFormData({ ...formData, status: e.target.value as Deductee["status"] })

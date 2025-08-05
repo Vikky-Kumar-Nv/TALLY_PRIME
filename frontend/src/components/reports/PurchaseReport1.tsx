@@ -82,7 +82,7 @@ const PurchaseReport1: React.FC = () => {
   const printRef = useRef<HTMLDivElement>(null);
 
   const [showFilterPanel, setShowFilterPanel] = useState(false);
-  const [selectedView, setSelectedView] = useState<'summary' | 'detailed' | 'itemwise' | 'supplierwise'>('summary');
+  const [selectedView, setSelectedView] = useState<'summary' | 'detailed' | 'itemwise' | 'supplierwise' | 'invoicewise'>('summary');
   const [filters, setFilters] = useState<FilterState>({
     dateRange: 'this-month',
     fromDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
@@ -842,17 +842,17 @@ const PurchaseReport1: React.FC = () => {
 
       {/* View Selector */}
       <div className="flex space-x-2 mb-6">
-        {['summary', 'detailed', 'supplierwise', 'itemwise'].map((view) => (
+        {['summary', 'detailed', 'invoicewise', 'supplierwise', 'itemwise'].map((view) => (
           <button
             key={view}
-            onClick={() => setSelectedView(view as 'summary' | 'detailed' | 'supplierwise' | 'itemwise')}
+            onClick={() => setSelectedView(view as 'summary' | 'detailed' | 'supplierwise' | 'itemwise' | 'invoicewise')}
             className={`px-4 py-2 rounded-lg capitalize ${
               selectedView === view
                 ? (theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white')
                 : (theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300')
             }`}
           >
-            {view}
+            {view === 'invoicewise' ? 'Invoice-wise' : view}
           </button>
         ))}
       </div>
@@ -1065,6 +1065,188 @@ const PurchaseReport1: React.FC = () => {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* Invoice-wise Purchase View */}
+        {selectedView === 'invoicewise' && (
+          <div className="space-y-4">
+            <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-blue-50'}`}>
+              <h3 className="text-lg font-semibold mb-2 flex items-center">
+                <Package size={20} className="mr-2" />
+                Invoice-wise Purchase Summary
+              </h3>
+              <p className="text-sm opacity-75">
+                Comprehensive view of all purchase invoices with individual invoice analysis
+              </p>
+            </div>
+
+            {/* Invoice-wise Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-white shadow'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium opacity-75">Total Invoices</p>
+                    <p className="text-2xl font-bold">{filteredData.length}</p>
+                  </div>
+                  <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-blue-100'}`}>
+                    <Package size={24} className="text-blue-600" />
+                  </div>
+                </div>
+              </div>
+              
+              <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-white shadow'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium opacity-75">Avg Invoice Value</p>
+                    <p className="text-2xl font-bold">
+                      {formatCurrency(
+                        filteredData.length > 0 
+                          ? filteredData.reduce((sum: number, purchase: PurchaseData) => sum + purchase.netAmount, 0) / filteredData.length
+                          : 0
+                      )}
+                    </p>
+                  </div>
+                  <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-green-100'}`}>
+                    <TrendingDown size={24} className="text-green-600" />
+                  </div>
+                </div>
+              </div>
+              
+              <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-white shadow'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium opacity-75">Paid Invoices</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {filteredData.filter((purchase: PurchaseData) => purchase.status === 'Paid').length}
+                    </p>
+                  </div>
+                  <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-green-100'}`}>
+                    <DollarSign size={24} className="text-green-600" />
+                  </div>
+                </div>
+              </div>
+              
+              <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-white shadow'}`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium opacity-75">Pending Invoices</p>
+                    <p className="text-2xl font-bold text-red-600">
+                      {filteredData.filter((purchase: PurchaseData) => purchase.status === 'Unpaid' || purchase.status === 'Overdue').length}
+                    </p>
+                  </div>
+                  <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-red-100'}`}>
+                    <Package size={24} className="text-red-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <table className="w-full">
+              <thead className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium">Invoice No.</th>
+                  <th className="px-4 py-3 text-left font-medium">Date</th>
+                  <th className="px-4 py-3 text-left font-medium">Supplier Name</th>
+                  <th className="px-4 py-3 text-center font-medium">Items</th>
+                  <th className="px-4 py-3 text-right font-medium">Taxable Amount</th>
+                  <th className="px-4 py-3 text-right font-medium">GST Amount</th>
+                  <th className="px-4 py-3 text-right font-medium">Net Amount</th>
+                  <th className="px-4 py-3 text-center font-medium">Status</th>
+                  <th className="px-4 py-3 text-center font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.map((purchase: PurchaseData) => (
+                  <tr 
+                    key={purchase.id} 
+                    className={`border-t ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-50'}`}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="font-mono font-medium text-blue-600">
+                        {purchase.supplierInvoiceNo || purchase.voucherNo}
+                      </div>
+                      <div className="text-xs opacity-60">
+                        {purchase.voucherType}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium">
+                        {new Date(purchase.supplierInvoiceDate || purchase.date).toLocaleDateString('en-IN')}
+                      </div>
+                      <div className="text-xs opacity-60">
+                        {new Date(purchase.supplierInvoiceDate || purchase.date).toLocaleDateString('en-IN', { weekday: 'short' })}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-medium">{purchase.supplierName}</div>
+                      {purchase.supplierGSTIN && (
+                        <div className="text-xs font-mono opacity-60">
+                          {purchase.supplierGSTIN}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                        {purchase.itemDetails.length} items
+                      </div>
+                      <div className="text-xs opacity-60 mt-1">
+                        {purchase.itemDetails.reduce((sum: number, item: { quantity: number }) => sum + item.quantity, 0)} qty
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="font-mono font-medium">
+                        {formatCurrency(purchase.taxableAmount)}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="font-mono">
+                        {formatCurrency(purchase.totalTaxAmount)}
+                      </div>
+                      <div className="text-xs opacity-60">
+                        {((purchase.totalTaxAmount / purchase.taxableAmount) * 100).toFixed(1)}%
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="font-mono font-bold text-lg">
+                        {formatCurrency(purchase.netAmount)}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        purchase.status === 'Paid' 
+                          ? 'bg-green-100 text-green-800' 
+                          : purchase.status === 'Overdue'
+                          ? 'bg-red-100 text-red-800'
+                          : purchase.status === 'Partially Paid'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {purchase.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          onClick={() => console.log('View details for:', purchase.voucherNo)}
+                          className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-200'}`}
+                          title="View Invoice Details"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
+                          onClick={() => console.log('Print invoice:', purchase.voucherNo)}
+                          className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-200'}`}
+                          title="Print Invoice"
+                        >
+                          <Printer size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

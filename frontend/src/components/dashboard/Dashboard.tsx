@@ -440,6 +440,13 @@ const Dashboard: React.FC = () => {
                   </span>{" "}
                   {companyInfo.taxType === "VAT" ? companyInfo.vatNumber : companyInfo.gstNumber}
                 </p>
+                {companyInfo.cinNumber && (
+                  <p className="text-sm">
+                    <span className="opacity-75">CIN:</span>{" "}
+                    {companyInfo.cinNumber}
+                    <span className="text-xs opacity-50 ml-1">(Display Only)</span>
+                  </p>
+                )}
                 <p className="text-sm">
                   <span className="opacity-75">Maintained By:</span>{" "}
                   {companyInfo.maintainBy === "self" 

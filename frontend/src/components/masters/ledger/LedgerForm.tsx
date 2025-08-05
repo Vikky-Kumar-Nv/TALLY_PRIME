@@ -5,6 +5,7 @@ import type { Ledger } from '../../../types';
 import type { LedgerGroup } from '../../../types';
 import { ArrowLeft, Save } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { validateGSTIN } from '../../../utils/ledgerUtils';
 
 const LedgerForm: React.FC = () => {
 const { theme, ledgers } = useAppContext();
@@ -58,13 +59,35 @@ const [ledgerGroups, setLedgerGroups] = useState<LedgerGroup[]>([]);
     }
   }, [id, isEditMode, ledgers]);
 
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
     
+    let processedValue = value;
+    if (name === 'gstNumber') {
+      processedValue = value.toUpperCase(); // Convert GST number to uppercase
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value
+      [name]: type === 'number' ? parseFloat(value) || 0 : processedValue
     }));
+
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+
+    // Validate GST number on change
+    if (name === 'gstNumber' && processedValue) {
+      if (!validateGSTIN(processedValue)) {
+        setErrors(prev => ({ 
+          ...prev, 
+          gstNumber: 'Invalid GSTIN/UIN format. GSTIN: A22AAAA0000A1Z5 or UIN: 4 digits + 7 chars + 4 digits' 
+        }));
+      }
+    }
   };
 
   // const handleSubmit = (e: React.FormEvent) => {
@@ -87,6 +110,26 @@ const [ledgerGroups, setLedgerGroups] = useState<LedgerGroup[]>([]);
   // };
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
+
+  // Validate form before submission
+  const newErrors: {[key: string]: string} = {};
+  
+  if (!formData.name.trim()) {
+    newErrors.name = 'Ledger name is required';
+  }
+  
+  if (!formData.groupId) {
+    newErrors.groupId = 'Ledger group is required';
+  }
+  
+  if (formData.gstNumber && !validateGSTIN(formData.gstNumber)) {
+    newErrors.gstNumber = 'Invalid GSTIN/UIN format';
+  }
+  
+  if (Object.keys(newErrors).length > 0) {
+    setErrors(newErrors);
+    return;
+  }
 
   try {
     const res = await fetch("http://localhost:5000/api/ledger", {
@@ -139,11 +182,16 @@ const handleSubmit = async (e: React.FormEvent) => {
                 onChange={handleChange}
                 required
                 className={`w-full p-2 rounded border ${
-                  theme === 'dark' 
-                    ? 'bg-gray-700 border-gray-600 focus:border-blue-500' 
-                    : 'bg-white border-gray-300 focus:border-blue-500'
+                  errors.name
+                    ? 'border-red-500 focus:border-red-500'
+                    : theme === 'dark' 
+                      ? 'bg-gray-700 border-gray-600 focus:border-blue-500' 
+                      : 'bg-white border-gray-300 focus:border-blue-500'
                 } outline-none transition-colors`}
               />
+              {errors.name && (
+                <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+              )}
             </div>
             
             <div>
@@ -157,9 +205,11 @@ const handleSubmit = async (e: React.FormEvent) => {
                 onChange={handleChange}
                 required
                 className={`w-full p-2 rounded border ${
-                  theme === 'dark' 
-                    ? 'bg-gray-700 border-gray-600 focus:border-blue-500' 
-                    : 'bg-white border-gray-300 focus:border-blue-500'
+                  errors.groupId
+                    ? 'border-red-500 focus:border-red-500'
+                    : theme === 'dark' 
+                      ? 'bg-gray-700 border-gray-600 focus:border-blue-500' 
+                      : 'bg-white border-gray-300 focus:border-blue-500'
                 } outline-none transition-colors`}
               >
                 <option value="">Select Group</option>
@@ -169,7 +219,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </option>
                 ))}
               </select>
-
+              {errors.groupId && (
+                <p className="text-red-500 text-xs mt-1">{errors.groupId}</p>
+              )}
             </div>
             
             <div>
@@ -288,7 +340,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
               <div>
                 <label className="block text-sm font-medium mb-1" htmlFor="gstNumber">
-                  GST Number
+                  GSTIN/UIN Number <span className="text-xs text-gray-500">(Optional)</span>
                 </label>
                 <input
                   type="text"
@@ -296,12 +348,22 @@ const handleSubmit = async (e: React.FormEvent) => {
                   name="gstNumber"
                   value={formData.gstNumber}
                   onChange={handleChange}
+                  placeholder="22AAAAA0000A1Z5 or UIN Number"
+                  maxLength={15}
                   className={`w-full p-2 rounded border ${
-                    theme === 'dark' 
-                      ? 'bg-gray-700 border-gray-600 focus:border-blue-500' 
-                      : 'bg-white border-gray-300 focus:border-blue-500'
+                    errors.gstNumber
+                      ? 'border-red-500 focus:border-red-500'
+                      : theme === 'dark' 
+                        ? 'bg-gray-700 border-gray-600 focus:border-blue-500' 
+                        : 'bg-white border-gray-300 focus:border-blue-500'
                   } outline-none transition-colors`}
                 />
+                {errors.gstNumber && (
+                  <p className="text-red-500 text-xs mt-1">{errors.gstNumber}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  📊 <strong>B2B:</strong> Ledgers with GSTIN/UIN | <strong>B2C:</strong> Ledgers without GSTIN/UIN
+                </p>
               </div>
               
               <div>

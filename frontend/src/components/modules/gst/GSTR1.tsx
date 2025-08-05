@@ -97,7 +97,6 @@ const GSTR1: React.FC = () => {
   };
 
   const generateGSTR1JSON = () => {
-    const totals = calculateTotals();
     const gstr1Data = {
       gstin: formData.gstin,
       ret_period: selectedPeriod.month + selectedPeriod.year,
@@ -1155,7 +1154,6 @@ B - Credit/Debit Notes (Unregistered) */}
             // Simple and reliable print function
             const printContent = document.getElementById('gstr1-print-content');
             if (printContent) {
-              const originalContent = document.body.innerHTML;
               const printableContent = `
                 <!DOCTYPE html>
                 <html>

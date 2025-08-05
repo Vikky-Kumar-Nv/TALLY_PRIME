@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Edit, Trash2, Plus, Search, ArrowLeft } from 'lucide-react';
 import { useAppContext } from '../../../context/AppContext';
 import type { Ledger, LedgerGroup } from '../../../types';
+import { formatGSTNumber } from '../../../utils/ledgerUtils';
 
 const LedgerList: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | 'b2b' | 'b2c'>('all');
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
   const [ledgerGroups, setLedgerGroups] = useState<LedgerGroup[]>([]);
 
@@ -36,10 +38,16 @@ const LedgerList: React.FC = () => {
     return group ? group.name : 'Unknown Group';
   };
 
-  const filteredLedgers = ledgers.filter(ledger => 
-    ledger.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ledger.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredLedgers = ledgers.filter(ledger => {
+    const matchesSearch = ledger.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ledger.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = categoryFilter === 'all' ||
+      (categoryFilter === 'b2b' && ledger.gstNumber && ledger.gstNumber.trim().length > 0) ||
+      (categoryFilter === 'b2c' && (!ledger.gstNumber || ledger.gstNumber.trim().length === 0));
+    
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className='pt-[56px] px-4 '>
@@ -89,20 +97,51 @@ const LedgerList: React.FC = () => {
       </div>
       
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
-        <div className="flex items-center mb-4">
-          <div className={`flex items-center w-full max-w-md px-3 py-2 rounded-md ${
-            theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
-          }`}>
-            <Search size={18} className="mr-2 opacity-70" />
-            <input
-              type="text"
-              placeholder="Search ledgers..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`w-full bg-transparent border-none outline-none ${
-                theme === 'dark' ? 'placeholder-gray-500' : 'placeholder-gray-400'
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-4">
+            <div className={`flex items-center max-w-md px-3 py-2 rounded-md ${
+              theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'
+            }`}>
+              <Search size={18} className="mr-2 opacity-70" />
+              <input
+                type="text"
+                placeholder="Search ledgers..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`w-full bg-transparent border-none outline-none ${
+                  theme === 'dark' ? 'placeholder-gray-500' : 'placeholder-gray-400'
+                }`}
+              />
+            </div>
+            
+            <select
+              title="Filter by Category"
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value as 'all' | 'b2b' | 'b2c')}
+              className={`px-3 py-2 rounded-md border ${
+                theme === 'dark' 
+                  ? 'bg-gray-700 border-gray-600 text-white' 
+                  : 'bg-white border-gray-300 text-gray-900'
               }`}
-            />
+            >
+              <option value="all">All Ledgers</option>
+              <option value="b2b">B2B (With GST)</option>
+              <option value="b2c">B2C (Without GST)</option>
+            </select>
+          </div>
+          
+          {/* Stats */}
+          <div className="flex items-center space-x-4 text-sm">
+            <span className={`px-2 py-1 rounded ${
+              theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'
+            }`}>
+              B2B: {ledgers.filter(l => l.gstNumber && l.gstNumber.trim().length > 0).length}
+            </span>
+            <span className={`px-2 py-1 rounded ${
+              theme === 'dark' ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-800'
+            }`}>
+              B2C: {ledgers.filter(l => !l.gstNumber || l.gstNumber.trim().length === 0).length}
+            </span>
           </div>
         </div>
         
@@ -116,6 +155,7 @@ const LedgerList: React.FC = () => {
                 <th className="px-4 py-3 text-left">Under Group</th>
                 <th className="px-4 py-3 text-right">Opening Balance</th>
                 <th className="px-4 py-3 text-center">Type</th>
+                <th className="px-4 py-3 text-center">GST/Category</th>
                 <th className="px-4 py-3 text-center">Actions</th>
               </tr>
             </thead>
@@ -133,6 +173,28 @@ const LedgerList: React.FC = () => {
                     }`}>
                     {ledger.balanceType?.toUpperCase() || 'N/A'}
                     </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex flex-col items-center space-y-1">
+                      {ledger.gstNumber ? (
+                        <>
+                          <span className={`px-2 py-1 rounded text-xs font-medium ${
+                            theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            B2B
+                          </span>
+                          <span className="text-xs text-gray-500 font-mono">
+                            {formatGSTNumber(ledger.gstNumber)}
+                          </span>
+                        </>
+                      ) : (
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          theme === 'dark' ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-800'
+                        }`}>
+                          B2C
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-center space-x-2">

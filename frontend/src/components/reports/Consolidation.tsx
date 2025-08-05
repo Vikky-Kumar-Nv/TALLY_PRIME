@@ -2213,7 +2213,7 @@ const Consolidation: React.FC = () => {
                   const employeeCompanies = employee.accessibleCompanies
                     .filter(companyId => userAccessibleCompanies.includes(companyId))
                     .map(companyId => companies.find(c => c.id === companyId))
-                    .filter(Boolean);
+                    .filter((company): company is Company => company !== undefined);
                   
                   const employeeFinancialData = financialData.filter(item => 
                     item.enteredBy === employee.id || item.lastModifiedBy === employee.id
@@ -2433,8 +2433,11 @@ const Consolidation: React.FC = () => {
                           {Math.round(
                             financialData
                               .filter(item => item.lastModified)
-                              .reduce((sum, item) => sum + (Date.now() - new Date(item.lastModified).getTime()), 0) 
-                              / financialData.filter(item => item.lastModified).length 
+                              .reduce((sum, item) => {
+                                if (!item.lastModified) return sum;
+                                return sum + (Date.now() - new Date(item.lastModified).getTime());
+                              }, 0) 
+                              / Math.max(financialData.filter(item => item.lastModified).length, 1)
                               / (24*60*60*1000)
                           )} days
                         </span>
@@ -2474,11 +2477,11 @@ const Consolidation: React.FC = () => {
                             <div className="flex justify-between">
                               <span>Audit Status:</span>
                               <span className={`px-2 py-1 rounded-full text-xs ${
-                                companyData?.netProfit > 0 
+                                (companyData?.netProfit ?? 0) > 0 
                                   ? theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'
                                   : theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800'
                               }`}>
-                                {companyData?.netProfit > 0 ? 'Profitable' : 'Review Needed'}
+                                {(companyData?.netProfit ?? 0) > 0 ? 'Profitable' : 'Review Needed'}
                               </span>
                             </div>
                             <div className="flex justify-between">
