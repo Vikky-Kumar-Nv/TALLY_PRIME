@@ -333,7 +333,7 @@ const LedgerReport: React.FC = () => {
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold">Ledger Report</h1>
+        <h1 className="text-2xl font-bold">Ledger Reportt</h1>
         <div className="ml-auto flex space-x-2">
           <button
             title='Toggle Filters'

@@ -17,6 +17,9 @@ router.get('/', async (req, res) => {
         s.openingBalance,
         s.hsnCode,
         s.gstRate,
+    s.batchNumber,
+        s.batchExpiryDate,
+        s.batchManufacturingDate,
         s.taxType
       FROM stock_items s
       LEFT JOIN stock_groups sg ON s.stockGroupId = sg.id
@@ -41,27 +44,30 @@ router.post('/', async (req, res) => {
     await connection.beginTransaction(); // ✅ begin transaction
 
     const {
-      name, stockGroupId, unit, openingBalance, openingValue,
-      hsnCode, gstRate, taxType, standardPurchaseRate, standardSaleRate,
-      enableBatchTracking, allowNegativeStock, maintainInPieces, secondaryUnit,
-      godownAllocations = []
-    } = req.body;
+        name, stockGroupId, unit, openingBalance, openingValue,
+        hsnCode, gstRate, taxType, standardPurchaseRate, standardSaleRate,
+        enableBatchTracking, allowNegativeStock, maintainInPieces, secondaryUnit,
+        batchName, batchExpiryDate, batchManufacturingDate,
+        godownAllocations = []
+      } = req.body;
 
     const values = [
       name, stockGroupId ?? null, unit ?? null,
       openingBalance ?? 0, openingValue ?? 0, hsnCode ?? null, gstRate ?? 0,
       taxType ?? 'Taxable', standardPurchaseRate ?? 0, standardSaleRate ?? 0,
       enableBatchTracking ? 1 : 0, allowNegativeStock ? 1 : 0,
-      maintainInPieces ? 1 : 0, secondaryUnit ?? null
+      maintainInPieces ? 1 : 0, secondaryUnit ?? null,
+      batchName ?? null, batchExpiryDate ?? null, batchManufacturingDate ?? null,
     ];
 
     // Insert stock item
     const [result] = await connection.execute(`
       INSERT INTO stock_items (
-        name, stockGroupId, unit, openingBalance, openingValue,
-        hsnCode, gstRate, taxType, standardPurchaseRate, standardSaleRate,
-        enableBatchTracking, allowNegativeStock, maintainInPieces, secondaryUnit
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    name, stockGroupId, unit, openingBalance, openingValue,
+    hsnCode, gstRate, taxType, standardPurchaseRate, standardSaleRate,
+    enableBatchTracking, allowNegativeStock, maintainInPieces, secondaryUnit,
+    batchNumber, batchExpiryDate, batchManufacturingDate
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, values);
 
     const stockItemId = result.insertId; // ✅ get inserted ID

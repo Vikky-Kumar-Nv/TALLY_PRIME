@@ -25,6 +25,7 @@
     "bcryptjs": "^3.0.2",
     "concurrently": "^9.1.2",
     "cors": "^2.8.5",
+    "csv-parse": "^6.1.0",
     "dotenv": "^17.0.1",
     "express": "^5.1.0",
     "express-mysql-session": "^3.0.3",
