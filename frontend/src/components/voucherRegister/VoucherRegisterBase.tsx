@@ -20,26 +20,59 @@ const generateMockVouchers = (type: string): VoucherEntry[] => {
   const mockData: VoucherEntry[] = [];
   const ledgerTypes = ['Cash', 'Bank', 'Sales', 'Purchase', 'Expense', 'Income', 'Assets', 'Liabilities'];
   
+  // Customer names for sales vouchers
+  const customerNames = [
+    'ABC Enterprises', 'XYZ Pvt Ltd', 'Mahindra Corp', 'Tata Industries', 'Reliance Co',
+    'Bharti Telecom', 'HDFC Bank', 'ICICI Ltd', 'Bajaj Finance', 'L&T Construction',
+    'Wipro Systems', 'Infosys Ltd', 'TCS Solutions', 'HCL Tech', 'Tech Mahindra',
+    'Aditya Birla', 'ITC Limited', 'Hindustan Unilever', 'Asian Paints', 'UltraTech Cement',
+    'Maruti Suzuki', 'Hero MotoCorp', 'Bajaj Auto', 'TVS Motors', 'Royal Enfield'
+  ];
+  
   for (let i = 1; i <= 25; i++) {
     const debitLedger = ledgerTypes[i % ledgerTypes.length];
     const creditLedger = ledgerTypes[(i + 1) % ledgerTypes.length];
     
-    const lines: VoucherEntryLine[] = [
-      {
-        id: `line-${i}-1`,
-        ledgerId: `${debitLedger.toLowerCase()}-${i}`,
-        amount: 1000 + (i * 150),
-        type: 'debit',
-        narration: `${debitLedger} account ${i}`,
-      },
-      {
-        id: `line-${i}-2`,
-        ledgerId: `${creditLedger.toLowerCase()}-${i}`,
-        amount: 1000 + (i * 150),
-        type: 'credit',
-        narration: `${creditLedger} account ${i}`,
-      }
-    ];
+    let lines: VoucherEntryLine[];
+    
+    if (type === 'sales') {
+      // For sales vouchers, create customer-based entries
+      const customerName = customerNames[i % customerNames.length];
+      lines = [
+        {
+          id: `line-${i}-1`,
+          ledgerId: `customer-${i}`,
+          amount: 1000 + (i * 150),
+          type: 'debit',
+          narration: `Sales to ${customerName}`,
+        },
+        {
+          id: `line-${i}-2`,
+          ledgerId: `sales-${i}`,
+          amount: 1000 + (i * 150),
+          type: 'credit',
+          narration: `Sales Account`,
+        }
+      ];
+    } else {
+      // For other voucher types, use generic ledger names
+      lines = [
+        {
+          id: `line-${i}-1`,
+          ledgerId: `${debitLedger.toLowerCase()}-${i}`,
+          amount: 1000 + (i * 150),
+          type: 'debit',
+          narration: `${debitLedger} account ${i}`,
+        },
+        {
+          id: `line-${i}-2`,
+          ledgerId: `${creditLedger.toLowerCase()}-${i}`,
+          amount: 1000 + (i * 150),
+          type: 'credit',
+          narration: `${creditLedger} account ${i}`,
+        }
+      ];
+    }
 
     const currentYear = new Date().getFullYear();
     const month = String((i % 12) + 1).padStart(2, '0');
@@ -51,7 +84,9 @@ const generateMockVouchers = (type: string): VoucherEntry[] => {
       type: type as VoucherType,
       date: `${currentYear}-${month}-${day}`,
       referenceNo: i % 3 === 0 ? `REF-${type.toUpperCase()}-${i}` : undefined,
-      narration: `${type} voucher ${i} - ${debitLedger} to ${creditLedger}`,
+      narration: type === 'sales' 
+        ? `Sales to ${customerNames[i % customerNames.length]}` 
+        : `${type} voucher ${i} - ${debitLedger} to ${creditLedger}`,
       entries: lines
     });
   }
@@ -142,19 +177,54 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
 
   // Helper function to get particulars (ledger details) from entries
   const getParticulars = (voucher: VoucherEntry): string => {
-    const ledgerNames = voucher.entries.map(entry => {
-      if (!entry.ledgerId) return 'Unknown Account';
+    if (voucherType === 'sales') {
+      // For sales register, show customer/party names (debit entries in sales)
+      const customerEntries = voucher.entries.filter(entry => entry.type === 'debit');
+      const customerNames = customerEntries.map(entry => {
+        if (!entry.ledgerId) return 'Cash Customer';
+        
+        const parts = entry.ledgerId.split('-');
+        const ledgerType = parts[0] || 'Customer';
+        const ledgerNumber = parts[1] || '0';
+        
+        // Customer names for sales vouchers
+        const customerNamesList = [
+          'ABC Enterprises', 'XYZ Pvt Ltd', 'Mahindra Corp', 'Tata Industries', 'Reliance Co',
+          'Bharti Telecom', 'HDFC Bank', 'ICICI Ltd', 'Bajaj Finance', 'L&T Construction',
+          'Wipro Systems', 'Infosys Ltd', 'TCS Solutions', 'HCL Tech', 'Tech Mahindra',
+          'Aditya Birla', 'ITC Limited', 'Hindustan Unilever', 'Asian Paints', 'UltraTech Cement',
+          'Maruti Suzuki', 'Hero MotoCorp', 'Bajaj Auto', 'TVS Motors', 'Royal Enfield'
+        ];
+        
+        // For sales, show actual customer names
+        if (ledgerType.toLowerCase() === 'customer') {
+          const customerIndex = parseInt(ledgerNumber) - 1;
+          return customerNamesList[customerIndex % customerNamesList.length] || `Customer ${ledgerNumber}`;
+        } else if (ledgerType.toLowerCase() === 'cash') {
+          return 'Cash Sale';
+        } else {
+          const formattedType = ledgerType.charAt(0).toUpperCase() + ledgerType.slice(1);
+          return `${formattedType} ${ledgerNumber}`;
+        }
+      });
       
-      const parts = entry.ledgerId.split('-');
-      const ledgerType = parts[0] || 'Unknown';
-      const ledgerNumber = parts[1] || '0';
+      return customerNames.length > 0 ? customerNames.join(' / ') : 'Cash Sale';
+    } else {
+      // For other voucher types, show all ledger names
+      const ledgerNames = voucher.entries.map(entry => {
+        if (!entry.ledgerId) return 'Unknown Account';
+        
+        const parts = entry.ledgerId.split('-');
+        const ledgerType = parts[0] || 'Unknown';
+        const ledgerNumber = parts[1] || '0';
+        
+        // Capitalize first letter and format properly
+        const formattedType = ledgerType.charAt(0).toUpperCase() + ledgerType.slice(1);
+        return `${formattedType} A/c ${ledgerNumber}`;
+      });
       
-      // Capitalize first letter and format properly
-      const formattedType = ledgerType.charAt(0).toUpperCase() + ledgerType.slice(1);
-      return `${formattedType} A/c ${ledgerNumber}`;
-    });
-    
-    return ledgerNames.join(' / ');
+      return ledgerNames.join(' / ');
+    }
   };
 
   // Helper function to get available months from vouchers
@@ -297,19 +367,34 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
       }
 
       const csvContent = [
+        // Always show both debit and credit columns for consistency
         ['Date', 'Voucher Number', 'Voucher Type', 'Particulars', 'Debit Amount', 'Credit Amount', 'Status'].join(','),
         ...filteredVouchers.map(voucher => {
           const { debit, credit } = calculateDebitCredit(voucher);
           const particulars = getParticulars(voucher).replace(/"/g, '""'); // Escape quotes
-          return [
-            voucher.date,
-            voucher.number,
-            voucher.type.toUpperCase(),
-            `"${particulars}"`,
-            debit.toFixed(2),
-            credit.toFixed(2),
-            getVoucherStatus(voucher)
-          ].join(',');
+          const status = getVoucherStatus(voucher);
+          
+          if (voucherType === 'sales') {
+            return [
+              voucher.date,
+              voucher.number,
+              voucher.type.toUpperCase(),
+              `"${particulars}"`,
+              debit.toFixed(2),
+              '0.00', // Sales only show debit amounts
+              status
+            ].join(',');
+          } else {
+            return [
+              voucher.date,
+              voucher.number,
+              voucher.type.toUpperCase(),
+              `"${particulars}"`,
+              debit.toFixed(2),
+              credit.toFixed(2),
+              status
+            ].join(',');
+          }
         })
       ].join('\n');
 
@@ -385,23 +470,36 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
                 ${filteredVouchers.map(voucher => {
                   const { debit, credit } = calculateDebitCredit(voucher);
                   const particulars = getParticulars(voucher);
-                  return `
-                  <tr>
-                    <td>${voucher.date}</td>
-                    <td>${voucher.number}</td>
-                    <td>${voucher.type.toUpperCase()}</td>
-                    <td>${particulars}</td>
-                    <td class="text-right">${debit > 0 ? formatCurrency(debit) : '-'}</td>
-                    <td class="text-right">${credit > 0 ? formatCurrency(credit) : '-'}</td>
-                    <td class="text-center">${getVoucherStatus(voucher)}</td>
-                  </tr>`;
+                  if (voucherType === 'sales') {
+                    return `
+                    <tr>
+                      <td>${voucher.date}</td>
+                      <td>${voucher.number}</td>
+                      <td>${voucher.type.toUpperCase()}</td>
+                      <td>${particulars}</td>
+                      <td class="text-right">${formatCurrency(debit)}</td>
+                      <td class="text-right">-</td>
+                      <td class="text-center">${getVoucherStatus(voucher)}</td>
+                    </tr>`;
+                  } else {
+                    return `
+                    <tr>
+                      <td>${voucher.date}</td>
+                      <td>${voucher.number}</td>
+                      <td>${voucher.type.toUpperCase()}</td>
+                      <td>${particulars}</td>
+                      <td class="text-right">${debit > 0 ? formatCurrency(debit) : '-'}</td>
+                      <td class="text-right">${credit > 0 ? formatCurrency(credit) : '-'}</td>
+                      <td class="text-center">${getVoucherStatus(voucher)}</td>
+                    </tr>`;
+                  }
                 }).join('')}
               </tbody>
               <tfoot>
                 <tr class="font-bold">
                   <td colspan="4" class="text-right">Total (${filteredVouchers.length} vouchers)</td>
                   <td class="text-right">${formatCurrency(totalDebit)}</td>
-                  <td class="text-right">${formatCurrency(totalCredit)}</td>
+                  <td class="text-right">${voucherType === 'sales' ? '-' : formatCurrency(totalCredit)}</td>
                   <td></td>
                 </tr>
               </tfoot>
@@ -466,14 +564,23 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
           <h3 className="text-sm font-medium text-gray-500">Total Vouchers</h3>
           <p className="text-2xl font-bold text-gray-900">{filteredVouchers.length}</p>
         </div>
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <h3 className="text-sm font-medium text-gray-500">Total Debit</h3>
-          <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalDebit)}</p>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <h3 className="text-sm font-medium text-gray-500">Total Credit</h3>
-          <p className="text-2xl font-bold text-green-600">{formatCurrency(totalCredit)}</p>
-        </div>
+        {voucherType === 'sales' ? (
+          <div className="bg-white p-4 rounded-lg shadow border">
+            <h3 className="text-sm font-medium text-gray-500">Total Sales Amount</h3>
+            <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalDebit)}</p>
+          </div>
+        ) : (
+          <>
+            <div className="bg-white p-4 rounded-lg shadow border">
+              <h3 className="text-sm font-medium text-gray-500">Total Debit</h3>
+              <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalDebit)}</p>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow border">
+              <h3 className="text-sm font-medium text-gray-500">Total Credit</h3>
+              <p className="text-2xl font-bold text-green-600">{formatCurrency(totalCredit)}</p>
+            </div>
+          </>
+        )}
         <div className="bg-white p-4 rounded-lg shadow border">
           <h3 className="text-sm font-medium text-gray-500">Approved</h3>
           <p className="text-2xl font-bold text-green-600">{statusCounts.approved || 0}</p>
@@ -617,12 +724,25 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Particulars
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Debit Amount
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Credit Amount
-                </th>
+                {voucherType === 'sales' ? (
+                  <>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Debit Amount
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Credit Amount
+                    </th>
+                  </>
+                ) : (
+                  <>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Debit Amount
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Credit Amount
+                    </th>
+                  </>
+                )}
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
@@ -652,12 +772,25 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
                     <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title={particulars}>
                       {particulars}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {debit > 0 ? formatCurrency(debit) : '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {credit > 0 ? formatCurrency(credit) : '-'}
-                    </td>
+                    {voucherType === 'sales' ? (
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium">
+                          {formatCurrency(debit)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
+                          -
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                          {debit > 0 ? formatCurrency(debit) : '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
+                          {credit > 0 ? formatCurrency(credit) : '-'}
+                        </td>
+                      </>
+                    )}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(status)}`}>
                         {status}
@@ -704,12 +837,25 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
                 <td colSpan={4} className="px-6 py-4 text-sm font-semibold text-gray-900">
                   Total ({filteredVouchers.length} vouchers)
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
-                  {formatCurrency(filteredVouchers.reduce((sum, v) => sum + calculateDebitCredit(v).debit, 0))}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
-                  {formatCurrency(filteredVouchers.reduce((sum, v) => sum + calculateDebitCredit(v).credit, 0))}
-                </td>
+                {voucherType === 'sales' ? (
+                  <>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600 text-right">
+                      {formatCurrency(filteredVouchers.reduce((sum: number, v: VoucherEntry) => sum + calculateDebitCredit(v).debit, 0))}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-500 text-right">
+                      -
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
+                      {formatCurrency(filteredVouchers.reduce((sum: number, v: VoucherEntry) => sum + calculateDebitCredit(v).debit, 0))}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
+                      {formatCurrency(filteredVouchers.reduce((sum: number, v: VoucherEntry) => sum + calculateDebitCredit(v).credit, 0))}
+                    </td>
+                  </>
+                )}
                 <td colSpan={2}></td>
               </tr>
             </tfoot>

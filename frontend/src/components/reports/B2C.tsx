@@ -572,6 +572,10 @@ const B2C: React.FC = () => {
               B2C Management
             </h1>
             <p className="text-sm text-gray-600 mt-1">Business-to-Consumer sales and customer management</p>
+            <p className="text-xs text-purple-600 mt-1">
+              📊 <strong>Auto-populated from Ledgers without GSTIN/UIN numbers</strong> | 
+              <span className="ml-2">B2B transactions come from ledgers with GSTIN/UIN</span>
+            </p>
           </div>
         </div>
         <div className="flex space-x-2">

@@ -501,6 +501,10 @@ const B2B: React.FC = () => {
               B2B Management
             </h1>
             <p className="text-sm text-gray-600 mt-1">Business-to-Business transactions and partnerships</p>
+            <p className="text-xs text-blue-600 mt-1">
+              📊 <strong>Auto-populated from Ledgers with GSTIN/UIN numbers</strong> | 
+              <span className="ml-2">B2C transactions come from ledgers without GSTIN/UIN</span>
+            </p>
           </div>
         </div>
         <div className="flex space-x-2">

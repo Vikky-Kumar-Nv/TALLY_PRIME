@@ -12,6 +12,7 @@ export type CompanyInfo = {
   panNumber: string;
   gstNumber: string;
   vatNumber: string;
+  cinNumber: string;
   state?: string;
   country?: string;
   taxType?: 'GST' | 'VAT';
@@ -163,6 +164,14 @@ export type UnitOfMeasurement = {
   id: string;
   name: string;
   symbol: string;
+  type: 'Simple' | 'Compound';
+  // Simple unit fields
+  formalName?: string;
+  decimalPlaces?: number;
+  // Compound unit fields
+  firstUnit?: string;
+  conversionFactor?: number;
+  secondUnit?: string;
 };
 
 export type Godown = {

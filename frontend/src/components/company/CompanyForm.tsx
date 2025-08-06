@@ -175,6 +175,7 @@ const CompanyForm: React.FC = () => {
     panNumber: "",
     gstNumber: "",
     vatNumber: "",
+    cinNumber: "",
     state: "",
     country: "India",
     taxType: "GST",
@@ -235,6 +236,7 @@ const CompanyForm: React.FC = () => {
     const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
     const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
     const vatRegex = /^[0-9]{11}$/; // Simple VAT regex for demo
+    const cinRegex = /^[LUF][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/; // CIN format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^[0-9]{10}$/;
     const pinRegex = /^[0-9]{6}$/;
@@ -257,6 +259,11 @@ const CompanyForm: React.FC = () => {
 
     if (company.taxType === "VAT" && company.vatNumber && !vatRegex.test(company.vatNumber)) {
       newErrors.vatNumber = "Invalid VAT Number format (11 digits)";
+    }
+
+    // CIN validation (frontend only)
+    if (company.cinNumber && !cinRegex.test(company.cinNumber)) {
+      newErrors.cinNumber = "Invalid CIN format (e.g., L12345XX2021PLC123456)";
     }
 
     if (company.email && !emailRegex.test(company.email)) {
@@ -393,9 +400,11 @@ const CompanyForm: React.FC = () => {
         return;
       }
 
-      // Step 3: Prepare payload for backend
+      // Step 3: Prepare payload for backend (excluding CIN number)
       const payload = {
         ...company,
+        // Remove cinNumber from backend payload since it's frontend-only
+        cinNumber: undefined,
         vaultEnabled,
         vaultPassword: vaultEnabled ? vaultPassword : null,
         accessControlEnabled,
@@ -435,6 +444,7 @@ const CompanyForm: React.FC = () => {
                 • Manage user roles<br>
                 • Full system access
               </div>
+              ${company.cinNumber ? `<br><p><strong>Note:</strong> CIN Number (${company.cinNumber}) is stored locally for display purposes.</p>` : ''}
             </div>
           `,
           icon: "success",
@@ -442,6 +452,7 @@ const CompanyForm: React.FC = () => {
           confirmButtonText: "Continue to Dashboard",
         });
 
+        // Store company info with CIN number for frontend display
         setCompanyInfo(company);
         navigate("/app");
       } else {
@@ -670,6 +681,25 @@ const CompanyForm: React.FC = () => {
                   </p>
                 )}
               </div>
+
+              <div>
+                <InputField
+                  id="cinNumber"
+                  name="cinNumber"
+                  label="CIN Number (Optional)"
+                  value={company.cinNumber}
+                  onChange={handleChange}
+                  icon={<FileText size={16} />}
+                  theme={theme}
+                  placeholder="e.g., L12345XX2021PLC123456"
+                  title="Corporate Identification Number"
+                />
+                {errors.cinNumber && <p className="text-red-500 text-sm mt-1">{errors.cinNumber}</p>}
+                <p className="text-xs text-gray-500 mt-1">
+                  * CIN is stored locally for display purposes and not saved to database whwn backend itegrate then remove this line 
+                </p>
+              </div>
+
               <div>
                 <SelectField
                   id="maintainBy"

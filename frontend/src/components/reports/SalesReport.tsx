@@ -16,6 +16,7 @@ import {
   Grid3X3
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import Swal from 'sweetalert2';
 
 interface SalesData {
   id: string;
@@ -83,7 +84,7 @@ const SalesReport: React.FC = () => {
   const printRef = useRef<HTMLDivElement>(null);
 
   const [showFilterPanel, setShowFilterPanel] = useState(false);
-  const [selectedView, setSelectedView] = useState<'summary' | 'detailed' | 'itemwise' | 'partywise'>('summary');
+  const [selectedView, setSelectedView] = useState<'summary' | 'detailed' | 'itemwise' | 'partywise' | 'billwise' | 'billwiseprofit'>('summary');
   const [filters, setFilters] = useState<FilterState>({
     dateRange: 'this-month',
     fromDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
@@ -415,6 +416,149 @@ const SalesReport: React.FC = () => {
     setShowDetailModal(true);
   };
 
+  const handleViewPartyTransactions = (party: PartyGroup) => {
+    // Show party transaction summary using SweetAlert2
+    const transactionsList = party.transactions.map((txn, index) => 
+      `${index + 1}. ${txn.voucherNo} - ${new Date(txn.date).toLocaleDateString('en-IN')} - ${formatCurrency(txn.netAmount)}`
+    ).join('<br>');
+
+    Swal.fire({
+      title: `${party.partyName} - Transaction Details`,
+      html: `
+        <div style="text-align: left;">
+          <div style="margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+            <strong>Party Summary:</strong><br>
+            <span style="font-size: 14px;">
+              ${party.partyGSTIN ? `GSTIN: ${party.partyGSTIN}<br>` : ''}
+              Total Transactions: ${party.transactionCount}<br>
+              Total Amount: ${formatCurrency(party.totalAmount)}<br>
+              Total Tax: ${formatCurrency(party.totalTax)}
+            </span>
+          </div>
+          <div style="margin-bottom: 10px;">
+            <strong>Transactions:</strong>
+          </div>
+          <div style="font-size: 13px; max-height: 300px; overflow-y: auto;">
+            ${transactionsList}
+          </div>
+        </div>
+      `,
+      width: '600px',
+      showCancelButton: true,
+      confirmButtonText: 'View First Transaction Details',
+      cancelButtonText: 'Close',
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#6c757d'
+    }).then((result: { isConfirmed: boolean }) => {
+      if (result.isConfirmed && party.transactions.length > 0) {
+        // Show detailed view of the first transaction
+        setSelectedSale(party.transactions[0]);
+        setShowDetailModal(true);
+      }
+    });
+  };
+
+  const handleProfitAnalysis = (sale: SalesData) => {
+    // Calculate detailed profit analysis for the selected bill
+    const salesAmount = sale.netAmount;
+    const costAmount = sale.itemDetails.reduce((sum, item) => {
+      const estimatedCost = item.amount * 0.7; // Mock cost calculation
+      return sum + estimatedCost;
+    }, 0);
+    const grossProfit = salesAmount - costAmount;
+    const profitPercentage = salesAmount > 0 ? (grossProfit / salesAmount) * 100 : 0;
+
+    // Create detailed item breakdown
+    const itemBreakdown = sale.itemDetails.map((item) => {
+      const itemCost = item.amount * 0.7;
+      const itemProfit = item.amount - itemCost;
+      const itemProfitPercentage = item.amount > 0 ? (itemProfit / item.amount) * 100 : 0;
+      
+      return `
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${item.itemName}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(item.amount)}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatCurrency(itemCost)}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right; color: ${itemProfit >= 0 ? '#059669' : '#dc2626'};">${formatCurrency(itemProfit)}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right; color: ${itemProfitPercentage >= 0 ? '#059669' : '#dc2626'};">${itemProfitPercentage.toFixed(1)}%</td>
+        </tr>
+      `;
+    }).join('');
+
+    Swal.fire({
+      title: `Profit Analysis - ${sale.voucherNo}`,
+      html: `
+        <div style="text-align: left;">
+          <div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 8px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+              <div>
+                <strong>Bill Information:</strong><br>
+                <span style="font-size: 14px;">
+                  Date: ${new Date(sale.date).toLocaleDateString('en-IN')}<br>
+                  Party: ${sale.partyName}<br>
+                  Items: ${sale.itemDetails.length}
+                </span>
+              </div>
+              <div>
+                <strong>Financial Summary:</strong><br>
+                <span style="font-size: 14px;">
+                  Sales: ${formatCurrency(salesAmount)}<br>
+                  Cost: <span style="color: #dc2626;">${formatCurrency(costAmount)}</span><br>
+                  Profit: <span style="color: ${grossProfit >= 0 ? '#059669' : '#dc2626'};">${formatCurrency(grossProfit)} (${profitPercentage.toFixed(1)}%)</span>
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 15px;">
+            <strong>Item-wise Profit Breakdown:</strong>
+          </div>
+          
+          <div style="max-height: 400px; overflow-y: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <thead style="background-color: #f3f4f6; position: sticky; top: 0;">
+                <tr>
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #d1d5db;">Item</th>
+                  <th style="padding: 10px; text-align: center; border-bottom: 2px solid #d1d5db;">Qty</th>
+                  <th style="padding: 10px; text-align: right; border-bottom: 2px solid #d1d5db;">Sales</th>
+                  <th style="padding: 10px; text-align: right; border-bottom: 2px solid #d1d5db;">Cost</th>
+                  <th style="padding: 10px; text-align: right; border-bottom: 2px solid #d1d5db;">Profit</th>
+                  <th style="padding: 10px; text-align: right; border-bottom: 2px solid #d1d5db;">Profit %</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemBreakdown}
+              </tbody>
+            </table>
+          </div>
+          
+          <div style="margin-top: 15px; padding: 10px; background-color: ${grossProfit >= 0 ? '#ecfdf5' : '#fef2f2'}; border-radius: 5px; text-align: center;">
+            <strong style="color: ${grossProfit >= 0 ? '#059669' : '#dc2626'};">
+              Overall Profit: ${formatCurrency(grossProfit)} (${profitPercentage.toFixed(1)}% margin)
+            </strong>
+          </div>
+        </div>
+      `,
+      width: '800px',
+      showCancelButton: true,
+      confirmButtonText: 'Export Analysis',
+      cancelButtonText: 'Close',
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#6c757d'
+    }).then((result: { isConfirmed: boolean }) => {
+      if (result.isConfirmed) {
+        // Export profit analysis to Excel or generate PDF
+        Swal.fire({
+          icon: 'info',
+          title: 'Export Feature',
+          text: 'Profit analysis export feature will be implemented soon.',
+          confirmButtonText: 'OK'
+        });
+      }
+    });
+  };
+
   const closeModal = () => {
     setShowDetailModal(false);
     setSelectedSale(null);
@@ -469,12 +613,14 @@ const SalesReport: React.FC = () => {
           {[
             { key: 'summary', label: 'Summary', icon: <BarChart3 size={16} /> },
             { key: 'detailed', label: 'Detailed', icon: <FileText size={16} /> },
+            { key: 'billwise', label: 'Bill-wise', icon: <Grid3X3 size={16} /> },
+            { key: 'billwiseprofit', label: 'Bill Wise Profit', icon: <TrendingUp size={16} /> },
             { key: 'itemwise', label: 'Item-wise', icon: <Package size={16} /> },
             { key: 'partywise', label: 'Party-wise', icon: <User size={16} /> }
           ].map(view => (
             <button
               key={view.key}
-              onClick={() => setSelectedView(view.key as 'summary' | 'detailed' | 'itemwise' | 'partywise')}
+              onClick={() => setSelectedView(view.key as 'summary' | 'detailed' | 'itemwise' | 'partywise' | 'billwise' | 'billwiseprofit')}
               className={`px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors ${
                 selectedView === view.key
                   ? theme === 'dark' ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
@@ -815,8 +961,9 @@ const SalesReport: React.FC = () => {
                       <td className="px-4 py-3 text-center">{party.transactionCount}</td>
                       <td className="px-4 py-3 text-center">
                         <button 
+                          onClick={() => handleViewPartyTransactions(party)}
                           className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-200'}`}
-                          title="View Transactions"
+                          title="View Party Transactions"
                         >
                           <Eye size={16} />
                         </button>
@@ -852,6 +999,416 @@ const SalesReport: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+            )}
+
+            {/* Bill-wise Sales View */}
+            {selectedView === 'billwise' && (
+              <div className="space-y-4">
+                <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-blue-50'}`}>
+                  <h3 className="text-lg font-semibold mb-2 flex items-center">
+                    <Grid3X3 size={20} className="mr-2" />
+                    Bill-wise Sales Summary
+                  </h3>
+                  <p className="text-sm opacity-75">
+                    Comprehensive view of all sales bills with individual bill analysis
+                  </p>
+                </div>
+
+                {/* Bill-wise Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-white shadow'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium opacity-75">Total Bills</p>
+                        <p className="text-2xl font-bold">{filteredSalesData.length}</p>
+                      </div>
+                      <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-blue-100'}`}>
+                        <FileText size={24} className="text-blue-600" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-white shadow'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium opacity-75">Avg Bill Value</p>
+                        <p className="text-2xl font-bold">
+                          {formatCurrency(
+                            filteredSalesData.length > 0 
+                              ? filteredSalesData.reduce((sum, sale) => sum + sale.netAmount, 0) / filteredSalesData.length
+                              : 0
+                          )}
+                        </p>
+                      </div>
+                      <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-green-100'}`}>
+                        <TrendingUp size={24} className="text-green-600" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-white shadow'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium opacity-75">Paid Bills</p>
+                        <p className="text-2xl font-bold text-green-600">
+                          {filteredSalesData.filter(sale => sale.status === 'Paid').length}
+                        </p>
+                      </div>
+                      <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-green-100'}`}>
+                        <DollarSign size={24} className="text-green-600" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-white shadow'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium opacity-75">Pending Bills</p>
+                        <p className="text-2xl font-bold text-red-600">
+                          {filteredSalesData.filter(sale => sale.status === 'Unpaid' || sale.status === 'Overdue').length}
+                        </p>
+                      </div>
+                      <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-red-100'}`}>
+                        <FileText size={24} className="text-red-600" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <table className="w-full">
+                  <thead className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                    <tr>
+                      <th className="px-4 py-3 text-left font-medium">Bill No.</th>
+                      <th className="px-4 py-3 text-left font-medium">Date</th>
+                      <th className="px-4 py-3 text-left font-medium">Party Name</th>
+                      <th className="px-4 py-3 text-center font-medium">Items</th>
+                      <th className="px-4 py-3 text-right font-medium">Taxable Amount</th>
+                      <th className="px-4 py-3 text-right font-medium">GST Amount</th>
+                      <th className="px-4 py-3 text-right font-medium">Net Amount</th>
+                      <th className="px-4 py-3 text-center font-medium">Status</th>
+                      <th className="px-4 py-3 text-center font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredSalesData.map((sale) => (
+                      <tr 
+                        key={sale.id} 
+                        className={`border-t ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-50'}`}
+                      >
+                        <td className="px-4 py-3">
+                          <div className="font-mono font-medium text-blue-600">
+                            {sale.voucherNo}
+                          </div>
+                          <div className="text-xs opacity-60">
+                            {sale.voucherType}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="font-medium">
+                            {new Date(sale.date).toLocaleDateString('en-IN')}
+                          </div>
+                          <div className="text-xs opacity-60">
+                            {new Date(sale.date).toLocaleDateString('en-IN', { weekday: 'short' })}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="font-medium">{sale.partyName}</div>
+                          {sale.partyGSTIN && (
+                            <div className="text-xs font-mono opacity-60">
+                              {sale.partyGSTIN}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                            {sale.itemDetails.length} items
+                          </div>
+                          <div className="text-xs opacity-60 mt-1">
+                            {sale.itemDetails.reduce((sum, item) => sum + item.quantity, 0)} qty
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="font-mono font-medium">
+                            {formatCurrency(sale.taxableAmount)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="font-mono">
+                            {formatCurrency(sale.totalTaxAmount)}
+                          </div>
+                          <div className="text-xs opacity-60">
+                            {((sale.totalTaxAmount / sale.taxableAmount) * 100).toFixed(1)}%
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="font-mono font-bold text-lg">
+                            {formatCurrency(sale.netAmount)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            sale.status === 'Paid' 
+                              ? 'bg-green-100 text-green-800' 
+                              : sale.status === 'Overdue'
+                              ? 'bg-red-100 text-red-800'
+                              : sale.status === 'Partially Paid'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {sale.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <div className="flex items-center justify-center space-x-2">
+                            <button
+                              onClick={() => handleViewDetails(sale)}
+                              className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-200'}`}
+                              title="View Bill Details"
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <button
+                              className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-200'}`}
+                              title="Print Bill"
+                            >
+                              <Printer size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Bill Wise Profit View */}
+            {selectedView === 'billwiseprofit' && (
+              <div className="space-y-4">
+                <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-blue-50'}`}>
+                  <h3 className="text-lg font-semibold mb-2 flex items-center">
+                    <TrendingUp size={20} className="mr-2" />
+                    Bill Wise Profit Analysis
+                  </h3>
+                  <p className="text-sm opacity-75">
+                    Detailed profit analysis for each sales bill including cost analysis and margin calculations
+                  </p>
+                </div>
+
+                {/* Profit Analysis Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-white shadow'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium opacity-75">Total Sales</p>
+                        <p className="text-2xl font-bold">
+                          {formatCurrency(filteredSalesData.reduce((sum, sale) => sum + sale.netAmount, 0))}
+                        </p>
+                      </div>
+                      <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-blue-100'}`}>
+                        <DollarSign size={24} className="text-blue-600" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-white shadow'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium opacity-75">Total Cost</p>
+                        <p className="text-2xl font-bold text-red-600">
+                          {formatCurrency(
+                            filteredSalesData.reduce((sum, sale) => {
+                              const costAmount = sale.itemDetails.reduce((itemSum, item) => itemSum + (item.amount * 0.7), 0);
+                              return sum + costAmount;
+                            }, 0)
+                          )}
+                        </p>
+                      </div>
+                      <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-red-100'}`}>
+                        <Package size={24} className="text-red-600" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-white shadow'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium opacity-75">Gross Profit</p>
+                        <p className="text-2xl font-bold text-green-600">
+                          {(() => {
+                            const totalSales = filteredSalesData.reduce((sum, sale) => sum + sale.netAmount, 0);
+                            const totalCost = filteredSalesData.reduce((sum, sale) => {
+                              const costAmount = sale.itemDetails.reduce((itemSum, item) => itemSum + (item.amount * 0.7), 0);
+                              return sum + costAmount;
+                            }, 0);
+                            return formatCurrency(totalSales - totalCost);
+                          })()}
+                        </p>
+                      </div>
+                      <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-green-100'}`}>
+                        <TrendingUp size={24} className="text-green-600" />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-white shadow'}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium opacity-75">Avg Profit %</p>
+                        <p className="text-2xl font-bold text-green-600">
+                          {(() => {
+                            const totalSales = filteredSalesData.reduce((sum, sale) => sum + sale.netAmount, 0);
+                            const totalCost = filteredSalesData.reduce((sum, sale) => {
+                              const costAmount = sale.itemDetails.reduce((itemSum, item) => itemSum + (item.amount * 0.7), 0);
+                              return sum + costAmount;
+                            }, 0);
+                            const profitPercentage = totalSales > 0 ? ((totalSales - totalCost) / totalSales) * 100 : 0;
+                            return profitPercentage.toFixed(1) + '%';
+                          })()}
+                        </p>
+                      </div>
+                      <div className={`p-3 rounded-full ${theme === 'dark' ? 'bg-gray-600' : 'bg-green-100'}`}>
+                        <BarChart3 size={24} className="text-green-600" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <table className="w-full">
+                  <thead className={`${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                    <tr>
+                      <th className="px-4 py-3 text-left font-medium">Bill No.</th>
+                      <th className="px-4 py-3 text-left font-medium">Date</th>
+                      <th className="px-4 py-3 text-left font-medium">Party Name</th>
+                      <th className="px-4 py-3 text-right font-medium">Sales Amount</th>
+                      <th className="px-4 py-3 text-right font-medium">Cost Amount</th>
+                      <th className="px-4 py-3 text-right font-medium">Gross Profit</th>
+                      <th className="px-4 py-3 text-right font-medium">Profit %</th>
+                      <th className="px-4 py-3 text-center font-medium">Status</th>
+                      <th className="px-4 py-3 text-center font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredSalesData.map((sale) => {
+                      // Calculate profit data for each bill
+                      const salesAmount = sale.netAmount;
+                      const costAmount = sale.itemDetails.reduce((sum, item) => {
+                        // Mock cost calculation - in real scenario, this would come from purchase/cost data
+                        const estimatedCost = item.amount * 0.7; // Assuming 70% cost ratio
+                        return sum + estimatedCost;
+                      }, 0);
+                      const grossProfit = salesAmount - costAmount;
+                      const profitPercentage = salesAmount > 0 ? (grossProfit / salesAmount) * 100 : 0;
+                      
+                      return (
+                        <tr 
+                          key={sale.id} 
+                          className={`border-t ${theme === 'dark' ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-50'}`}
+                        >
+                          <td className="px-4 py-3">
+                            <div className="font-mono font-medium text-blue-600">
+                              {sale.voucherNo}
+                            </div>
+                            <div className="text-xs opacity-60">
+                              {sale.voucherType}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="font-medium">
+                              {new Date(sale.date).toLocaleDateString('en-IN')}
+                            </div>
+                            <div className="text-xs opacity-60">
+                              {new Date(sale.date).toLocaleDateString('en-IN', { weekday: 'short' })}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="font-medium">{sale.partyName}</div>
+                            {sale.partyGSTIN && (
+                              <div className="text-xs font-mono opacity-60">
+                                {sale.partyGSTIN}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="font-mono font-medium">
+                              {formatCurrency(salesAmount)}
+                            </div>
+                            <div className="text-xs opacity-60">
+                              {sale.itemDetails.length} items
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="font-mono text-red-600">
+                              {formatCurrency(costAmount)}
+                            </div>
+                            <div className="text-xs opacity-60">
+                              Est. Cost
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className={`font-mono font-bold ${grossProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {formatCurrency(grossProfit)}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className={`font-mono font-bold text-lg ${profitPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {profitPercentage.toFixed(1)}%
+                            </div>
+                            <div className="text-xs opacity-60">
+                              Margin
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              profitPercentage >= 25 
+                                ? 'bg-green-100 text-green-800' 
+                                : profitPercentage >= 15
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : profitPercentage >= 0
+                                ? 'bg-orange-100 text-orange-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}>
+                              {profitPercentage >= 25 ? 'High' : profitPercentage >= 15 ? 'Good' : profitPercentage >= 0 ? 'Low' : 'Loss'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <div className="flex items-center justify-center space-x-2">
+                              <button
+                                onClick={() => handleViewDetails(sale)}
+                                className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-200'}`}
+                                title="View Profit Details"
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleProfitAnalysis(sale)}
+                                className={`p-1 rounded ${theme === 'dark' ? 'hover:bg-gray-600' : 'hover:bg-gray-200'}`}
+                                title="Detailed Profit Analysis"
+                              >
+                                <TrendingUp size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                {/* Profit Analysis Chart Placeholder */}
+                <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-white shadow'}`}>
+                  <h4 className="text-lg font-semibold mb-4">Profit Trend Analysis</h4>
+                  <div className={`h-64 flex items-center justify-center border-2 border-dashed rounded-lg ${
+                    theme === 'dark' ? 'border-gray-600' : 'border-gray-300'
+                  }`}>
+                    <div className="text-center">
+                      <BarChart3 size={48} className="mx-auto mb-2 opacity-50" />
+                      <p className="text-sm opacity-75">Profit trend chart will be displayed here</p>
+                      <p className="text-xs opacity-50 mt-1">Integration with charting library pending</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
