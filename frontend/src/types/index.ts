@@ -138,6 +138,7 @@ export type VoucherEntry = {
   };
   orderRef?: string;
   termsOfDelivery?: string;
+  isQuotation?: boolean;
 };
 
 export type StockItem = {
@@ -259,7 +260,8 @@ export type VoucherType =
   | 'stock-journal' 
   | 'delivery-note'
   | 'sales-order'
-  | 'purchase-order';
+  | 'purchase-order'
+  | 'quotation';
 
 export type Scenario = {
   id: string;

@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { 
   DollarSign, ArrowRightCircle, ArrowLeftCircle, 
   FileText, ShoppingCart, ShoppingBag, 
-  FileMinus, FilePlus, Truck, RotateCcw, Clipboard,
-  Package, RefreshCcw,
+  FileMinus, FilePlus, Truck,  Clipboard,
+  Package, 
   ImportIcon
-} from 'lucide-react';
+} from 'lucide-react'; //RefreshCcw,RotateCcw,
 
 interface VoucherType {
   id: string;
@@ -158,7 +158,7 @@ const VouchersIndex: React.FC = () => {
           id: 'quotation',
           icon: <FileText size={20} />,
           name: 'Quotation',
-          path: '/app/vouchers/quotation/create',
+          path: '/app/vouchers/quotation/list',
           color: theme === 'dark' ? 'bg-violet-900/50 hover:bg-violet-800/50' : 'bg-violet-50 hover:bg-violet-100',
           iconBg: theme === 'dark' ? 'bg-violet-800/70' : 'bg-violet-100',
           description: 'Price quotations',
@@ -191,26 +191,26 @@ const VouchersIndex: React.FC = () => {
           description: 'Credit adjustments',
           category: 'trading'
         },
-        {
-          id: 'sales-return',
-          icon: <RotateCcw size={20} />,
-          name: 'Sales Return',
-          path: '/app/vouchers/sales-return/create',
-          color: theme === 'dark' ? 'bg-orange-900/50 hover:bg-orange-800/50' : 'bg-orange-50 hover:bg-orange-100',
-          iconBg: theme === 'dark' ? 'bg-orange-800/70' : 'bg-orange-100',
-          description: 'Sales returns',
-          category: 'trading'
-        },
-        {
-          id: 'purchase-return',
-          icon: <RefreshCcw size={20} />,
-          name: 'Purchase Return',
-          path: '/app/vouchers/purchase-return/create',
-          color: theme === 'dark' ? 'bg-emerald-900/50 hover:bg-emerald-800/50' : 'bg-emerald-50 hover:bg-emerald-100',
-          iconBg: theme === 'dark' ? 'bg-emerald-800/70' : 'bg-emerald-100',
-          description: 'Purchase returns',
-          category: 'trading'
-        }
+        // {
+        //   id: 'sales-return',
+        //   icon: <RotateCcw size={20} />,
+        //   name: 'Sales Return',
+        //   path: '/app/vouchers/sales-return/create',
+        //   color: theme === 'dark' ? 'bg-orange-900/50 hover:bg-orange-800/50' : 'bg-orange-50 hover:bg-orange-100',
+        //   iconBg: theme === 'dark' ? 'bg-orange-800/70' : 'bg-orange-100',
+        //   description: 'Sales returns',
+        //   category: 'trading'
+        // },
+        // {
+        //   id: 'purchase-return',
+        //   icon: <RefreshCcw size={20} />,
+        //   name: 'Purchase Return',
+        //   path: '/app/vouchers/purchase-return/create',
+        //   color: theme === 'dark' ? 'bg-emerald-900/50 hover:bg-emerald-800/50' : 'bg-emerald-50 hover:bg-emerald-100',
+        //   iconBg: theme === 'dark' ? 'bg-emerald-800/70' : 'bg-emerald-100',
+        //   description: 'Purchase returns',
+        //   category: 'trading'
+        // }
       ]
     },
     {
@@ -486,9 +486,11 @@ const VouchersIndex: React.FC = () => {
                         {voucher.number}
                       </span>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium uppercase tracking-wide ${
-                        theme === 'dark' ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700'
+                        voucher.type === 'quotation' || voucher.isQuotation === true
+                          ? theme === 'dark' ? 'bg-violet-900/50 text-violet-300' : 'bg-violet-100 text-violet-700'
+                          : theme === 'dark' ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700'
                       }`}>
-                        {voucher.type}
+                        {voucher.type === 'quotation' || voucher.isQuotation === true ? 'Quotation' : voucher.type}
                       </span>
                     </div>
                     

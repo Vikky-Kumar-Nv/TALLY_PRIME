@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useAppContext } from '../../../context/AppContext';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { VoucherEntry, Ledger, Godown } from '../../../types';
 import { Save, Plus, Trash2, ArrowLeft, Printer } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -78,7 +78,12 @@ const SalesVoucher: React.FC = () => {
   const { theme, stockItems, ledgers, godowns = [], vouchers = [], companyInfo, addVoucher, updateVoucher } = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const isEditMode = !!id;
+  
+  // Check if quotation mode is requested via URL
+  const isQuotationMode = searchParams.get('mode') === 'quotation';
+  
   const printRef = useRef<HTMLDivElement>(null);
 
   // Safe fallbacks for context data - Remove demo data and use only from context
@@ -94,7 +99,7 @@ const SalesVoucher: React.FC = () => {
   };
 
   // State initialization first
-  const [isQuotation, setIsQuotation] = useState(false); // State for quotation mode
+  const [isQuotation, setIsQuotation] = useState(isQuotationMode); // Initialize with URL parameter
 
   // Generate voucher number (e.g., ABCDEF0001 or QT0001)
   const generateVoucherNumber = useCallback(() => {
@@ -117,7 +122,7 @@ const SalesVoucher: React.FC = () => {
     }
     return {
       date: new Date().toISOString().split('T')[0],
-      type: 'sales',
+      type: isQuotation ? 'quotation' : 'sales',
       number: `${isQuotation ? 'QT' : 'XYZ'}0001`, // Will be updated by useEffect
       narration: '',
       referenceNo: '',
@@ -140,7 +145,8 @@ const SalesVoucher: React.FC = () => {
     if (!isEditMode) {
       setFormData(prev => ({
         ...prev,
-        number: generateVoucherNumber()
+        number: generateVoucherNumber(),
+        type: isQuotation ? 'quotation' : 'sales'
       }));
     }
   }, [isQuotation, isEditMode, generateVoucherNumber]);
@@ -447,9 +453,10 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 
   try {
-    // Add quotation flag to form data
+    // Add quotation flag to form data and set correct type
     const voucherData = {
       ...formData,
+      type: isQuotation ? 'quotation' : 'sales', // Set type based on quotation mode
       isQuotation: isQuotation
     };
 
