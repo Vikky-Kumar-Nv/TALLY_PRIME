@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -367,7 +367,7 @@ const SalesVoucher: React.FC = () => {
       formData.entries.forEach((entry, index) => {
         if (!entry.itemId) newErrors[`entry${index}.itemId`] = 'Item is required';
         if ((entry.quantity ?? 0) <= 0) newErrors[`entry${index}.quantity`] = 'Quantity must be greater than 0';
-        if (godownEnabled === 'yes' && godowns.length > 0 && !entry.godownId) newErrors[`entry${index}.godownId`] = 'Godown is required';
+        if (godowns.length > 0 && !entry.godownId) newErrors[`entry${index}.godownId`] = 'Godown is required';
 
         if (entry.itemId) {
           const stockItem = safeStockItems.find(item => item.id === entry.itemId);
@@ -464,36 +464,31 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 
   try {
-    if (isEditMode && id) {
-      // Update existing voucher
-      updateVoucher(id, formData);
+    const res = await fetch('http://localhost:5000/api/vouchers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+
+    const data = await res.json();
+    console.log('Server response:', data); // debug log
+
+    if (res.ok) {
       await Swal.fire({
         title: 'Success',
-        text: 'Sales voucher updated successfully!',
+        text: data.message,
         icon: 'success',
         confirmButtonText: 'OK'
       });
+      navigate('/vouchers');
     } else {
-      // Create new voucher
-      const newVoucher: VoucherEntry = {
-        ...formData,
-        id: Math.random().toString(36).substring(2, 9)
-      };
-      addVoucher(newVoucher);
-      await Swal.fire({
-        title: 'Success',
-        text: 'Sales voucher saved successfully!',
-        icon: 'success',
-        confirmButtonText: 'OK'
-      });
+      Swal.fire('Error', data.message || 'Something went wrong', 'error');
     }
-    navigate('/app/vouchers');
   } catch (err) {
     console.error('Error:', err);
-    Swal.fire('Error', 'Failed to save voucher', 'error');
+    Swal.fire('Error', 'Network or server issue', 'error');
   }
 };
-
 
 
   const { subtotal = 0, cgstTotal = 0, sgstTotal = 0, igstTotal = 0, discountTotal = 0, total = 0, debitTotal = 0, creditTotal = 0 } = calculateTotals();
