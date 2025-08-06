@@ -71,7 +71,7 @@ const LedgerReport: React.FC = () => {
 const [ledgerData, setLedgerData] = useState<LedgerApiResponse | null>(null);
   const [error, setError] = useState(null);
     const [ledgers, setLedgers] = useState<Ledger[]>([]);
-  const [ledgerId, setLedgerId] = useState('1'); // default
+  const [ledgerId, setLedgerId] = useState(''); // default
 
   // Initialize from URL params
   useEffect(() => {
@@ -86,10 +86,10 @@ const [ledgerData, setLedgerData] = useState<LedgerApiResponse | null>(null);
   }, [searchParams]);
 
   // Get selected ledger details
-  const selectedLedgerData = ledgers.find(l => l.id === ledgerId);
-  const selectedLedgerGroup = selectedLedgerData ? 
-    ledgerGroups.find(g => g.id === selectedLedgerData.groupId) : null;
-const ledgerTransactions = ledgerData ? ledgerData.transactions : [];
+//   const selectedLedgerData = ledgers.find(l => l.id === ledgerId);
+//   const selectedLedgerGroup = selectedLedgerData ? 
+//     ledgerGroups.find(g => g.id === selectedLedgerData.groupId) : null;
+// const ledgerTransactions = ledgerData ? ledgerData.transactions : [];
 
   // Generate comprehensive transactions for the selected ledger
   // const generateLedgerTransactions = useMemo((): LedgerTransaction[] => {
@@ -209,43 +209,7 @@ const ledgerTransactions = ledgerData ? ledgerData.transactions : [];
   //   return transactions;
   // }, [selectedLedgerData, fromDate, toDate, showClosingBalances, selectedLedgerGroup]);
 
-  // Group transactions by month for monthly view
-  const groupTransactionsByMonth = (transactions: LedgerTransaction[]) => {
-    const grouped: { [key: string]: LedgerTransaction[] } = {};
-    const monthlyBalances: { [key: string]: MonthlyBalance } = {};
-    
-    transactions.forEach(txn => {
-      if (txn.isOpening || txn.isClosing) return;
-      
-      const monthKey = txn.date.substring(0, 7); // YYYY-MM
-      const monthName = new Date(txn.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
-      
-      if (!grouped[monthKey]) {
-        grouped[monthKey] = [];
-        monthlyBalances[monthKey] = {
-          month: monthName,
-          openingBalance: 0,
-          totalDebit: 0,
-          totalCredit: 0,
-          closingBalance: 0,
-          transactionCount: 0
-        };
-      }
-      
-      grouped[monthKey].push(txn);
-      monthlyBalances[monthKey].totalDebit += txn.debit;
-      monthlyBalances[monthKey].totalCredit += txn.credit;
-      monthlyBalances[monthKey].transactionCount++;
-    });
-
-    return { grouped, monthlyBalances };
-  };
-
-  const { grouped: monthlyGrouped, monthlyBalances } = groupTransactionsByMonth(ledgerTransactions);
-  const summaryTotals = useMemo(() => ledgerData ? ledgerData.summary : {
-    openingBalance: 0, totalDebit: 0, totalCredit: 0, closingBalance: 0, transactionCount: 0
-  }, [ledgerData]);
-
+  
   // Calculate summary totals
   // const summaryTotals = useMemo(() => {
   //   const openingTxn = ledgerTransactions.find((t: LedgerTransaction) => t.isOpening);
@@ -358,21 +322,77 @@ const ledgerTransactions = ledgerData ? ledgerData.transactions : [];
       fetchLedgers();
     }, []);
    // Fetch when ledger or date range changes
-  useEffect(() => {
-    if (!ledgerId) return;
-    setLoading(true);
-    setError(null);
+  
+// URL param init - update ledgerId, NOT selectedLedger
+useEffect(() => {
+  const ledgerIdParam = searchParams.get('ledgerId');
+  const view = searchParams.get('view') as 'detailed' | 'summary' | 'monthly';
+  if (ledgerIdParam) setLedgerId(ledgerIdParam);
+  if (view) setViewMode(view);
+}, [searchParams]);
 
-fetch(`http://localhost:5000/api/ledger-report/report?ledgerId=${ledgerId}&fromDate=${fromDate}&toDate=${toDate}&includeOpening=${includeOpening}&includeClosing=${includeClosing}`)      .then(res => res.json())
-      .then(res => res.json())
-      .then(data => setLedgerData(data))
-      .catch(err => {
-        setError(err.response?.data?.message || err.message);
-      })
-      .finally(() => setLoading(false));
-  }, [ledgerId, fromDate, toDate, includeOpening, includeClosing]);
+// Derive selectedLedgerData from ledgerId, NOT selectedLedger
+const selectedLedgerData = ledgers.find(l => l.id === ledgerId);
+const selectedLedgerGroup = selectedLedgerData ?
+  ledgerGroups.find(g => g.id === selectedLedgerData.groupId) : null;
 
+// ledger transactions from API response remain the same
+const ledgerTransactions = ledgerData ? ledgerData.transactions : [];
 
+// Use effect to fetch data on ledgerId or filters change
+useEffect(() => {
+  if (!ledgerId) return;
+  setLoading(true);
+  setError(null);
+
+  fetch(`http://localhost:5000/api/ledger-report/report?ledgerId=${ledgerId}&fromDate=${fromDate}&toDate=${toDate}&includeOpening=${includeOpening}&includeClosing=${includeClosing}`)
+    .then(res => res.json())
+    .then(data => {
+      if(data.success) setLedgerData(data);
+      else setError(data.message || 'Error loading ledger data');
+    })
+    .catch(err => {
+      setError(err.message || 'Network error');
+    })
+    .finally(() => setLoading(false));
+}, [ledgerId, fromDate, toDate, includeOpening, includeClosing]);
+
+// Group transactions by month for monthly view
+  const groupTransactionsByMonth = (transactions: LedgerTransaction[]) => {
+    const grouped: { [key: string]: LedgerTransaction[] } = {};
+    const monthlyBalances: { [key: string]: MonthlyBalance } = {};
+    
+    transactions.forEach(txn => {
+      if (txn.isOpening || txn.isClosing) return;
+      
+      const monthKey = txn.date.substring(0, 7); // YYYY-MM
+      const monthName = new Date(txn.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+      
+      if (!grouped[monthKey]) {
+        grouped[monthKey] = [];
+        monthlyBalances[monthKey] = {
+          month: monthName,
+          openingBalance: 0,
+          totalDebit: 0,
+          totalCredit: 0,
+          closingBalance: 0,
+          transactionCount: 0
+        };
+      }
+      
+      grouped[monthKey].push(txn);
+      monthlyBalances[monthKey].totalDebit += txn.debit;
+      monthlyBalances[monthKey].totalCredit += txn.credit;
+      monthlyBalances[monthKey].transactionCount++;
+    });
+
+    return { grouped, monthlyBalances };
+  };
+
+  const { grouped: monthlyGrouped, monthlyBalances } = groupTransactionsByMonth(ledgerTransactions);
+  const summaryTotals = useMemo(() => ledgerData ? ledgerData.summary : {
+    openingBalance: 0, totalDebit: 0, totalCredit: 0, closingBalance: 0, transactionCount: 0
+  }, [ledgerData]);
 
   return (
     <div className='pt-[56px] px-4 '>

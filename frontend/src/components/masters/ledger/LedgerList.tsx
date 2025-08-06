@@ -153,6 +153,7 @@ const LedgerList: React.FC = () => {
               }`}>
                 <th className="px-4 py-3 text-left">Name</th>
                 <th className="px-4 py-3 text-left">Under Group</th>
+                <th className="px-4 py-3 text-left">GST Number</th>
                 <th className="px-4 py-3 text-right">Opening Balance</th>
                 <th className="px-4 py-3 text-center">Type</th>
                 <th className="px-4 py-3 text-center">GST/Category</th>
@@ -164,7 +165,8 @@ const LedgerList: React.FC = () => {
                 <tr key={ledger.id} className={`hover:bg-opacity-10 hover:bg-blue-500 ${theme === 'dark' ? 'border-b border-gray-700' : 'border-b border-gray-200'}`}>
                   <td className="px-4 py-3">{ledger.name}</td>
                   <td className="px-4 py-3">{getGroupName(ledger.groupId)}</td>
-                  <td className="px-4 py-3 text-right font-mono">{ledger.openingBalance}</td>                  
+                  <td className="px-4 py-3">{ledger.gstNumber}</td>
+                  <td className="px-4 py-3 text-right font-mono">{ledger.openingBalance}</td>
                   <td className="px-4 py-3 text-center">
                     <span className={`px-2 py-1 rounded text-xs ${
                       ledger.balanceType === 'debit'
