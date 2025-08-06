@@ -81,39 +81,9 @@ const SalesVoucher: React.FC = () => {
   const isEditMode = !!id;
   const printRef = useRef<HTMLDivElement>(null);
 
-  // Safe fallbacks for context data
-  const safeStockItems = stockItems || [
-    { id: '1', name: 'Laptop HP Pavilion', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 50, rate: 45000 },
-    { id: '2', name: 'Mobile Phone Samsung', hsnCode: '8517', unit: 'Piece', gstRate: 5, openingBalance: 100, rate: 25000 },
-    { id: '3', name: 'Printer Canon', hsnCode: '8443', unit: 'Piece', gstRate: 18, openingBalance: 30, rate: 15000 },
-    { id: '4', name: 'Office Chair', hsnCode: '9401', unit: 'Piece', gstRate: 18, openingBalance: 75, rate: 8000 },
-    { id: '5', name: 'LED Monitor', hsnCode: '8528', unit: 'Piece', gstRate: 18, openingBalance: 40, rate: 12000 },
-    { id: '6', name: 'Desktop Computer Dell', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 25, rate: 35000 },
-    { id: '7', name: 'Wireless Mouse Logitech', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 200, rate: 1500 },
-    { id: '8', name: 'Keyboard Mechanical', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 150, rate: 3500 },
-    { id: '9', name: 'Smartphone iPhone', hsnCode: '8517', unit: 'Piece', gstRate: 18, openingBalance: 60, rate: 80000 },
-    { id: '10', name: 'Tablet iPad', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 35, rate: 45000 },
-    { id: '11', name: 'Webcam HD Logitech', hsnCode: '8525', unit: 'Piece', gstRate: 18, openingBalance: 80, rate: 4500 },
-    { id: '12', name: 'Headphones Sony', hsnCode: '8518', unit: 'Piece', gstRate: 18, openingBalance: 120, rate: 6000 },
-    { id: '13', name: 'External Hard Drive 1TB', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 90, rate: 5500 },
-    { id: '14', name: 'Router WiFi TP-Link', hsnCode: '8517', unit: 'Piece', gstRate: 18, openingBalance: 70, rate: 3200 },
-    { id: '15', name: 'UPS 1000VA APC', hsnCode: '8504', unit: 'Piece', gstRate: 18, openingBalance: 45, rate: 8500 }
-  ];  const safeLedgers = ledgers || [
-    { id: '1', name: 'ABC Electronics Pvt Ltd', type: 'sundry-debtors', address: '123 Business Street, Mumbai', gstNumber: '27ABCDE1234F1Z5', state: 'Maharashtra' },
-    { id: '2', name: 'XYZ Trading Co', type: 'sundry-debtors', address: '456 Market Road, Delhi', gstNumber: '07XYZAB5678G2H9', state: 'Delhi' },
-    { id: '3', name: 'Cash', type: 'cash', address: '', gstNumber: '', state: '' },
-    { id: '4', name: 'PQR Industries', type: 'sundry-debtors', address: '789 Industrial Area, Pune', gstNumber: '27PQRST9012I3J4', state: 'Maharashtra' },
-    { id: '5', name: 'LMN Enterprises', type: 'current-assets', address: '321 Commercial Zone, Bangalore', gstNumber: '29LMNOP6789K4L5', state: 'Karnataka' },
-    { id: '6', name: 'Tech Solutions India Ltd', type: 'sundry-debtors', address: '88 IT Park, Hyderabad', gstNumber: '36TECH8901M6N7', state: 'Telangana' },
-    { id: '7', name: 'Global Systems Corp', type: 'sundry-debtors', address: '45 Cyber City, Gurgaon', gstNumber: '06GLOBA2345P8Q9', state: 'Haryana' },
-    { id: '8', name: 'Prime Distributors', type: 'sundry-debtors', address: '12 Trade Center, Chennai', gstNumber: '33PRIME6789R0S1', state: 'Tamil Nadu' },
-    { id: '9', name: 'Retail Partners Ltd', type: 'sundry-debtors', address: '67 Mall Road, Kolkata', gstNumber: '19RETAIL3456T2U3', state: 'West Bengal' },
-    { id: '10', name: 'Digital Hub Solutions', type: 'sundry-debtors', address: '23 Tech Tower, Kochi', gstNumber: '32DIGITAL789V4W5', state: 'Kerala' },
-    { id: '11', name: 'Smart Devices Inc', type: 'sundry-debtors', address: '56 Innovation Park, Jaipur', gstNumber: '08SMART0123X6Y7', state: 'Rajasthan' },
-    { id: '12', name: 'Future Tech Enterprises', type: 'sundry-debtors', address: '91 Science City, Ahmedabad', gstNumber: '24FUTURE456Z8A9', state: 'Gujarat' },
-    { id: '13', name: 'Metro Electronics', type: 'sundry-debtors', address: '34 Electronics Market, Lucknow', gstNumber: '09METRO789B0C1', state: 'Uttar Pradesh' },
-    { id: '14', name: 'Omega Systems Pvt Ltd', type: 'sundry-debtors', address: '78 Business Bay, Indore', gstNumber: '23OMEGA012D3E4', state: 'Madhya Pradesh' },
-    { id: '15', name: 'Alpha Technologies', type: 'current-assets', address: '45 Tech Valley, Bhubaneswar', gstNumber: '21ALPHA345F5G6', state: 'Odisha' }  ];
+  // Safe fallbacks for context data - Remove demo data and use only from context
+  const safeStockItems = stockItems || [];
+  const safeLedgers = ledgers || [];
   const safeCompanyInfo = companyInfo || {
     name: 'Your Company Name',
     address: 'Your Company Address',
@@ -477,33 +447,71 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 
   try {
+    // Add quotation flag to form data
+    const voucherData = {
+      ...formData,
+      isQuotation: isQuotation
+    };
+
     if (isEditMode && id) {
-      // Update existing voucher
-      updateVoucher(id, formData);
-      await Swal.fire({
-        title: 'Success',
-        text: `Sales ${isQuotation ? 'quotation' : 'voucher'} updated successfully!`,
-        icon: 'success',
-        confirmButtonText: 'OK'
+      // Update existing voucher via backend
+      const res = await fetch(`http://localhost:5000/api/vouchers/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(voucherData)
       });
+
+      const data = await res.json();
+      console.log('Update response:', data);
+
+      if (res.ok) {
+        // Also update context
+        updateVoucher(id, voucherData);
+        await Swal.fire({
+          title: 'Success',
+          text: `Sales ${isQuotation ? 'quotation' : 'voucher'} updated successfully!`,
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+      } else {
+        Swal.fire('Error', data.message || 'Failed to update voucher', 'error');
+        return;
+      }
     } else {
-      // Create new voucher
-      const newVoucher: VoucherEntry = {
-        ...formData,
-        id: Math.random().toString(36).substring(2, 9)
-      };
-      addVoucher(newVoucher);
-      await Swal.fire({
-        title: 'Success',
-        text: `Sales ${isQuotation ? 'quotation' : 'voucher'} saved successfully!`,
-        icon: 'success',
-        confirmButtonText: 'OK'
+      // Create new voucher via backend
+      const res = await fetch('http://localhost:5000/api/vouchers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(voucherData)
       });
+
+      const data = await res.json();
+      console.log('Server response:', data);
+
+      if (res.ok) {
+        // Also add to context
+        const newVoucher: VoucherEntry = {
+          ...voucherData,
+          id: data.id || Math.random().toString(36).substring(2, 9)
+        };
+        addVoucher(newVoucher);
+        
+        await Swal.fire({
+          title: 'Success',
+          text: `Sales ${isQuotation ? 'quotation' : 'voucher'} saved successfully!`,
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+      } else {
+        Swal.fire('Error', data.message || 'Failed to save voucher', 'error');
+        return;
+      }
     }
+    
     navigate('/app/vouchers');
   } catch (err) {
     console.error('Error:', err);
-    Swal.fire('Error', 'Failed to save voucher', 'error');
+    Swal.fire('Error', 'Network or server issue', 'error');
   }
 };
 
@@ -527,50 +535,15 @@ const handleSubmit = async (e: React.FormEvent) => {
       }
     }
     
-    // Fallback to hardcoded item map with both old and new ID formats
-    const itemMap: { [key: string]: { name: string; hsnCode: string; unit: string; gstRate: number; rate: number } } = {
-      // New format (from context)
-      'i1': { name: 'Electronics Item A', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 45000 },
-      'i2': { name: 'Clothing Item B', hsnCode: '6203', unit: 'Piece', gstRate: 12, rate: 1200 },
-      'i3': { name: 'Book Item C', hsnCode: '4901', unit: 'Piece', gstRate: 0, rate: 500 },
-      // Old format (for backward compatibility)
-      '1': { name: 'Laptop HP Pavilion', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 45000 },
-      '2': { name: 'Mobile Phone Samsung', hsnCode: '8517', unit: 'Piece', gstRate: 18, rate: 25000 },
-      '3': { name: 'Printer Canon', hsnCode: '8443', unit: 'Piece', gstRate: 18, rate: 15000 },
-      '4': { name: 'Office Chair', hsnCode: '9401', unit: 'Piece', gstRate: 18, rate: 8000 },
-      '5': { name: 'LED Monitor', hsnCode: '8528', unit: 'Piece', gstRate: 18, rate: 12000 },
-      '6': { name: 'Desktop Computer Dell', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 35000 },
-      '7': { name: 'Wireless Mouse Logitech', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 1500 },
-      '8': { name: 'Keyboard Mechanical', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 3500 },
-      '9': { name: 'Smartphone iPhone', hsnCode: '8517', unit: 'Piece', gstRate: 18, rate: 80000 },
-      '10': { name: 'Tablet iPad', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 45000 },
-      '11': { name: 'Webcam HD Logitech', hsnCode: '8525', unit: 'Piece', gstRate: 18, rate: 4500 },
-      '12': { name: 'Headphones Sony', hsnCode: '8518', unit: 'Piece', gstRate: 18, rate: 6000 },
-      '13': { name: 'External Hard Drive 1TB', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 5500 },
-      '14': { name: 'Router WiFi TP-Link', hsnCode: '8517', unit: 'Piece', gstRate: 18, rate: 3200 },
-      '15': { name: 'UPS 1000VA APC', hsnCode: '8504', unit: 'Piece', gstRate: 18, rate: 8500 }
-    };
-    return itemMap[itemId] || { name: '-', hsnCode: '-', unit: '-', gstRate: 0, rate: 0 };
+    // Return default item structure if item not found
+    return { name: '-', hsnCode: '-', unit: '-', gstRate: 0, rate: 0 };
   };
 
   const getPartyName = (partyId: string) => {
-    const partyMap: { [key: string]: string } = {
-      '1': 'ABC Electronics Pvt Ltd',
-      '2': 'XYZ Trading Co',
-      '3': 'Cash',
-      '4': 'PQR Industries',
-      '5': 'LMN Enterprises',
-      '6': 'Tech Solutions India Ltd',
-      '7': 'Global Systems Corp',
-      '8': 'Prime Distributors',
-      '9': 'Retail Partners Ltd',
-      '10': 'Digital Hub Solutions',
-      '11': 'Smart Devices Inc',
-      '12': 'Future Tech Enterprises',
-      '13': 'Metro Electronics',
-      '14': 'Omega Systems Pvt Ltd',
-      '15': 'Alpha Technologies'    };
-    return partyMap[partyId] || 'Unknown Party';
+    if (!safeLedgers || safeLedgers.length === 0) return 'Unknown Party';
+    
+    const party = safeLedgers.find(ledger => ledger.id === partyId);
+    return party ? party.name : 'Unknown Party';
   };
 
   // Function to get GST rate breakdown and count for invoice
@@ -669,21 +642,15 @@ const handleSubmit = async (e: React.FormEvent) => {
                 className={`min-h-10 text-14 ${FORM_STYLES.select(theme, !!errors.partyId)}`}
               >
                 <option value="" disabled>-- Select Party --</option>
-                <option value="1">ABC Electronics Pvt Ltd</option>
-                <option value="2">XYZ Trading Co</option>
-                <option value="3">Cash</option>
-                <option value="4">PQR Industries</option>
-                <option value="5">LMN Enterprises</option>
-                <option value="6">Tech Solutions India Ltd</option>
-                <option value="7">Global Systems Corp</option>
-                <option value="8">Prime Distributors</option>
-                <option value="9">Retail Partners Ltd</option>
-                <option value="10">Digital Hub Solutions</option>
-                <option value="11">Smart Devices Inc</option>
-                <option value="12">Future Tech Enterprises</option>
-                <option value="13">Metro Electronics</option>
-                <option value="14">Omega Systems Pvt Ltd</option>
-                <option value="15">Alpha Technologies</option>
+                {safeLedgers && safeLedgers.length > 0 ? (
+                  safeLedgers
+                    .filter(ledger => ledger.type === 'sundry-debtors' || ledger.type === 'cash')
+                    .map(ledger => (
+                      <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
+                    ))
+                ) : (
+                  <option value="" disabled>No parties available</option>
+                )}
               </select>
               {errors.partyId && <p className="text-red-500 text-xs mt-1">{errors.partyId}</p>}
             </div>
@@ -896,23 +863,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                                   <option key={item.id} value={item.id}>{item.name}</option>
                                 ))
                               ) : (
-                                <>
-                                  <option value="1">Laptop HP Pavilion</option>
-                                  <option value="2">Mobile Phone Samsung</option>
-                                  <option value="3">Printer Canon</option>
-                                  <option value="4">Office Chair</option>
-                                  <option value="5">LED Monitor</option>
-                                  <option value="6">Desktop Computer Dell</option>
-                                  <option value="7">Wireless Mouse Logitech</option>
-                                  <option value="8">Keyboard Mechanical</option>
-                                  <option value="9">Smartphone iPhone</option>
-                                  <option value="10">Tablet iPad</option>
-                                  <option value="11">Webcam HD Logitech</option>
-                                  <option value="12">Headphones Sony</option>
-                                  <option value="13">External Hard Drive 1TB</option>
-                                  <option value="14">Router WiFi TP-Link</option>
-                                  <option value="15">UPS 1000VA APC</option>
-                                </>
+                                <option value="" disabled>No items available</option>
                               )}
                             </select>
                             {errors[`entry${index}.itemId`] && <p className="text-red-500 text-xs mt-1">{errors[`entry${index}.itemId`]}</p>}
