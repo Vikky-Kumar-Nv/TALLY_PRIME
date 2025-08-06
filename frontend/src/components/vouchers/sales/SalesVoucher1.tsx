@@ -456,7 +456,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     // Add quotation flag to form data and set correct type
     const voucherData = {
       ...formData,
-      type: isQuotation ? 'quotation' : 'sales', // Set type based on quotation mode
+      type: isQuotation ? 'quotation' as VoucherEntry['type'] : 'sales' as VoucherEntry['type'], // Set type as VoucherType
       isQuotation: isQuotation
     };
 
