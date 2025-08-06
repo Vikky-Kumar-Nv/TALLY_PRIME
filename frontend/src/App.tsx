@@ -51,6 +51,7 @@ import DeliveryNoteVoucher from './components/vouchers/deliverynote/DeliveryNote
 import JournalVoucher from './components/vouchers/journal/JournalVoucher';
 import SalesVoucher1 from './components/vouchers/sales/SalesVoucher1';
 import SalesOrder from './components/vouchers/salesOrder/SalesOrder';
+import PurchaseOrderVoucher from './components/vouchers/purchaseOrder/PurchaseOrderVoucher';
 import PurchaseVoucher1 from './components/vouchers/purches/PurcheseVoucher1';
 import StockJournalVoucher1 from './components/vouchers/stockjournal/StockJournalVoucher1';
 import ReceiptVoucher from './components/vouchers/receipt/ReceiptVoucher';
@@ -320,6 +321,8 @@ function App() {
             <Route path="vouchers/sales/edit/:id" element={<SalesVoucher1 />} />
             <Route path="vouchers/sales-order/create" element={<SalesOrder />} />
             <Route path="vouchers/sales-order/edit/:id" element={<SalesOrder />} />
+            <Route path="vouchers/purchase-order/create" element={<PurchaseOrderVoucher />} />
+            <Route path="vouchers/purchase-order/edit/:id" element={<PurchaseOrderVoucher />} />
             <Route path="vouchers/view/:voucherType/:voucherNo" element={<VoucherView />} />
             <Route path="vouchers/import" element={<VoucherImport />} />
            

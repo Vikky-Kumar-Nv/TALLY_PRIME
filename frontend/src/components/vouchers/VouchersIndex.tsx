@@ -145,6 +145,16 @@ const VouchersIndex: React.FC = () => {
           category: 'trading'
         },
         {
+          id: 'purchase-order',
+          icon: <Package size={20} />,
+          name: 'Purchase Order',
+          path: '/app/vouchers/purchase-order/create',
+          color: theme === 'dark' ? 'bg-cyan-900/50 hover:bg-cyan-800/50' : 'bg-cyan-50 hover:bg-cyan-100',
+          iconBg: theme === 'dark' ? 'bg-cyan-800/70' : 'bg-cyan-100',
+          description: 'Purchase orders',
+          category: 'trading'
+        },
+        {
           id: 'quotation',
           icon: <FileText size={20} />,
           name: 'Quotation',
