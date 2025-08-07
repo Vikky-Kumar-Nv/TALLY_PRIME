@@ -67,7 +67,7 @@ router.post('/company', async (req, res) => {
     if (accessControlEnabled && username && password) {
       const hashedPassword = await bcrypt.hash(password, 10);
       await connection.query(`
-        INSERT INTO tbCompanyAccessControls (company_id, username, password)
+        INSERT INTO tbUsers (company_id, username, password)
         VALUES (?, ?, ?)
       `, [companyId, username, hashedPassword]);
     }
