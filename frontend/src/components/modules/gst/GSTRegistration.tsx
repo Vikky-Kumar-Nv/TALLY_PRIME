@@ -2,25 +2,9 @@ import React, { useState } from 'react';
 import { FileText, X, Save, MapPin, Calendar, CreditCard, Hash , ArrowLeft} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../../context/AppContext';
-import Swal from 'sweetalert2';
+import type { CompanyInfo } from '../../../types';
 
-interface GSTFormData {
-  name: string;
-  financialYear: string;
-  booksBeginningYear: string;
-  address: string;
-  pin: string;
-  phoneNumber: string;
-  email: string;
-  panNumber: string;
-  vatNumber: string;
-  country: string;
-  taxType: string;
-  vaultEnabled: boolean;
-  vaultPassword: string;
-  accessControlEnabled: boolean;
-  username: string;
-  password: string;
+interface FormData {
   state: string;
   registrationType: string;
   assesseeOfOtherTerritory: string;
@@ -35,7 +19,6 @@ interface GSTFormData {
   lutBondValidity: string;
   taxLiabilityOnAdvanceReceipts: string;
 }
-
 
 // Reusable Input Field Component
 interface InputFieldProps {
@@ -161,40 +144,24 @@ const SelectField: React.FC<SelectFieldProps> = ({
 );
 
 const GSTRegistration: React.FC = () => {
-  const { theme} = useAppContext();
+  const { theme, setCompanyInfo, companyInfo } = useAppContext();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<GSTFormData>({
-  name: '',
-  financialYear: '',
-  booksBeginningYear: '',
-  address: '',
-  pin: '',
-  phoneNumber: '',
-  email: '',
-  panNumber: '',
-  gstNumber: '',
-  vatNumber: '',
-  state: '',
-  country: '',
-  taxType: '',
-  vaultEnabled: false,
-  vaultPassword: '',
-  accessControlEnabled: false,
-  username: '',
-  password: '',
-  registrationType: '',
-  assesseeOfOtherTerritory: '',
-  periodicityOfGstr1: '',
-  gstApplicableFrom: '',
-  eWayBillApplicable: '',
-  eWayBillThresholdLimit: '',
-  eWayBillIntrastate: '',
-  provideLutBond: '',
-  lutBondNumber: '',
-  lutBondValidity: '',
-  taxLiabilityOnAdvanceReceipts: ''
-});
-  const [errors] = useState<{ [key: string]: string }>({});
+  const [formData, setFormData] = useState<FormData>({
+    state: companyInfo?.state || '',
+    registrationType: companyInfo?.registrationType || '',
+    assesseeOfOtherTerritory: companyInfo?.assesseeOfOtherTerritory ? 'yes' : 'no',
+    gstNumber: companyInfo?.gstNumber || '',
+    periodicityOfGstr1: companyInfo?.periodicityOfGstr1 || '',
+    gstApplicableFrom: companyInfo?.gstApplicableFrom || '',
+    eWayBillApplicable: companyInfo?.eWayBillApplicable ? 'yes' : 'no',
+    eWayBillThresholdLimit: companyInfo?.eWayBillThresholdLimit || '',
+    eWayBillIntrastate: companyInfo?.eWayBillIntrastate ? 'yes' : 'no',
+    provideLutBond: companyInfo?.provideLutBond ? 'yes' : 'no',
+    lutBondNumber: companyInfo?.lutBondNumber || '',
+    lutBondValidity: companyInfo?.lutBondValidity || '',
+    taxLiabilityOnAdvanceReceipts: companyInfo?.taxLiabilityOnAdvanceReceipts ? 'yes' : 'no',
+  });
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
 
   const stateOptions = [
     { value: '01-jammu-and-kashmir', label: '01 - Jammu & Kashmir' },
@@ -250,78 +217,61 @@ const GSTRegistration: React.FC = () => {
     { value: 'quarterly', label: 'Quarterly' },
   ];
 
-  // const validateForm = () => {
-  //   const newErrors: Partial<Record<keyof FormData, string>> = {};
-  //   if (!formData.state) newErrors.state = 'State is required';
-  //   if (!formData.registrationType) newErrors.registrationType = 'Registration Type is required';
-  //   if (!formData.gstApplicableFrom) newErrors.gstApplicableFrom = 'GST Applicable From Date is required';
-  //   if (formData.gstNumber && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9A-Z]{3}$/.test(formData.gstNumber))
-  //     newErrors.gstNumber = 'Valid GSTIN/UIN (15 digits) is required';
-  //   if (formData.eWayBillApplicable === 'yes' && !formData.eWayBillThresholdLimit)
-  //     newErrors.eWayBillThresholdLimit = 'Threshold Limit is required when e-Way Bill is applicable';
-  //   if (formData.provideLutBond === 'yes' && !formData.lutBondNumber)
-  //     newErrors.lutBondNumber = 'LUT/Bond Number is required';
-  //   if (formData.provideLutBond === 'yes' && !formData.lutBondValidity)
-  //     newErrors.lutBondValidity = 'LUT/Bond Validity Period is required';
-  //   setErrors(newErrors);
-  //   return Object.keys(newErrors).length === 0;
-  // };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const employeeId = localStorage.getItem("employee_id");
-    if (!employeeId) {
-      alert("Employee ID not found in localStorage");
-      return;
-    }
-    // const companyInfoData: CompanyInfo = {
-    //   name: companyInfo?.name || '',
-    //   financialYear: companyInfo?.financialYear || '',
-    //   booksBeginningYear: companyInfo?.booksBeginningYear || '',
-    //   address: companyInfo?.address || '',
-    //   pin: companyInfo?.pin || '',
-    //   phoneNumber: companyInfo?.phoneNumber || '',
-    //   email: companyInfo?.email || '',
-    //   panNumber: companyInfo?.panNumber || '',
-    //   gstNumber: formData.gstNumber,
-    //   vatNumber: companyInfo?.vatNumber || '',
-    //   state: formData.state,
-    //   country: companyInfo?.country || undefined,
-    //   taxType: companyInfo?.taxType || undefined,
-    //   employeeId: companyInfo?.employeeId || undefined,
-    //   turnover: companyInfo?.turnover || undefined,
-      
-    // };
-    try {
-      const response = await fetch("http://localhost:5000/api/gst", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ employeeId: Number(employeeId), ...formData })
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Success',
-          text: 'GST Registration Successful',
-        }).then(() => {
-                  navigate('/app/masters');
-                });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: "Error: " + data.error,
-        });
-      }
-    } catch (error) {
-      console.error("Submission error:", error);
-      alert("Something went wrong");
-    }
+  const validateForm = () => {
+    const newErrors: Partial<Record<keyof FormData, string>> = {};
+    if (!formData.state) newErrors.state = 'State is required';
+    if (!formData.registrationType) newErrors.registrationType = 'Registration Type is required';
+    if (!formData.gstApplicableFrom) newErrors.gstApplicableFrom = 'GST Applicable From Date is required';
+    if (formData.gstNumber && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9A-Z]{3}$/.test(formData.gstNumber))
+      newErrors.gstNumber = 'Valid GSTIN/UIN (15 digits) is required';
+    if (formData.eWayBillApplicable === 'yes' && !formData.eWayBillThresholdLimit)
+      newErrors.eWayBillThresholdLimit = 'Threshold Limit is required when e-Way Bill is applicable';
+    if (formData.provideLutBond === 'yes' && !formData.lutBondNumber)
+      newErrors.lutBondNumber = 'LUT/Bond Number is required';
+    if (formData.provideLutBond === 'yes' && !formData.lutBondValidity)
+      newErrors.lutBondValidity = 'LUT/Bond Validity Period is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) {
+      alert('Please fix the errors before submitting.');
+      return;
+    }
+    const companyInfoData: CompanyInfo = {
+      name: companyInfo?.name || '',
+      financialYear: companyInfo?.financialYear || '',
+      booksBeginningYear: companyInfo?.booksBeginningYear || '',
+      address: companyInfo?.address || '',
+      pin: companyInfo?.pin || '',
+      phoneNumber: companyInfo?.phoneNumber || '',
+      email: companyInfo?.email || '',
+      panNumber: companyInfo?.panNumber || '',
+      gstNumber: formData.gstNumber,
+      vatNumber: companyInfo?.vatNumber || '',
+      state: formData.state,
+      country: companyInfo?.country || undefined,
+      taxType: companyInfo?.taxType || undefined,
+      employeeId: companyInfo?.employeeId || undefined,
+      turnover: companyInfo?.turnover || undefined,
+      registrationType: formData.registrationType,
+      assesseeOfOtherTerritory: formData.assesseeOfOtherTerritory === 'yes',
+      periodicityOfGstr1: formData.periodicityOfGstr1,
+      gstApplicableFrom: formData.gstApplicableFrom,
+      eWayBillApplicable: formData.eWayBillApplicable === 'yes',
+      eWayBillThresholdLimit: formData.eWayBillThresholdLimit,
+      eWayBillIntrastate: formData.eWayBillIntrastate === 'yes',
+      provideLutBond: formData.provideLutBond === 'yes',
+      lutBondNumber: formData.lutBondNumber,
+      lutBondValidity: formData.lutBondValidity,
+      taxLiabilityOnAdvanceReceipts: formData.taxLiabilityOnAdvanceReceipts === 'yes',
+    };
+    setCompanyInfo(companyInfoData);
+    alert('GST Registration Details saved successfully!');
+    navigate('/app/masters');
+  };
 
   return (
     <div className="pt-[56px] px-4">

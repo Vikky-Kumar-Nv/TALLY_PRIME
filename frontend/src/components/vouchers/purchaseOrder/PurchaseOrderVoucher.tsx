@@ -4,8 +4,8 @@ import Swal from 'sweetalert2';
 import { useAppContext } from '../../../context/AppContext';
 import { Save, Plus, Trash2, ArrowLeft, Printer, Settings, Calculator } from 'lucide-react';
 
-// Types for Sales Order
-interface SalesOrderItem {
+// Types for Purchase Order
+interface PurchaseOrderItem {
   id: string;
   itemId: string;
   itemName?: string;
@@ -16,24 +16,21 @@ interface SalesOrderItem {
   amount: number;
   godownId?: string;
   unit?: string;
-  cgstRate?: number;
-  sgstRate?: number;
-  igstRate?: number;
 }
 
-interface SalesOrderData {
+interface PurchaseOrderData {
   id?: string;
   date: string;
   number: string;
   partyId: string;
-  salesLedgerId: string;
+  purchaseLedgerId: string;
   referenceNo: string;
   narration: string;
-  items: SalesOrderItem[];
+  items: PurchaseOrderItem[];
   orderRef: string;
   termsOfDelivery: string;
   expectedDeliveryDate: string;
-  status: 'pending' | 'confirmed' | 'partially_delivered' | 'completed' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'partially_received' | 'completed' | 'cancelled';
   dispatchDetails: {
     destination: string;
     through: string;
@@ -55,8 +52,7 @@ interface StockItem {
   name: string;
   unit: string;
   hsnCode?: string;
-  standardSaleRate?: number;
-  gstRate?: number;
+  standardPurchaseRate?: number;
 }
 
 interface Godown {
@@ -65,7 +61,7 @@ interface Godown {
   location?: string;
 }
 
-const SalesOrder: React.FC = () => {
+const PurchaseOrderVoucher: React.FC = () => {
   const { theme, companyInfo } = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -73,27 +69,27 @@ const SalesOrder: React.FC = () => {
 
   // Sample data - replace with API calls
   const [parties] = useState<Ledger[]>([
-    { id: '1', name: 'ABC Electronics Pvt Ltd', type: 'sundry-debtors', currentBalance: 50000, state: 'Maharashtra', gstNumber: '27ABCDE1234F1Z5' },
-    { id: '2', name: 'XYZ Trading Co', type: 'sundry-debtors', currentBalance: 25000, state: 'Delhi', gstNumber: '07XYZAB5678G2H9' },
-    { id: '3', name: 'PQR Industries', type: 'sundry-debtors', currentBalance: 75000, state: 'Gujarat', gstNumber: '24PQRST9012I3J4' },
-    { id: '4', name: 'LMN Enterprises', type: 'sundry-debtors', currentBalance: 30000, state: 'Karnataka', gstNumber: '29LMNOP6789K4L5' },
+    { id: '1', name: 'ABC Suppliers Pvt Ltd', type: 'sundry-creditors', currentBalance: 50000, state: 'Maharashtra', gstNumber: '27ABCDE1234F1Z5' },
+    { id: '2', name: 'XYZ Trading Co', type: 'sundry-creditors', currentBalance: 25000, state: 'Delhi', gstNumber: '07XYZAB5678G2H9' },
+    { id: '3', name: 'PQR Industries', type: 'sundry-creditors', currentBalance: 75000, state: 'Gujarat', gstNumber: '24PQRST9012I3J4' },
+    { id: '4', name: 'LMN Enterprises', type: 'sundry-creditors', currentBalance: 30000, state: 'Karnataka', gstNumber: '29LMNOP6789K4L5' },
   ]);
 
-  const [salesLedgers] = useState<Ledger[]>([
-    { id: '11', name: 'Sales - Electronics', type: 'sales' },
-    { id: '12', name: 'Sales - Computer Hardware', type: 'sales' },
-    { id: '13', name: 'Sales - Office Equipment', type: 'sales' },
-    { id: '14', name: 'Sales - Finished Goods', type: 'sales' },
-    { id: '15', name: 'Sales - General', type: 'sales' },
+  const [purchaseLedgers] = useState<Ledger[]>([
+    { id: '11', name: 'Purchase - Electronics', type: 'purchase' },
+    { id: '12', name: 'Purchase - Computer Hardware', type: 'purchase' },
+    { id: '13', name: 'Purchase - Office Equipment', type: 'purchase' },
+    { id: '14', name: 'Purchase - Raw Materials', type: 'purchase' },
+    { id: '15', name: 'Purchase - General', type: 'purchase' },
   ]);
 
   const [stockItems] = useState<StockItem[]>([
-    { id: '1', name: 'Laptop Dell Inspiron', unit: 'Nos', hsnCode: '8471', standardSaleRate: 55000, gstRate: 18 },
-    { id: '2', name: 'Desktop Computer', unit: 'Nos', hsnCode: '8471', standardSaleRate: 45000, gstRate: 18 },
-    { id: '3', name: 'Printer HP LaserJet', unit: 'Nos', hsnCode: '8443', standardSaleRate: 18000, gstRate: 18 },
-    { id: '4', name: 'Monitor LED 24 inch', unit: 'Nos', hsnCode: '8528', standardSaleRate: 15000, gstRate: 18 },
-    { id: '5', name: 'Keyboard Wireless', unit: 'Nos', hsnCode: '8471', standardSaleRate: 3000, gstRate: 18 },
-    { id: '6', name: 'Mouse Optical', unit: 'Nos', hsnCode: '8471', standardSaleRate: 1200, gstRate: 18 },
+    { id: '1', name: 'Laptop Dell Inspiron', unit: 'Nos', hsnCode: '8471', standardPurchaseRate: 45000 },
+    { id: '2', name: 'Desktop Computer', unit: 'Nos', hsnCode: '8471', standardPurchaseRate: 35000 },
+    { id: '3', name: 'Printer HP LaserJet', unit: 'Nos', hsnCode: '8443', standardPurchaseRate: 15000 },
+    { id: '4', name: 'Monitor LED 24 inch', unit: 'Nos', hsnCode: '8528', standardPurchaseRate: 12000 },
+    { id: '5', name: 'Keyboard Wireless', unit: 'Nos', hsnCode: '8471', standardPurchaseRate: 2500 },
+    { id: '6', name: 'Mouse Optical', unit: 'Nos', hsnCode: '8471', standardPurchaseRate: 800 },
   ]);
 
   const [godowns] = useState<Godown[]>([
@@ -103,16 +99,16 @@ const SalesOrder: React.FC = () => {
   ]);
 
   const generateOrderNumber = () => {
-    const prefix = 'SO';
+    const prefix = 'PO';
     const randomNumber = Math.floor(100000 + Math.random() * 900000);
     return `${prefix}${randomNumber}`;
   };
 
-  const initialFormData: SalesOrderData = {
+  const initialFormData: PurchaseOrderData = {
     date: new Date().toISOString().split('T')[0],
     number: isEditMode ? '' : generateOrderNumber(),
     partyId: '',
-    salesLedgerId: '',
+    purchaseLedgerId: '',
     referenceNo: '',
     narration: '',
     items: [
@@ -123,9 +119,6 @@ const SalesOrder: React.FC = () => {
         rate: 0,
         discount: 0,
         amount: 0,
-        cgstRate: 0,
-        sgstRate: 0,
-        igstRate: 0,
       }
     ],
     orderRef: '',
@@ -139,7 +132,7 @@ const SalesOrder: React.FC = () => {
     }
   };
 
-  const [formData, setFormData] = useState<SalesOrderData>(initialFormData);
+  const [formData, setFormData] = useState<PurchaseOrderData>(initialFormData);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showConfigPanel, setShowConfigPanel] = useState(false);
   const [config, setConfig] = useState({
@@ -148,19 +141,12 @@ const SalesOrder: React.FC = () => {
     showGodown: true,
     showHSN: true,
     showDiscount: true,
-    showGST: true,
   });
 
   // Get selected party details
   const selectedParty = useMemo(() => {
     return parties.find(p => p.id === formData.partyId);
   }, [parties, formData.partyId]);
-
-  // Check if transaction is intrastate or interstate
-  const isIntrastate = useMemo(() => {
-    if (!selectedParty || !companyInfo?.state) return true;
-    return selectedParty.state === companyInfo.state;
-  }, [selectedParty, companyInfo?.state]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -170,7 +156,7 @@ const SalesOrder: React.FC = () => {
 
   const handleItemChange = (
     index: number,
-    field: keyof SalesOrderItem,
+    field: keyof PurchaseOrderItem,
     value: string | number
   ) => {
     const updatedItems = [...formData.items];
@@ -181,47 +167,27 @@ const SalesOrder: React.FC = () => {
       if (selectedItem) {
         item.itemName = selectedItem.name;
         item.hsnCode = selectedItem.hsnCode;
-        item.rate = selectedItem.standardSaleRate || 0;
+        item.rate = selectedItem.standardPurchaseRate || 0;
         item.unit = selectedItem.unit;
-        
-        // Set GST rates based on intrastate/interstate
-        const gstRate = selectedItem.gstRate || 0;
-        if (isIntrastate) {
-          item.cgstRate = gstRate / 2;
-          item.sgstRate = gstRate / 2;
-          item.igstRate = 0;
-        } else {
-          item.cgstRate = 0;
-          item.sgstRate = 0;
-          item.igstRate = gstRate;
-        }
       }
     }
 
-    // Update the field in the item object
-    if (field === 'quantity' || field === 'rate' || field === 'discount' || field === 'cgstRate' || field === 'sgstRate' || field === 'igstRate') {
-      item[field] = typeof value === 'number' ? value : parseFloat(value as string) || 0;
-    } else if (field === 'amount') {
-      item.amount = typeof value === 'number' ? value : parseFloat(value as string) || 0;
-    } else if (field === 'itemId' || field === 'itemName' || field === 'hsnCode' || field === 'unit' || field === 'godownId' || field === 'id') {
-      // Handle string fields
-      if (field === 'itemId') item.itemId = value as string;
-      else if (field === 'itemName') item.itemName = value as string;
-      else if (field === 'hsnCode') item.hsnCode = value as string;
-      else if (field === 'unit') item.unit = value as string;
-      else if (field === 'godownId') item.godownId = value as string;
-      else if (field === 'id') item.id = value as string;
-    }
+    if (field === 'itemId' && typeof value === 'string') item.itemId = value;
+    else if (field === 'itemName' && typeof value === 'string') item.itemName = value;
+    else if (field === 'hsnCode' && typeof value === 'string') item.hsnCode = value;
+    else if (field === 'quantity' && typeof value === 'number') item.quantity = value;
+    else if (field === 'rate' && typeof value === 'number') item.rate = value;
+    else if (field === 'discount' && typeof value === 'number') item.discount = value;
+    else if (field === 'amount' && typeof value === 'number') item.amount = value;
+    else if (field === 'godownId' && typeof value === 'string') item.godownId = value;
+    else if (field === 'unit' && typeof value === 'string') item.unit = value;
 
     // Calculate amount when quantity, rate, or discount changes
     if (['quantity', 'rate', 'discount'].includes(field)) {
       const quantity = Number(item.quantity) || 0;
       const rate = Number(item.rate) || 0;
       const discount = Number(item.discount) || 0;
-      const baseAmount = quantity * rate;
-      const gstRate = (item.cgstRate || 0) + (item.sgstRate || 0) + (item.igstRate || 0);
-      const gstAmount = baseAmount * gstRate / 100;
-      item.amount = baseAmount + gstAmount - discount;
+      item.amount = quantity * rate - discount;
     }
 
     updatedItems[index] = item;
@@ -230,16 +196,13 @@ const SalesOrder: React.FC = () => {
   };
 
   const addItem = () => {
-    const newItem: SalesOrderItem = {
+    const newItem: PurchaseOrderItem = {
       id: (formData.items.length + 1).toString(),
       itemId: '',
       quantity: 0,
       rate: 0,
       discount: 0,
       amount: 0,
-      cgstRate: 0,
-      sgstRate: 0,
-      igstRate: 0,
     };
     setFormData(prev => ({
       ...prev,
@@ -259,7 +222,7 @@ const SalesOrder: React.FC = () => {
 
     if (!formData.date) newErrors.date = 'Date is required';
     if (!formData.partyId) newErrors.partyId = 'Party selection is required';
-    if (!formData.salesLedgerId) newErrors.salesLedgerId = 'Sales ledger is required';
+    if (!formData.purchaseLedgerId) newErrors.purchaseLedgerId = 'Purchase ledger is required';
 
     // Validate items
     formData.items.forEach((item, index) => {
@@ -270,7 +233,7 @@ const SalesOrder: React.FC = () => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData.date, formData.partyId, formData.salesLedgerId, formData.items]);
+  }, [formData]);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -281,7 +244,7 @@ const SalesOrder: React.FC = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/sales-orders', {
+      const response = await fetch('http://localhost:5000/api/purchase-orders', {
         method: isEditMode ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -295,7 +258,7 @@ const SalesOrder: React.FC = () => {
         Swal.fire({
           icon: 'success',
           title: 'Success',
-          text: `Sales Order ${isEditMode ? 'updated' : 'created'} successfully`,
+          text: `Purchase Order ${isEditMode ? 'updated' : 'created'} successfully`,
         }).then(() => {
           navigate('/app/vouchers');
         });
@@ -312,13 +275,11 @@ const SalesOrder: React.FC = () => {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       const totalAmount = formData.items.reduce((sum, item) => sum + item.amount, 0);
-      const subtotal = formData.items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
-      const totalGST = totalAmount - subtotal + formData.items.reduce((sum, item) => sum + item.discount, 0);
       
       printWindow.document.write(`
         <html>
           <head>
-            <title>Sales Order - ${formData.number}</title>
+            <title>Purchase Order - ${formData.number}</title>
             <style>
               body { font-family: Arial, sans-serif; padding: 20px; }
               .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
@@ -333,7 +294,7 @@ const SalesOrder: React.FC = () => {
           </head>
           <body>
             <div class="header">
-              <h1>SALES ORDER</h1>
+              <h1>PURCHASE ORDER</h1>
             </div>
             
             <div class="company-info">
@@ -349,7 +310,7 @@ const SalesOrder: React.FC = () => {
                 <strong>Expected Delivery:</strong> ${formData.expectedDeliveryDate || 'N/A'}
               </div>
               <div>
-                <strong>Customer:</strong> ${selectedParty?.name || 'N/A'}<br>
+                <strong>Supplier:</strong> ${selectedParty?.name || 'N/A'}<br>
                 <strong>GST No:</strong> ${selectedParty?.gstNumber || 'N/A'}<br>
                 <strong>Current Balance:</strong> ₹${selectedParty?.currentBalance?.toLocaleString() || '0'}
               </div>
@@ -365,7 +326,6 @@ const SalesOrder: React.FC = () => {
                   <th>Unit</th>
                   <th>Rate</th>
                   <th>Discount</th>
-                  ${config.showGST ? '<th>GST %</th>' : ''}
                   <th class="amount">Amount</th>
                 </tr>
               </thead>
@@ -379,20 +339,11 @@ const SalesOrder: React.FC = () => {
                     <td>${item.unit || 'Nos'}</td>
                     <td class="amount">₹${item.rate.toLocaleString()}</td>
                     <td class="amount">₹${item.discount.toLocaleString()}</td>
-                    ${config.showGST ? `<td>${((item.cgstRate || 0) + (item.sgstRate || 0) + (item.igstRate || 0))}%</td>` : ''}
                     <td class="amount">₹${item.amount.toLocaleString()}</td>
                   </tr>
                 `).join('')}
                 <tr class="total-row">
-                  <td colspan="${config.showGST ? '8' : '7'}"><strong>Subtotal</strong></td>
-                  <td class="amount"><strong>₹${subtotal.toLocaleString()}</strong></td>
-                </tr>
-                <tr class="total-row">
-                  <td colspan="${config.showGST ? '8' : '7'}"><strong>Total GST</strong></td>
-                  <td class="amount"><strong>₹${totalGST.toLocaleString()}</strong></td>
-                </tr>
-                <tr class="total-row">
-                  <td colspan="${config.showGST ? '8' : '7'}"><strong>Total Amount</strong></td>
+                  <td colspan="7"><strong>Total Amount</strong></td>
                   <td class="amount"><strong>₹${totalAmount.toLocaleString()}</strong></td>
                 </tr>
               </tbody>
@@ -421,17 +372,10 @@ const SalesOrder: React.FC = () => {
       printWindow.document.close();
       printWindow.print();
     }
-  }, [formData, companyInfo, selectedParty, config.showGST]);
+  }, [formData, companyInfo, selectedParty]);
 
   // Calculate totals
-  const subtotal = formData.items.reduce((sum, item) => sum + (item.quantity * item.rate), 0);
-  const totalDiscount = formData.items.reduce((sum, item) => sum + item.discount, 0);
-  const totalGST = formData.items.reduce((sum, item) => {
-    const baseAmount = item.quantity * item.rate;
-    const gstRate = (item.cgstRate || 0) + (item.sgstRate || 0) + (item.igstRate || 0);
-    return sum + (baseAmount * gstRate / 100);
-  }, 0);
-  const totalAmount = subtotal + totalGST - totalDiscount;
+  const totalAmount = formData.items.reduce((sum, item) => sum + item.amount, 0);
   const totalQuantity = formData.items.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -446,18 +390,18 @@ const SalesOrder: React.FC = () => {
           <ArrowLeft size={20} />
         </button>
         <h1 className={`text-2xl font-bold ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
-          {isEditMode ? 'Edit Sales Order' : 'New Sales Order'}
+          {isEditMode ? 'Edit Purchase Order' : 'New Purchase Order'}
         </h1>
         <div className="ml-auto flex space-x-2">
           <button
-            title="Save Sales Order"
+            title="Save Purchase Order"
             onClick={handleSubmit}
             className={`p-2 rounded-md ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white flex items-center`}
           >
             <Save size={18} className="mr-2" /> Save
           </button>
           <button
-            title="Print Sales Order"
+            title="Print Purchase Order"
             onClick={handlePrint}
             className={`p-2 rounded-md ${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}
           >
@@ -482,7 +426,7 @@ const SalesOrder: React.FC = () => {
                 Date <span className="text-red-500">*</span>
               </label>
               <input
-                title="Order Date"
+                title='date'
                 type="date"
                 name="date"
                 value={formData.date}
@@ -495,9 +439,10 @@ const SalesOrder: React.FC = () => {
 
             <div>
               <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Sales Order No.
+                Purchase Order No.
               </label>
               <input
+                 title='number'
                 type="text"
                 name="number"
                 value={formData.number}
@@ -513,6 +458,7 @@ const SalesOrder: React.FC = () => {
                 Reference No.
               </label>
               <input
+              title='referenceNo'
                 type="text"
                 name="referenceNo"
                 value={formData.referenceNo}
@@ -528,29 +474,29 @@ const SalesOrder: React.FC = () => {
                   Expected Delivery Date
                 </label>
                 <input
+                  title='expectedDeliveryDate'
                   type="date"
                   name="expectedDeliveryDate"
                   value={formData.expectedDeliveryDate}
                   onChange={handleChange}
-                  title="Expected Delivery Date"
                   className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
                 />
               </div>
             )}
           </div>
 
-          {/* Party and Sales Ledger */}
+          {/* Party and Purchase Ledger */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
               <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                 Party's A/c Name <span className="text-red-500">*</span>
               </label>
               <select
+                title='partyId'
                 name="partyId"
                 value={formData.partyId}
                 onChange={handleChange}
                 required
-                title="Select Customer"
                 className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
               >
                 <option value="">Select Party</option>
@@ -567,31 +513,30 @@ const SalesOrder: React.FC = () => {
                   <p><strong>Current Balance:</strong> ₹{selectedParty.currentBalance?.toLocaleString() || '0'}</p>
                   <p><strong>GST No:</strong> {selectedParty.gstNumber || 'N/A'}</p>
                   <p><strong>State:</strong> {selectedParty.state || 'N/A'}</p>
-                  <p><strong>GST Type:</strong> {isIntrastate ? 'Intrastate (CGST + SGST)' : 'Interstate (IGST)'}</p>
                 </div>
               )}
             </div>
 
             <div>
               <label className={`block text-sm font-medium mb-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Sales Ledger <span className="text-red-500">*</span>
+                Purchase Ledger <span className="text-red-500">*</span>
               </label>
               <select
-                name="salesLedgerId"
-                value={formData.salesLedgerId}
+              title='purchaseLedgerId'
+                name="purchaseLedgerId"
+                value={formData.purchaseLedgerId}
                 onChange={handleChange}
                 required
-                title="Select Sales Ledger"
                 className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
               >
-                <option value="">Select Sales Ledger</option>
-                {salesLedgers.map(ledger => (
+                <option value="">Select Purchase Ledger</option>
+                {purchaseLedgers.map(ledger => (
                   <option key={ledger.id} value={ledger.id}>
                     {ledger.name}
                   </option>
                 ))}
               </select>
-              {errors.salesLedgerId && <p className="text-red-500 text-sm mt-1">{errors.salesLedgerId}</p>}
+              {errors.purchaseLedgerId && <p className="text-red-500 text-sm mt-1">{errors.purchaseLedgerId}</p>}
             </div>
           </div>
 
@@ -617,7 +562,6 @@ const SalesOrder: React.FC = () => {
                     <th className="px-2 py-2 text-center">Quantity</th>
                     <th className="px-2 py-2 text-center">Rate per</th>
                     {config.showDiscount && <th className="px-2 py-2 text-center">Discount</th>}
-                    {config.showGST && <th className="px-2 py-2 text-center">GST %</th>}
                     <th className="px-2 py-2 text-right">Amount</th>
                     {config.showGodown && <th className="px-2 py-2 text-left">Godown</th>}
                     <th className="px-2 py-2 text-center">Action</th>
@@ -628,9 +572,9 @@ const SalesOrder: React.FC = () => {
                     <tr key={item.id} className={`${theme === 'dark' ? 'border-b border-gray-600' : 'border-b border-gray-300'}`}>
                       <td className="px-2 py-2">
                         <select
+                        title='itemId'
                           value={item.itemId}
                           onChange={(e) => handleItemChange(index, 'itemId', e.target.value)}
-                          title="Select Item"
                           className={`w-full p-1 rounded border text-sm ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500`}
                         >
                           <option value="">Select Item</option>
@@ -648,6 +592,7 @@ const SalesOrder: React.FC = () => {
                       {config.showHSN && (
                         <td className="px-2 py-2">
                           <input
+                          
                             type="text"
                             value={item.hsnCode || ''}
                             onChange={(e) => handleItemChange(index, 'hsnCode', e.target.value)}
@@ -692,6 +637,7 @@ const SalesOrder: React.FC = () => {
                       {config.showDiscount && (
                         <td className="px-2 py-2">
                           <input
+                          title='discount'
                             type="number"
                             value={item.discount}
                             onChange={(e) => handleItemChange(index, 'discount', parseFloat(e.target.value) || 0)}
@@ -703,23 +649,12 @@ const SalesOrder: React.FC = () => {
                         </td>
                       )}
 
-                      {config.showGST && (
-                        <td className="px-2 py-2 text-center">
-                          <span className="text-sm">
-                            {isIntrastate ? 
-                              `C:${item.cgstRate || 0}% S:${item.sgstRate || 0}%` : 
-                              `I:${item.igstRate || 0}%`
-                            }
-                          </span>
-                        </td>
-                      )}
-
                       <td className="px-2 py-2">
                         <input
+                        title='amount'
                           type="number"
                           value={item.amount}
                           readOnly
-                          title="Item Amount"
                           className={`w-full p-1 rounded border text-right text-sm ${theme === 'dark' ? 'bg-gray-600 border-gray-600 text-gray-100' : 'bg-gray-100 border-gray-300 text-gray-900'} opacity-60`}
                         />
                       </td>
@@ -763,8 +698,7 @@ const SalesOrder: React.FC = () => {
                     <td className="px-2 py-2" colSpan={config.showHSN ? 2 : 1}>Total</td>
                     <td className="px-2 py-2 text-center">{totalQuantity}</td>
                     <td className="px-2 py-2"></td>
-                    {config.showDiscount && <td className="px-2 py-2 text-right">₹{totalDiscount.toLocaleString()}</td>}
-                    {config.showGST && <td className="px-2 py-2 text-right">₹{totalGST.toLocaleString()}</td>}
+                    {config.showDiscount && <td className="px-2 py-2"></td>}
                     <td className="px-2 py-2 text-right">₹{totalAmount.toLocaleString()}</td>
                     {config.showGodown && <td className="px-2 py-2"></td>}
                     <td className="px-2 py-2"></td>
@@ -870,15 +804,6 @@ const SalesOrder: React.FC = () => {
                   />
                   Show Discount
                 </label>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={config.showGST}
-                    onChange={e => setConfig(prev => ({ ...prev, showGST: e.target.checked }))}
-                    className={`mr-2 ${theme === 'dark' ? 'bg-gray-600' : 'bg-white'}`}
-                  />
-                  Show GST
-                </label>
               </div>
             </div>
           )}
@@ -892,9 +817,6 @@ const SalesOrder: React.FC = () => {
             <p className="text-sm font-medium">
               Total Items: {formData.items.length} | Total Quantity: {totalQuantity}
             </p>
-            <p className="text-sm">
-              Subtotal: ₹{subtotal.toLocaleString()} | GST: ₹{totalGST.toLocaleString()} | Discount: ₹{totalDiscount.toLocaleString()}
-            </p>
             <p className="text-lg font-bold">
               Total Amount: ₹{totalAmount.toLocaleString()}
             </p>
@@ -907,11 +829,11 @@ const SalesOrder: React.FC = () => {
         
         <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
           <p><strong>Keyboard Shortcuts:</strong> Ctrl+S to save, Ctrl+P to print, F12 to configure, Esc to cancel</p>
-          <p><strong>Note:</strong> Sales Orders are used to confirm orders from customers before actual sale. {isIntrastate ? 'Intrastate transaction - CGST + SGST applicable' : 'Interstate transaction - IGST applicable'}</p>
+          <p><strong>Note:</strong> Purchase Orders are used to place orders with suppliers before actual purchase.</p>
         </div>
       </div>
     </div>
   );
 };
 
-export default SalesOrder;
+export default PurchaseOrderVoucher;

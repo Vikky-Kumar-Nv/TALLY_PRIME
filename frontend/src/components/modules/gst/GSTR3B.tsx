@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Printer, Filter, Upload, Save, Calculator, FileText, X } from 'lucide-react';
-  import Swal from 'sweetalert2';
 
 // Helper function to get month name
 const getMonthName = (month: string): string => {
@@ -310,71 +309,31 @@ const GSTR3B: React.FC = () => {
     }
   };
 
-
-const handleSubmitReturn = async () => {
-  if (validateForm()) {
-    const totals = calculateTotals();
-    const { month, year } = gstr3bData.returnPeriod;
-
-    const confirm = await Swal.fire({
-      title: `Submit GSTR-3B for ${getMonthName(month)} ${year}?`,
-      html: `<strong>Net Tax Liability:</strong> ₹${totals.netTaxLiability.toFixed(2)}`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, Submit',
-      cancelButtonText: 'Cancel',
-    });
-
-    if (confirm.isConfirmed) {
-      // Generate ARN
-      const currentDate = new Date();
-      const formattedDate = currentDate.getFullYear().toString() +
-                            (currentDate.getMonth() + 1).toString().padStart(2, '0') +
-                            currentDate.getDate().toString().padStart(2, '0');
-      const randomNum = Math.floor(Math.random() * 900000) + 100000;
-      const arn = `AB${formattedDate}${randomNum}`;
-
-      const employeeId = localStorage.getItem('employee_id');
-
-      if (!employeeId) {
-        Swal.fire('Error', 'Employee ID not found in localStorage', 'error');
-        return;
-      }
-
-      // Attach ARN and employeeId to the data
-      const payload = {
-        ...gstr3bData,
-        arn,
-        employeeId,
-      };
-
-      try {
-        const response = await fetch('http://localhost:5000/api/gstr3b', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          setGeneratedArn(arn);
-          setShowArnModal(true);
-          setShowPreviewMode(false);
-
-          Swal.fire('Success', 'GSTR-3B Return Submitted Successfully', 'success');
-        } else {
-          Swal.fire('Error', result.message || 'Failed to submit GSTR-3B return.', 'error');
-        }
-      } catch (error) {
-        console.error('Submission error:', error);
-        Swal.fire('Error', 'An unexpected error occurred.', 'error');
+  const handleSubmitReturn = () => {
+    if (validateForm()) {
+      const totals = calculateTotals();
+      const confirmSubmit = window.confirm(
+        `Are you sure you want to submit GSTR-3B for ${getMonthName(gstr3bData.returnPeriod.month)} ${gstr3bData.returnPeriod.year}?\n\nNet Tax Liability: ₹${totals.netTaxLiability.toFixed(2)}`
+      );
+      
+      if (confirmSubmit) {
+        // Generate ARN (Acknowledgement Reference Number)
+        const currentDate = new Date();
+        const formattedDate = currentDate.getFullYear().toString() + 
+                              (currentDate.getMonth() + 1).toString().padStart(2, '0') + 
+                              currentDate.getDate().toString().padStart(2, '0');
+        const randomNum = Math.floor(Math.random() * 900000) + 100000;
+        const arn = `AB${formattedDate}${randomNum}`;
+        
+        console.log('Submitting GSTR-3B:', gstr3bData);
+        setGeneratedArn(arn);
+        setShowArnModal(true);
+        
+        // Clear preview mode if it was active
+        setShowPreviewMode(false);
       }
     }
-  }
-};
+  };
 
   const saveDraft = () => {
     localStorage.setItem('gstr3b_draft', JSON.stringify(gstr3bData));

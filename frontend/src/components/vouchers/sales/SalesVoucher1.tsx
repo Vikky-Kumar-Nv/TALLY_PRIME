@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../../../context/AppContext';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { VoucherEntry, Ledger, Godown } from '../../../types';
-import { Save, Plus, Trash2, ArrowLeft, Printer } from 'lucide-react';
+import { Save, Plus, Trash2, ArrowLeft, Printer, FileText, Truck, Mail, MessageCircle, X } from 'lucide-react';
 import Swal from 'sweetalert2';
+import EWayBillGeneration from './EWayBillGeneration';
+import InvoicePrint from './InvoicePrint';
 
 // DRY Constants for Tailwind Classes
 const FORM_STYLES = {
@@ -18,102 +19,19 @@ const FORM_STYLES = {
     `w-full p-1 rounded border cursor-pointer ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`
 };
 
-const PRINT_STYLES = {
-  container: 'absolute -left-[9999px] -top-[9999px] w-[210mm] min-h-[297mm]',
-  printArea: 'font-arial text-xs leading-tight p-4 bg-white text-black',
-  invoice: {
-    border: 'border-2 border-black mb-2.5',
-    header: 'bg-gray-100 p-2 text-center border-b border-black',
-    title: 'text-lg font-bold m-0 tracking-wider',
-    infoRow: 'flex justify-between px-2.5 py-1.5 border-b border-black text-xs',
-    infoFlex: 'flex gap-5',
-    companySection: 'p-2.5 border-b border-black',
-    companyHeader: 'flex items-center mb-2',
-    companyLogo: 'w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-4',
-    companyLogoText: 'text-white text-base font-bold',
-    companyName: 'text-base font-bold m-0 uppercase',
-    companyAddress: 'my-0.5 text-xs',
-    companyInfo: 'text-xs flex gap-5',
-    partySection: 'p-2.5',
-    partyHeader: 'mb-1.5',
-    partyLabel: 'text-xs font-bold',
-    partyDetails: 'text-xs leading-relaxed'
-  },
-  table: {
-    main: 'w-full border-collapse mb-5 border border-black',
-    headerRow: 'bg-gray-50',
-    headerCell: 'border border-black p-2 text-xs font-bold',
-    headerCellCenter: 'border border-black p-2 text-xs font-bold text-center',
-    headerCellRight: 'border border-black p-2 text-xs font-bold text-right',
-    dataCell: 'border border-black p-2 text-xs',
-    dataCellCenter: 'border border-black p-2 text-xs text-center',
-    dataCellRight: 'border border-black p-2 text-xs text-right',
-    emptyCell: 'border border-black p-5 text-xs',
-    totalCell: 'border border-black p-1.5 text-xs text-right font-bold',
-    totalValues: 'border border-black p-1.5 text-xs text-right'
-  },
-  totals: {
-    amountWords: 'border border-black p-2.5 mb-4',
-    amountWordsLabel: 'text-xs font-bold',
-    amountWordsText: 'text-xs mt-1.5 min-h-5',
-    gstSummary: 'border border-black p-2.5 mb-4',
-    gstSummaryLabel: 'text-xs font-bold mb-2 block',
-    gstSummaryContent: 'text-xs',
-    gstRateHeader: 'flex justify-between mb-2 font-bold',
-    gstRateDetails: 'text-xs mb-2',
-    gstRateRow: 'flex justify-between mb-1 border-b border-dotted border-gray-300 pb-0.5',
-    gstNote: 'mt-2 text-center text-xs italic text-gray-600'
-  },
-  signatures: {
-    container: 'flex justify-between mt-8',
-    section: 'w-48per',
-    sectionRight: 'w-48per text-right',
-    label: 'text-xs font-bold mb-1.5',
-    signatureArea: 'mt-12 text-xs',
-    signatureLine: 'border-t border-black pt-1.5 text-center'
-  }
-};
-
 const SalesVoucher: React.FC = () => {
   const { theme, stockItems, ledgers, godowns = [], vouchers = [], companyInfo, addVoucher, updateVoucher } = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const isEditMode = !!id;
-  const printRef = useRef<HTMLDivElement>(null);
+  
+  // Check if quotation mode is requested via URL
+  const isQuotationMode = searchParams.get('mode') === 'quotation';
 
-  // Safe fallbacks for context data
-  const safeStockItems = stockItems || [
-    { id: '1', name: 'Laptop HP Pavilion', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 50, rate: 45000 },
-    { id: '2', name: 'Mobile Phone Samsung', hsnCode: '8517', unit: 'Piece', gstRate: 5, openingBalance: 100, rate: 25000 },
-    { id: '3', name: 'Printer Canon', hsnCode: '8443', unit: 'Piece', gstRate: 18, openingBalance: 30, rate: 15000 },
-    { id: '4', name: 'Office Chair', hsnCode: '9401', unit: 'Piece', gstRate: 18, openingBalance: 75, rate: 8000 },
-    { id: '5', name: 'LED Monitor', hsnCode: '8528', unit: 'Piece', gstRate: 18, openingBalance: 40, rate: 12000 },
-    { id: '6', name: 'Desktop Computer Dell', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 25, rate: 35000 },
-    { id: '7', name: 'Wireless Mouse Logitech', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 200, rate: 1500 },
-    { id: '8', name: 'Keyboard Mechanical', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 150, rate: 3500 },
-    { id: '9', name: 'Smartphone iPhone', hsnCode: '8517', unit: 'Piece', gstRate: 18, openingBalance: 60, rate: 80000 },
-    { id: '10', name: 'Tablet iPad', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 35, rate: 45000 },
-    { id: '11', name: 'Webcam HD Logitech', hsnCode: '8525', unit: 'Piece', gstRate: 18, openingBalance: 80, rate: 4500 },
-    { id: '12', name: 'Headphones Sony', hsnCode: '8518', unit: 'Piece', gstRate: 18, openingBalance: 120, rate: 6000 },
-    { id: '13', name: 'External Hard Drive 1TB', hsnCode: '8471', unit: 'Piece', gstRate: 18, openingBalance: 90, rate: 5500 },
-    { id: '14', name: 'Router WiFi TP-Link', hsnCode: '8517', unit: 'Piece', gstRate: 18, openingBalance: 70, rate: 3200 },
-    { id: '15', name: 'UPS 1000VA APC', hsnCode: '8504', unit: 'Piece', gstRate: 18, openingBalance: 45, rate: 8500 }
-  ];  const safeLedgers = ledgers || [
-    { id: '1', name: 'ABC Electronics Pvt Ltd', type: 'sundry-debtors', address: '123 Business Street, Mumbai', gstNumber: '27ABCDE1234F1Z5', state: 'Maharashtra' },
-    { id: '2', name: 'XYZ Trading Co', type: 'sundry-debtors', address: '456 Market Road, Delhi', gstNumber: '07XYZAB5678G2H9', state: 'Delhi' },
-    { id: '3', name: 'Cash', type: 'cash', address: '', gstNumber: '', state: '' },
-    { id: '4', name: 'PQR Industries', type: 'sundry-debtors', address: '789 Industrial Area, Pune', gstNumber: '27PQRST9012I3J4', state: 'Maharashtra' },
-    { id: '5', name: 'LMN Enterprises', type: 'current-assets', address: '321 Commercial Zone, Bangalore', gstNumber: '29LMNOP6789K4L5', state: 'Karnataka' },
-    { id: '6', name: 'Tech Solutions India Ltd', type: 'sundry-debtors', address: '88 IT Park, Hyderabad', gstNumber: '36TECH8901M6N7', state: 'Telangana' },
-    { id: '7', name: 'Global Systems Corp', type: 'sundry-debtors', address: '45 Cyber City, Gurgaon', gstNumber: '06GLOBA2345P8Q9', state: 'Haryana' },
-    { id: '8', name: 'Prime Distributors', type: 'sundry-debtors', address: '12 Trade Center, Chennai', gstNumber: '33PRIME6789R0S1', state: 'Tamil Nadu' },
-    { id: '9', name: 'Retail Partners Ltd', type: 'sundry-debtors', address: '67 Mall Road, Kolkata', gstNumber: '19RETAIL3456T2U3', state: 'West Bengal' },
-    { id: '10', name: 'Digital Hub Solutions', type: 'sundry-debtors', address: '23 Tech Tower, Kochi', gstNumber: '32DIGITAL789V4W5', state: 'Kerala' },
-    { id: '11', name: 'Smart Devices Inc', type: 'sundry-debtors', address: '56 Innovation Park, Jaipur', gstNumber: '08SMART0123X6Y7', state: 'Rajasthan' },
-    { id: '12', name: 'Future Tech Enterprises', type: 'sundry-debtors', address: '91 Science City, Ahmedabad', gstNumber: '24FUTURE456Z8A9', state: 'Gujarat' },
-    { id: '13', name: 'Metro Electronics', type: 'sundry-debtors', address: '34 Electronics Market, Lucknow', gstNumber: '09METRO789B0C1', state: 'Uttar Pradesh' },
-    { id: '14', name: 'Omega Systems Pvt Ltd', type: 'sundry-debtors', address: '78 Business Bay, Indore', gstNumber: '23OMEGA012D3E4', state: 'Madhya Pradesh' },
-    { id: '15', name: 'Alpha Technologies', type: 'current-assets', address: '45 Tech Valley, Bhubaneswar', gstNumber: '21ALPHA345F5G6', state: 'Odisha' }  ];
+  // Safe fallbacks for context data - Remove demo data and use only from context
+  const safeStockItems = stockItems || [];
+  const safeLedgers = ledgers || [];
   const safeCompanyInfo = companyInfo || {
     name: 'Your Company Name',
     address: 'Your Company Address',
@@ -123,14 +41,18 @@ const SalesVoucher: React.FC = () => {
     panNumber: 'N/A'
   };
 
-  // Generate voucher number (e.g., ABCDEF0001)
-  const generateVoucherNumber = () => {
+  // State initialization first
+  const [isQuotation, setIsQuotation] = useState(isQuotationMode); // Initialize with URL parameter
+
+  // Generate voucher number (e.g., ABCDEF0001 or QT0001)
+  const generateVoucherNumber = useCallback(() => {
     const salesVouchers = vouchers.filter(v => v.type === 'sales');
+    const prefix = isQuotation ? 'QT' : 'XYZ';
     const lastNumber = salesVouchers.length > 0
-      ? parseInt(salesVouchers[salesVouchers.length - 1].number.replace('XYZ', '')) || 0
+      ? parseInt(salesVouchers[salesVouchers.length - 1].number.replace(/^(XYZ|QT)/, '')) || 0
       : 0;
-    return `XYZ${(lastNumber + 1).toString().padStart(4, '0')}`;
-  };
+    return `${prefix}${(lastNumber + 1).toString().padStart(4, '0')}`;
+  }, [vouchers, isQuotation]);
 
   const getInitialFormData = (): Omit<VoucherEntry, 'id'> => {
     if (isEditMode && id) {
@@ -143,8 +65,8 @@ const SalesVoucher: React.FC = () => {
     }
     return {
       date: new Date().toISOString().split('T')[0],
-      type: 'sales',
-      number: generateVoucherNumber(),
+      type: isQuotation ? 'quotation' : 'sales',
+      number: `${isQuotation ? 'QT' : 'XYZ'}0001`, // Will be updated by useEffect
       narration: '',
       referenceNo: '',
       partyId: '',
@@ -159,60 +81,23 @@ const SalesVoucher: React.FC = () => {
 
   const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>(getInitialFormData());
   const [godownEnabled, setGodownEnabled] = useState<'yes' | 'no'>('yes'); // Add state for godown selection visibility
-
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showPrintOptions, setShowPrintOptions] = useState(false); // Print options popup state
+  const [showEWayBill, setShowEWayBill] = useState(false); // E-way Bill modal state
+  const [showInvoicePrint, setShowInvoicePrint] = useState(false); // Invoice print modal state
+
+  // Regenerate voucher number when quotation mode changes
+  useEffect(() => {
+    if (!isEditMode) {
+      setFormData(prev => ({
+        ...prev,
+        number: generateVoucherNumber(),
+        type: isQuotation ? 'quotation' : 'sales'
+      }));
+    }
+  }, [isQuotation, isEditMode, generateVoucherNumber]);
   const [showConfig, setShowConfig] = useState(false);
   // Keyboard shortcuts
- 
-  // Printing
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: `Sales_Voucher_${formData.number}`,
-    onBeforePrint: () => {
-      console.log('Starting print process...');
-      const selectedItems = formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select');
-      console.log('Selected items for print:', selectedItems.length);
-      
-      console.log('Print data:', { 
-        party: formData.partyId ? getPartyName(formData.partyId) : 'No Party', 
-        items: selectedItems.length,
-        totals: calculateTotals()
-      });
-      
-      return Promise.resolve();
-    },
-    onAfterPrint: () => {
-      console.log('Print completed successfully');
-    },    onPrintError: (errorLocation: string, error: Error) => {
-      console.error('Print error at:', errorLocation, error);
-      alert('Print failed. Please try your browser\'s print function (Ctrl+P).');
-    },
-    pageStyle: `
-      @page {
-        size: A4;
-        margin: 10mm;
-      }
-      @media print {
-        body { 
-          font-size: 12pt; 
-          font-family: Arial, sans-serif;
-          -webkit-print-color-adjust: exact;
-          color-adjust: exact;
-        }
-        table { 
-          width: 100%; 
-          border-collapse: collapse; 
-          page-break-inside: avoid;
-        }
-        th, td { 
-          border: 1px solid #000; 
-          padding: 8px; 
-          font-size: 10pt;
-        }
-        .no-print { display: none; }
-      }
-    `
-  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -367,7 +252,7 @@ const SalesVoucher: React.FC = () => {
       formData.entries.forEach((entry, index) => {
         if (!entry.itemId) newErrors[`entry${index}.itemId`] = 'Item is required';
         if ((entry.quantity ?? 0) <= 0) newErrors[`entry${index}.quantity`] = 'Quantity must be greater than 0';
-        if (godowns.length > 0 && !entry.godownId) newErrors[`entry${index}.godownId`] = 'Godown is required';
+        if (godownEnabled === 'yes' && godowns.length > 0 && !entry.godownId) newErrors[`entry${index}.godownId`] = 'Godown is required';
 
         if (entry.itemId) {
           const stockItem = safeStockItems.find(item => item.id === entry.itemId);
@@ -464,32 +349,125 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 
   try {
-    const res = await fetch('http://localhost:5000/api/vouchers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData)
-    });
+    // Add quotation flag to form data and set correct type
+    const voucherData = {
+      ...formData,
+      type: isQuotation ? 'quotation' as VoucherEntry['type'] : 'sales' as VoucherEntry['type'], // Set type as VoucherType
+      isQuotation: isQuotation
+    };
 
-    const data = await res.json();
-    console.log('Server response:', data); // debug log
-
-    if (res.ok) {
-      await Swal.fire({
-        title: 'Success',
-        text: data.message,
-        icon: 'success',
-        confirmButtonText: 'OK'
+    if (isEditMode && id) {
+      // Update existing voucher via backend
+      const res = await fetch(`http://localhost:5000/api/vouchers/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(voucherData)
       });
-      navigate('/vouchers');
+
+      const data = await res.json();
+      console.log('Update response:', data);
+
+      if (res.ok) {
+        // Also update context
+        updateVoucher(id, voucherData);
+        await Swal.fire({
+          title: 'Success',
+          text: `Sales ${isQuotation ? 'quotation' : 'voucher'} updated successfully!`,
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+      } else {
+        Swal.fire('Error', data.message || 'Failed to update voucher', 'error');
+        return;
+      }
     } else {
-      Swal.fire('Error', data.message || 'Something went wrong', 'error');
+      // Create new voucher via backend
+      const res = await fetch('http://localhost:5000/api/vouchers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(voucherData)
+      });
+
+      const data = await res.json();
+      console.log('Server response:', data);
+
+      if (res.ok) {
+        // Also add to context
+        const newVoucher: VoucherEntry = {
+          ...voucherData,
+          id: data.id || Math.random().toString(36).substring(2, 9)
+        };
+        addVoucher(newVoucher);
+        
+        await Swal.fire({
+          title: 'Success',
+          text: `Sales ${isQuotation ? 'quotation' : 'voucher'} saved successfully!`,
+          icon: 'success',
+          confirmButtonText: 'OK'
+        });
+      } else {
+        Swal.fire('Error', data.message || 'Failed to save voucher', 'error');
+        return;
+      }
     }
+    
+    navigate('/app/vouchers');
   } catch (err) {
     console.error('Error:', err);
     Swal.fire('Error', 'Network or server issue', 'error');
   }
 };
 
+  // Print Options Handlers
+  const handlePrintClick = () => {
+    console.log('Print button clicked');
+    const selectedItems = formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select');
+    
+    if (selectedItems.length === 0) {
+      alert('Please select at least one item before printing the invoice.');
+      return;
+    }
+    if (!formData.partyId) {
+      alert('Please select a party before printing the invoice.');
+      return;
+    }
+    
+    // Show print options popup instead of direct print
+    setShowPrintOptions(true);
+  };
+
+  const handleGenerateInvoice = () => {
+    console.log('Generating Invoice...');
+    setShowPrintOptions(false);
+    setShowInvoicePrint(true); // Show separate invoice print modal
+  };
+
+  const handleGenerateEWayBill = () => {
+    console.log('Generating E-way Bill...');
+    setShowPrintOptions(false);
+    setShowEWayBill(true); // Show E-way Bill generation modal
+  };
+
+  const handleGenerateEInvoice = () => {
+    console.log('Generating E-Invoice...');
+    // TODO: Implement E-Invoice generation using existing format
+    alert('E-Invoice generation feature will be implemented soon!');
+    setShowPrintOptions(false);
+  };
+
+  const handleSendToEmail = () => {
+    console.log('Sending to Email...');
+    // TODO: Implement email functionality
+    alert('Email sending feature will be implemented soon!');
+    setShowPrintOptions(false);
+  };
+
+  const handleSendToWhatsApp = () => {
+    console.log('Sending to WhatsApp...');
+    // TODO: Implement WhatsApp sharing
+    alert('WhatsApp sharing feature will be implemented soon!');
+    setShowPrintOptions(false);
+  };
 
   const { subtotal = 0, cgstTotal = 0, sgstTotal = 0, igstTotal = 0, discountTotal = 0, total = 0, debitTotal = 0, creditTotal = 0 } = calculateTotals();
 
@@ -509,50 +487,15 @@ const handleSubmit = async (e: React.FormEvent) => {
       }
     }
     
-    // Fallback to hardcoded item map with both old and new ID formats
-    const itemMap: { [key: string]: { name: string; hsnCode: string; unit: string; gstRate: number; rate: number } } = {
-      // New format (from context)
-      'i1': { name: 'Electronics Item A', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 45000 },
-      'i2': { name: 'Clothing Item B', hsnCode: '6203', unit: 'Piece', gstRate: 12, rate: 1200 },
-      'i3': { name: 'Book Item C', hsnCode: '4901', unit: 'Piece', gstRate: 0, rate: 500 },
-      // Old format (for backward compatibility)
-      '1': { name: 'Laptop HP Pavilion', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 45000 },
-      '2': { name: 'Mobile Phone Samsung', hsnCode: '8517', unit: 'Piece', gstRate: 18, rate: 25000 },
-      '3': { name: 'Printer Canon', hsnCode: '8443', unit: 'Piece', gstRate: 18, rate: 15000 },
-      '4': { name: 'Office Chair', hsnCode: '9401', unit: 'Piece', gstRate: 18, rate: 8000 },
-      '5': { name: 'LED Monitor', hsnCode: '8528', unit: 'Piece', gstRate: 18, rate: 12000 },
-      '6': { name: 'Desktop Computer Dell', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 35000 },
-      '7': { name: 'Wireless Mouse Logitech', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 1500 },
-      '8': { name: 'Keyboard Mechanical', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 3500 },
-      '9': { name: 'Smartphone iPhone', hsnCode: '8517', unit: 'Piece', gstRate: 18, rate: 80000 },
-      '10': { name: 'Tablet iPad', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 45000 },
-      '11': { name: 'Webcam HD Logitech', hsnCode: '8525', unit: 'Piece', gstRate: 18, rate: 4500 },
-      '12': { name: 'Headphones Sony', hsnCode: '8518', unit: 'Piece', gstRate: 18, rate: 6000 },
-      '13': { name: 'External Hard Drive 1TB', hsnCode: '8471', unit: 'Piece', gstRate: 18, rate: 5500 },
-      '14': { name: 'Router WiFi TP-Link', hsnCode: '8517', unit: 'Piece', gstRate: 18, rate: 3200 },
-      '15': { name: 'UPS 1000VA APC', hsnCode: '8504', unit: 'Piece', gstRate: 18, rate: 8500 }
-    };
-    return itemMap[itemId] || { name: '-', hsnCode: '-', unit: '-', gstRate: 0, rate: 0 };
+    // Return default item structure if item not found
+    return { name: '-', hsnCode: '-', unit: '-', gstRate: 0, rate: 0 };
   };
 
   const getPartyName = (partyId: string) => {
-    const partyMap: { [key: string]: string } = {
-      '1': 'ABC Electronics Pvt Ltd',
-      '2': 'XYZ Trading Co',
-      '3': 'Cash',
-      '4': 'PQR Industries',
-      '5': 'LMN Enterprises',
-      '6': 'Tech Solutions India Ltd',
-      '7': 'Global Systems Corp',
-      '8': 'Prime Distributors',
-      '9': 'Retail Partners Ltd',
-      '10': 'Digital Hub Solutions',
-      '11': 'Smart Devices Inc',
-      '12': 'Future Tech Enterprises',
-      '13': 'Metro Electronics',
-      '14': 'Omega Systems Pvt Ltd',
-      '15': 'Alpha Technologies'    };
-    return partyMap[partyId] || 'Unknown Party';
+    if (!safeLedgers || safeLedgers.length === 0) return 'Unknown Party';
+    
+    const party = safeLedgers.find(ledger => ledger.id === partyId);
+    return party ? party.name : 'Unknown Party';
   };
 
   // Function to get GST rate breakdown and count for invoice
@@ -598,7 +541,9 @@ const handleSubmit = async (e: React.FormEvent) => {
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold">Sales Voucher</h1>
+        <h1 className="text-2xl font-bold">
+          {isQuotation ? '📋 Sales Quotation' : '📝 Sales Voucher'}
+        </h1>
       </div>
 
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
@@ -649,21 +594,15 @@ const handleSubmit = async (e: React.FormEvent) => {
                 className={`min-h-10 text-14 ${FORM_STYLES.select(theme, !!errors.partyId)}`}
               >
                 <option value="" disabled>-- Select Party --</option>
-                <option value="1">ABC Electronics Pvt Ltd</option>
-                <option value="2">XYZ Trading Co</option>
-                <option value="3">Cash</option>
-                <option value="4">PQR Industries</option>
-                <option value="5">LMN Enterprises</option>
-                <option value="6">Tech Solutions India Ltd</option>
-                <option value="7">Global Systems Corp</option>
-                <option value="8">Prime Distributors</option>
-                <option value="9">Retail Partners Ltd</option>
-                <option value="10">Digital Hub Solutions</option>
-                <option value="11">Smart Devices Inc</option>
-                <option value="12">Future Tech Enterprises</option>
-                <option value="13">Metro Electronics</option>
-                <option value="14">Omega Systems Pvt Ltd</option>
-                <option value="15">Alpha Technologies</option>
+                {safeLedgers && safeLedgers.length > 0 ? (
+                  safeLedgers
+                    .filter(ledger => ledger.type === 'sundry-debtors' || ledger.type === 'cash')
+                    .map(ledger => (
+                      <option key={ledger.id} value={ledger.id}>{ledger.name}</option>
+                    ))
+                ) : (
+                  <option value="" disabled>No parties available</option>
+                )}
               </select>
               {errors.partyId && <p className="text-red-500 text-xs mt-1">{errors.partyId}</p>}
             </div>
@@ -749,6 +688,28 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <option value="accounting-invoice">Accounting Invoice</option>
                 <option value="as-voucher">As Voucher</option>
               </select>
+            </div>
+          </div>
+
+          {/* Quotation Mode Checkbox - Similar to Tally Prime */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="quotationMode"
+                checked={isQuotation}
+                onChange={(e) => setIsQuotation(e.target.checked)}
+                title="Convert to Quotation Voucher"
+                className={`h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 ${
+                  theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-300'
+                }`}
+              />
+              <label htmlFor="quotationMode" className="text-sm font-medium cursor-pointer">
+                {isQuotation ? '📋 Quotation Mode' : '📝 Sales Mode'}
+              </label>
+              <span className="text-xs text-gray-500">
+                {isQuotation ? '(This will be treated as a quotation)' : '(Check to convert to quotation)'}
+              </span>
             </div>
           </div>
 
@@ -854,23 +815,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                                   <option key={item.id} value={item.id}>{item.name}</option>
                                 ))
                               ) : (
-                                <>
-                                  <option value="1">Laptop HP Pavilion</option>
-                                  <option value="2">Mobile Phone Samsung</option>
-                                  <option value="3">Printer Canon</option>
-                                  <option value="4">Office Chair</option>
-                                  <option value="5">LED Monitor</option>
-                                  <option value="6">Desktop Computer Dell</option>
-                                  <option value="7">Wireless Mouse Logitech</option>
-                                  <option value="8">Keyboard Mechanical</option>
-                                  <option value="9">Smartphone iPhone</option>
-                                  <option value="10">Tablet iPad</option>
-                                  <option value="11">Webcam HD Logitech</option>
-                                  <option value="12">Headphones Sony</option>
-                                  <option value="13">External Hard Drive 1TB</option>
-                                  <option value="14">Router WiFi TP-Link</option>
-                                  <option value="15">UPS 1000VA APC</option>
-                                </>
+                                <option value="" disabled>No items available</option>
                               )}
                             </select>
                             {errors[`entry${index}.itemId`] && <p className="text-red-500 text-xs mt-1">{errors[`entry${index}.itemId`]}</p>}
@@ -1127,22 +1072,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             </button><button
               title='Print'
               type="button"
-              onClick={() => {
-                console.log('Print button clicked');
-                const selectedItems = formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select');
-                
-                if (selectedItems.length === 0) {
-                  alert('Please select at least one item before printing the invoice.');
-                  return;
-                }
-                if (!formData.partyId) {
-                  alert('Please select a party before printing the invoice.');
-                  return;
-                }
-                
-                console.log('Calling handlePrint...');
-                handlePrint();
-              }}
+              onClick={handlePrintClick}
               className={`flex items-center px-4 py-2 rounded ${theme === 'dark' ? 'bg-green-600 hover:bg-green-700' : 'bg-green-600 hover:bg-green-700 text-white'}`}
             >
               <Printer size={18} className="mr-1" />
@@ -1162,7 +1092,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
       {/* Configuration Modal (F12) */}
       {showConfig && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
             <h2 className="text-xl font-bold mb-4">Configure Sales Voucher</h2>
             <p className="mb-4">Configure GST settings, invoice format, etc.</p>
@@ -1177,251 +1107,178 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
           </div>
         </div>
-      )}      {/* Print Layout */}
-      <div className={PRINT_STYLES.container}>
-        <div ref={printRef} className={PRINT_STYLES.printArea}>
-          {/* Header Section */}
-          <div className={PRINT_STYLES.invoice.border}>
-            {/* Top Header with TAX INVOICE */}
-            <div className={PRINT_STYLES.invoice.header}>
-              <h1 className={PRINT_STYLES.invoice.title}>TAX INVOICE</h1>
-            </div>
-              {/* Invoice Details Row */}
-            <div className={PRINT_STYLES.invoice.infoRow}>
-              <span><strong>INVOICE NO:</strong> {formData.number}</span>
-              <span><strong>DATE:</strong> {new Date(formData.date).toLocaleDateString('en-GB')}</span>
-            </div>
-            
-            {/* Reference and Dispatch Details Row */}
-            <div className={PRINT_STYLES.invoice.infoRow}>
-              <div className={PRINT_STYLES.invoice.infoFlex}>
-                {formData.referenceNo && <span><strong>REF NO:</strong> {formData.referenceNo}</span>}
-                {formData.dispatchDetails?.docNo && <span><strong>DISPATCH DOC NO:</strong> {formData.dispatchDetails.docNo}</span>}
-              </div>
-              <div className={PRINT_STYLES.invoice.infoFlex}>
-                {formData.dispatchDetails?.through && <span><strong>DISPATCH THROUGH:</strong> {formData.dispatchDetails.through}</span>}
-                {formData.dispatchDetails?.destination && <span><strong>DESTINATION:</strong> {formData.dispatchDetails.destination}</span>}
-              </div>
-            </div>
-            
-            {/* Company Details Section */}
-            <div className={PRINT_STYLES.invoice.companySection}>
-              <div className={PRINT_STYLES.invoice.companyHeader}>
-                <div className={PRINT_STYLES.invoice.companyLogo}>
-                  <span className={PRINT_STYLES.invoice.companyLogoText}>
-                    {safeCompanyInfo.name.charAt(0)}
-                  </span>
-                </div>
-                <div>
-                  <h2 className={PRINT_STYLES.invoice.companyName}>
-                    {safeCompanyInfo.name}
-                  </h2>
-                  <p className={PRINT_STYLES.invoice.companyAddress}>{safeCompanyInfo.address || 'Your Business Address'}</p>
-                </div>
-              </div>
-              <div className={PRINT_STYLES.invoice.companyInfo}>
-                <span><strong>GSTIN:</strong> {safeCompanyInfo.gstNumber || 'N/A'}</span>
-                <span><strong>PAN NO:</strong> {safeCompanyInfo.panNumber || 'N/A'}</span>
-              </div>
-            </div>
-              {/* Customer Details Section */}
-            <div className={PRINT_STYLES.invoice.partySection}>
-              <div className={PRINT_STYLES.invoice.partyHeader}>
-                <strong className={PRINT_STYLES.invoice.partyLabel}>PARTY'S NAME:</strong>
-              </div>
-              <div className={PRINT_STYLES.invoice.partyDetails}>
-                <div><strong>{formData.partyId ? getPartyName(formData.partyId) : 'No Party Selected'}</strong></div>
-                {formData.partyId && (
-                  <>
-                    <div>GSTIN: {safeLedgers.find(l => l.id === formData.partyId)?.gstNumber || 'N/A'}</div>
-                    <div>Address: {safeLedgers.find(l => l.id === formData.partyId)?.address || 'N/A'}</div>
-                    <div>State: {safeLedgers.find(l => l.id === formData.partyId)?.state || 'N/A'}</div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>          {/* Particulars Table */}
-          <table className={PRINT_STYLES.table.main}>            <thead>
-              <tr className={PRINT_STYLES.table.headerRow}>
-                <th className={`${PRINT_STYLES.table.headerCellCenter} w-12`}>Sr No</th>
-                <th className={PRINT_STYLES.table.headerCell}>Particulars (Description & Specifications)</th>
-                <th className={`${PRINT_STYLES.table.headerCell} w-20`}>HSN Code</th>
-                <th className={`${PRINT_STYLES.table.headerCellCenter} w-15`}>Qty</th>
-                <th className={`${PRINT_STYLES.table.headerCellRight} w-20`}>Rate</th>
-                <th className={`${PRINT_STYLES.table.headerCellCenter} w-15`}>GST %</th>
-                <th className={`${PRINT_STYLES.table.headerCellRight} w-25`}>Amount</th>
-              </tr>
-            </thead>            <tbody>
-              {formData.entries
-                .filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select')
-                .map((entry, index) => {
-                  const itemDetails = getItemDetails(entry.itemId || '');
-                  const baseAmount = (entry.quantity || 0) * (entry.rate || 0);
-                  const gstRate = itemDetails.gstRate || 0;
-                  
-                  return (
-                    <tr key={entry.id}>
-                      <td className={PRINT_STYLES.table.dataCellCenter}>
-                        {index + 1}
-                      </td>
-                      <td className={PRINT_STYLES.table.dataCell}>
-                        <strong>{itemDetails.name}</strong>
-                      </td>
-                      <td className={PRINT_STYLES.table.dataCellCenter}>
-                        {itemDetails.hsnCode}
-                      </td>
-                      <td className={PRINT_STYLES.table.dataCellCenter}>
-                        {entry.quantity?.toLocaleString() || '0'} {itemDetails.unit}
-                      </td>
-                      <td className={PRINT_STYLES.table.dataCellRight}>
-                        ₹{entry.rate?.toLocaleString() || '0'}
-                      </td>
-                      <td className={PRINT_STYLES.table.dataCellCenter}>
-                        {gstRate}%
-                      </td>
-                      <td className={PRINT_STYLES.table.dataCellRight}>
-                        ₹{baseAmount.toLocaleString()}
-                      </td>
-                    </tr>
-                  );
-                })}
-              
-              {/* Add empty rows for spacing if no items */}
-              {formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length === 0 && (
-                <>                  <tr>
-                    <td className={`${PRINT_STYLES.table.emptyCell} text-center`} colSpan={7}>
-                      No items selected
-                    </td>
-                  </tr>
-                  {Array(3).fill(0).map((_, index) => (
-                    <tr key={`empty-${index}`}>
-                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                    </tr>
-                  ))}
-                </>
-              )}
-              
-              {/* Add empty rows for spacing when items exist */}
-              {formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length > 0 && formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length < 4 &&
-                Array(Math.max(0, 4 - formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length)).fill(0).map((_, index) => (
-                  <tr key={`empty-${index}`}>
-                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                  </tr>
-                ))
-              }
-            </tbody>
+      )}
 
-            {/* Tax Summary */}
-            <tfoot>
-              <tr>
-                <td colSpan={5} className="border border-black p-1_5 text-9pt">
-                  <strong>Terms & Conditions:</strong><br/>
-                  <span className="text-8pt">
-                    • Goods once sold will not be taken back.<br/>
-                    • Interest @ 18% p.a. will be charged on delayed payments.<br/>
-                    • Subject to {safeCompanyInfo.address || 'Local'} Jurisdiction only.<br/>
-                    • Our responsibility ceases as soon as goods leave our premises.<br/>
-                    • Delivery charges extra as applicable.
-                  </span>
-                </td>
-                <td className={PRINT_STYLES.table.totalCell}>
-                  <div className="mb-1_5">Subtotal</div>
-                  {cgstTotal > 0 && <div className="mb-1_5">Add: CGST</div>}
-                  {sgstTotal > 0 && <div className="mb-1_5">Add: SGST</div>}
-                  {igstTotal > 0 && <div className="mb-1_5">Add: IGST</div>}
-                  {discountTotal > 0 && <div className="mb-1_5">Less: Discount</div>}
-                  <div className="font-bold text-11pt">Grand Total</div>
-                </td>
-                <td className={PRINT_STYLES.table.totalValues}>
-                  <div className="mb-1_5">₹{subtotal.toLocaleString()}</div>
-                  {cgstTotal > 0 && <div className="mb-1_5">₹{cgstTotal.toLocaleString()}</div>}
-                  {sgstTotal > 0 && <div className="mb-1_5">₹{sgstTotal.toLocaleString()}</div>}
-                  {igstTotal > 0 && <div className="mb-1_5">₹{igstTotal.toLocaleString()}</div>}
-                  {discountTotal > 0 && <div className="mb-1_5">₹{discountTotal.toLocaleString()}</div>}
-                  <div className="font-bold text-11pt">₹{total.toLocaleString()}</div>
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-
-          {/* Amount in Words */}
-          <div className={PRINT_STYLES.totals.amountWords}>
-            <strong className={PRINT_STYLES.totals.amountWordsLabel}>Total Amount (Rs. in Words):</strong>
-            <div className={PRINT_STYLES.totals.amountWordsText}>
-              Rupees {total > 0 ? total.toLocaleString() : 'Zero'} Only
-              {total > 0 && ` (₹${total.toLocaleString()})`}
+      {/* Print Options Modal */}
+      {showPrintOptions && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className={`p-8 rounded-lg max-w-md w-full mx-4 ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900 shadow-xl'}`}>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold flex items-center">
+                <Printer className="mr-3 text-blue-600" size={28} />
+                Print Options
+              </h2>
+              <button
+                onClick={() => setShowPrintOptions(false)}
+                className={`p-2 rounded-full transition-colors ${
+                  theme === 'dark' 
+                    ? 'hover:bg-gray-700 text-gray-400 hover:text-white' 
+                    : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
+                }`}
+                title="Close"
+              >
+                <X size={20} />
+              </button>
             </div>
-          </div>
 
-          {/* GST Calculation Summary */}
-          {formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length > 0 && (
-            <div className={PRINT_STYLES.totals.gstSummary}>
-              <strong className={PRINT_STYLES.totals.gstSummaryLabel}>GST Calculation Summary:</strong>
-              <div className={PRINT_STYLES.totals.gstSummaryContent}>
-                {(() => {
-                  const gstInfo = getGstRateInfo();
-                  return (
-                    <div>
-                      <div className={PRINT_STYLES.totals.gstRateHeader}>
-                        <span>Total Items: {gstInfo.totalItems}</span>
-                        <span>GST Rates Applied: {gstInfo.uniqueGstRatesCount}</span>
-                      </div>
-                      <div className={PRINT_STYLES.totals.gstRateDetails}>
-                        <strong>GST Rates Used:</strong> {gstInfo.gstRatesUsed.join('%, ')}%
-                      </div>
-                      {Object.entries(gstInfo.breakdown).map(([rate, data]) => (
-                        <div key={rate} className={PRINT_STYLES.totals.gstRateRow}>
-                          <span>GST {rate}%: {data.count} item{data.count > 1 ? 's' : ''}</span>
-                          <span>₹{data.gstAmount.toLocaleString()} GST</span>
-                        </div>
-                      ))}
-                      <div className={PRINT_STYLES.totals.gstNote}>
-                        This invoice includes {gstInfo.uniqueGstRatesCount} different GST rate{gstInfo.uniqueGstRatesCount > 1 ? 's' : ''} as per item specifications
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          )}
-
-          {/* Footer Section */}
-          <div className={PRINT_STYLES.signatures.container}>
-            <div className={PRINT_STYLES.signatures.section}>
-              <div className={PRINT_STYLES.signatures.label}>
-                For {safeCompanyInfo.name.toUpperCase()}
-              </div>
-              <div className={PRINT_STYLES.signatures.signatureArea}>
-                <div className={PRINT_STYLES.signatures.signatureLine}>
-                  Authorised Signatory
+            {/* Print Options Grid */}
+            <div className="grid grid-cols-1 gap-4">
+              {/* Generate Invoice */}
+              <button
+                onClick={handleGenerateInvoice}
+                className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'border-gray-600 hover:border-blue-500 hover:bg-gray-700 bg-gray-750'
+                    : 'border-gray-200 hover:border-blue-500 hover:bg-blue-50 bg-white'
+                } group`}
+              >
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mr-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                  <FileText size={24} />
                 </div>
-              </div>
-            </div>
-            <div className={PRINT_STYLES.signatures.sectionRight}>
-              <div className={PRINT_STYLES.signatures.label}>
-                Customer's Signature
-              </div>
-              <div className={PRINT_STYLES.signatures.signatureArea}>
-                <div className={PRINT_STYLES.signatures.signatureLine}>
-                  Receiver's Signature
+                <div className="text-left">
+                  <h3 className="font-semibold text-lg">📄 Generate Invoice</h3>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Print regular tax invoice
+                  </p>
                 </div>
-              </div>
+              </button>
+
+              {/* Generate E-way Bill */}
+              <button
+                onClick={handleGenerateEWayBill}
+                className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'border-gray-600 hover:border-green-500 hover:bg-gray-700 bg-gray-750'
+                    : 'border-gray-200 hover:border-green-500 hover:bg-green-50 bg-white'
+                } group`}
+              >
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-100 text-green-600 mr-4 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                  <Truck size={24} />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-lg">🚛 Generate E-way Bill</h3>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Generate E-way bill for transportation
+                  </p>
+                </div>
+              </button>
+
+              {/* Generate E-Invoice */}
+              <button
+                onClick={handleGenerateEInvoice}
+                className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'border-gray-600 hover:border-purple-500 hover:bg-gray-700 bg-gray-750'
+                    : 'border-gray-200 hover:border-purple-500 hover:bg-purple-50 bg-white'
+                } group`}
+              >
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 text-purple-600 mr-4 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                  <FileText size={24} />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-lg">⚡ Generate E-Invoice</h3>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Generate government E-Invoice
+                  </p>
+                </div>
+              </button>
+
+              {/* Send to Email */}
+              <button
+                onClick={handleSendToEmail}
+                className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'border-gray-600 hover:border-orange-500 hover:bg-gray-700 bg-gray-750'
+                    : 'border-gray-200 hover:border-orange-500 hover:bg-orange-50 bg-white'
+                } group`}
+              >
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-orange-100 text-orange-600 mr-4 group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                  <Mail size={24} />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-lg">📧 Send to Email</h3>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Email invoice to customer
+                  </p>
+                </div>
+              </button>
+
+              {/* Send to WhatsApp */}
+              <button
+                onClick={handleSendToWhatsApp}
+                className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'border-gray-600 hover:border-green-500 hover:bg-gray-700 bg-gray-750'
+                    : 'border-gray-200 hover:border-green-500 hover:bg-green-50 bg-white'
+                } group`}
+              >
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-100 text-green-600 mr-4 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                  <MessageCircle size={24} />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-lg">💬 Send to WhatsApp</h3>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Share invoice via WhatsApp
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <button
+                onClick={() => setShowPrintOptions(false)}
+                className={`w-full py-2 px-4 rounded-lg transition-colors ${
+                  theme === 'dark'
+                    ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                }`}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* E-way Bill Generation Modal */}
+      {showEWayBill && (
+        <EWayBillGeneration
+          theme={theme}
+          voucherData={formData}
+          onClose={() => setShowEWayBill(false)}
+          getPartyName={getPartyName}
+          getItemDetails={getItemDetails}
+          calculateTotals={calculateTotals}
+        />
+      )}
+
+      {/* Invoice Print Modal */}
+      {showInvoicePrint && (
+        <InvoicePrint
+          theme={theme}
+          voucherData={formData}
+          isQuotation={isQuotation}
+          onClose={() => setShowInvoicePrint(false)}
+          getPartyName={getPartyName}
+          getItemDetails={getItemDetails}
+          calculateTotals={calculateTotals}
+          getGstRateInfo={getGstRateInfo}
+          companyInfo={safeCompanyInfo}
+          ledgers={safeLedgers}
+        />
+      )}
 
       <div className={`mt-6 p-4 rounded ${theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'}`}>
         <p className="text-sm">
