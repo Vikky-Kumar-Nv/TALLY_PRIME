@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useReactToPrint } from 'react-to-print';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { VoucherEntry, Ledger, Godown } from '../../../types';
-import { Save, Plus, Trash2, ArrowLeft, Printer } from 'lucide-react';
+import { Save, Plus, Trash2, ArrowLeft, Printer, FileText, Truck, Mail, MessageCircle, X } from 'lucide-react';
 import Swal from 'sweetalert2';
+import EWayBillGeneration from './EWayBillGeneration';
+import InvoicePrint from './InvoicePrint';
 
 // DRY Constants for Tailwind Classes
 const FORM_STYLES = {
@@ -18,62 +19,6 @@ const FORM_STYLES = {
     `w-full p-1 rounded border cursor-pointer ${theme === 'dark' ? 'bg-gray-700 border-gray-600 focus:border-blue-500' : 'bg-white border-gray-300 focus:border-blue-500'} outline-none transition-colors`
 };
 
-const PRINT_STYLES = {
-  container: 'absolute -left-[9999px] -top-[9999px] w-[210mm] min-h-[297mm]',
-  printArea: 'font-arial text-xs leading-tight p-4 bg-white text-black',
-  invoice: {
-    border: 'border-2 border-black mb-2.5',
-    header: 'bg-gray-100 p-2 text-center border-b border-black',
-    title: 'text-lg font-bold m-0 tracking-wider',
-    infoRow: 'flex justify-between px-2.5 py-1.5 border-b border-black text-xs',
-    infoFlex: 'flex gap-5',
-    companySection: 'p-2.5 border-b border-black',
-    companyHeader: 'flex items-center mb-2',
-    companyLogo: 'w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-4',
-    companyLogoText: 'text-white text-base font-bold',
-    companyName: 'text-base font-bold m-0 uppercase',
-    companyAddress: 'my-0.5 text-xs',
-    companyInfo: 'text-xs flex gap-5',
-    partySection: 'p-2.5',
-    partyHeader: 'mb-1.5',
-    partyLabel: 'text-xs font-bold',
-    partyDetails: 'text-xs leading-relaxed'
-  },
-  table: {
-    main: 'w-full border-collapse mb-5 border border-black',
-    headerRow: 'bg-gray-50',
-    headerCell: 'border border-black p-2 text-xs font-bold',
-    headerCellCenter: 'border border-black p-2 text-xs font-bold text-center',
-    headerCellRight: 'border border-black p-2 text-xs font-bold text-right',
-    dataCell: 'border border-black p-2 text-xs',
-    dataCellCenter: 'border border-black p-2 text-xs text-center',
-    dataCellRight: 'border border-black p-2 text-xs text-right',
-    emptyCell: 'border border-black p-5 text-xs',
-    totalCell: 'border border-black p-1.5 text-xs text-right font-bold',
-    totalValues: 'border border-black p-1.5 text-xs text-right'
-  },
-  totals: {
-    amountWords: 'border border-black p-2.5 mb-4',
-    amountWordsLabel: 'text-xs font-bold',
-    amountWordsText: 'text-xs mt-1.5 min-h-5',
-    gstSummary: 'border border-black p-2.5 mb-4',
-    gstSummaryLabel: 'text-xs font-bold mb-2 block',
-    gstSummaryContent: 'text-xs',
-    gstRateHeader: 'flex justify-between mb-2 font-bold',
-    gstRateDetails: 'text-xs mb-2',
-    gstRateRow: 'flex justify-between mb-1 border-b border-dotted border-gray-300 pb-0.5',
-    gstNote: 'mt-2 text-center text-xs italic text-gray-600'
-  },
-  signatures: {
-    container: 'flex justify-between mt-8',
-    section: 'w-48per',
-    sectionRight: 'w-48per text-right',
-    label: 'text-xs font-bold mb-1.5',
-    signatureArea: 'mt-12 text-xs',
-    signatureLine: 'border-t border-black pt-1.5 text-center'
-  }
-};
-
 const SalesVoucher: React.FC = () => {
   const { theme, stockItems, ledgers, godowns = [], vouchers = [], companyInfo, addVoucher, updateVoucher } = useAppContext();
   const navigate = useNavigate();
@@ -83,8 +28,6 @@ const SalesVoucher: React.FC = () => {
   
   // Check if quotation mode is requested via URL
   const isQuotationMode = searchParams.get('mode') === 'quotation';
-  
-  const printRef = useRef<HTMLDivElement>(null);
 
   // Safe fallbacks for context data - Remove demo data and use only from context
   const safeStockItems = stockItems || [];
@@ -139,6 +82,9 @@ const SalesVoucher: React.FC = () => {
   const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>(getInitialFormData());
   const [godownEnabled, setGodownEnabled] = useState<'yes' | 'no'>('yes'); // Add state for godown selection visibility
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showPrintOptions, setShowPrintOptions] = useState(false); // Print options popup state
+  const [showEWayBill, setShowEWayBill] = useState(false); // E-way Bill modal state
+  const [showInvoicePrint, setShowInvoicePrint] = useState(false); // Invoice print modal state
 
   // Regenerate voucher number when quotation mode changes
   useEffect(() => {
@@ -152,56 +98,6 @@ const SalesVoucher: React.FC = () => {
   }, [isQuotation, isEditMode, generateVoucherNumber]);
   const [showConfig, setShowConfig] = useState(false);
   // Keyboard shortcuts
- 
-  // Printing
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: `${isQuotation ? 'Sales_Quotation' : 'Sales_Voucher'}_${formData.number}`,
-    onBeforePrint: () => {
-      console.log('Starting print process...');
-      const selectedItems = formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select');
-      console.log('Selected items for print:', selectedItems.length);
-      
-      console.log('Print data:', { 
-        party: formData.partyId ? getPartyName(formData.partyId) : 'No Party', 
-        items: selectedItems.length,
-        totals: calculateTotals()
-      });
-      
-      return Promise.resolve();
-    },
-    onAfterPrint: () => {
-      console.log('Print completed successfully');
-    },    onPrintError: (errorLocation: string, error: Error) => {
-      console.error('Print error at:', errorLocation, error);
-      alert('Print failed. Please try your browser\'s print function (Ctrl+P).');
-    },
-    pageStyle: `
-      @page {
-        size: A4;
-        margin: 10mm;
-      }
-      @media print {
-        body { 
-          font-size: 12pt; 
-          font-family: Arial, sans-serif;
-          -webkit-print-color-adjust: exact;
-          color-adjust: exact;
-        }
-        table { 
-          width: 100%; 
-          border-collapse: collapse; 
-          page-break-inside: avoid;
-        }
-        th, td { 
-          border: 1px solid #000; 
-          padding: 8px; 
-          font-size: 10pt;
-        }
-        .no-print { display: none; }
-      }
-    `
-  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -522,7 +418,56 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 };
 
+  // Print Options Handlers
+  const handlePrintClick = () => {
+    console.log('Print button clicked');
+    const selectedItems = formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select');
+    
+    if (selectedItems.length === 0) {
+      alert('Please select at least one item before printing the invoice.');
+      return;
+    }
+    if (!formData.partyId) {
+      alert('Please select a party before printing the invoice.');
+      return;
+    }
+    
+    // Show print options popup instead of direct print
+    setShowPrintOptions(true);
+  };
 
+  const handleGenerateInvoice = () => {
+    console.log('Generating Invoice...');
+    setShowPrintOptions(false);
+    setShowInvoicePrint(true); // Show separate invoice print modal
+  };
+
+  const handleGenerateEWayBill = () => {
+    console.log('Generating E-way Bill...');
+    setShowPrintOptions(false);
+    setShowEWayBill(true); // Show E-way Bill generation modal
+  };
+
+  const handleGenerateEInvoice = () => {
+    console.log('Generating E-Invoice...');
+    // TODO: Implement E-Invoice generation using existing format
+    alert('E-Invoice generation feature will be implemented soon!');
+    setShowPrintOptions(false);
+  };
+
+  const handleSendToEmail = () => {
+    console.log('Sending to Email...');
+    // TODO: Implement email functionality
+    alert('Email sending feature will be implemented soon!');
+    setShowPrintOptions(false);
+  };
+
+  const handleSendToWhatsApp = () => {
+    console.log('Sending to WhatsApp...');
+    // TODO: Implement WhatsApp sharing
+    alert('WhatsApp sharing feature will be implemented soon!');
+    setShowPrintOptions(false);
+  };
 
   const { subtotal = 0, cgstTotal = 0, sgstTotal = 0, igstTotal = 0, discountTotal = 0, total = 0, debitTotal = 0, creditTotal = 0 } = calculateTotals();
 
@@ -1127,22 +1072,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             </button><button
               title='Print'
               type="button"
-              onClick={() => {
-                console.log('Print button clicked');
-                const selectedItems = formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select');
-                
-                if (selectedItems.length === 0) {
-                  alert('Please select at least one item before printing the invoice.');
-                  return;
-                }
-                if (!formData.partyId) {
-                  alert('Please select a party before printing the invoice.');
-                  return;
-                }
-                
-                console.log('Calling handlePrint...');
-                handlePrint();
-              }}
+              onClick={handlePrintClick}
               className={`flex items-center px-4 py-2 rounded ${theme === 'dark' ? 'bg-green-600 hover:bg-green-700' : 'bg-green-600 hover:bg-green-700 text-white'}`}
             >
               <Printer size={18} className="mr-1" />
@@ -1162,7 +1092,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
       {/* Configuration Modal (F12) */}
       {showConfig && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
             <h2 className="text-xl font-bold mb-4">Configure Sales Voucher</h2>
             <p className="mb-4">Configure GST settings, invoice format, etc.</p>
@@ -1177,258 +1107,178 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
           </div>
         </div>
-      )}      {/* Print Layout */}
-      <div className={PRINT_STYLES.container}>
-        <div ref={printRef} className={PRINT_STYLES.printArea}>
-          {/* Header Section */}
-          <div className={PRINT_STYLES.invoice.border}>
-            {/* Top Header with TAX INVOICE */}
-            <div className={PRINT_STYLES.invoice.header}>
-              <h1 className={PRINT_STYLES.invoice.title}>
-                {isQuotation ? 'SALES QUOTATION' : 'TAX INVOICE'}
-              </h1>
-              {isQuotation && (
-                <div className="text-center text-sm text-gray-600 mt-1 font-medium">
-                  📋 This is a Quotation - Not a Tax Invoice
-                </div>
-              )}
-            </div>
-              {/* Invoice Details Row */}
-            <div className={PRINT_STYLES.invoice.infoRow}>
-              <span><strong>INVOICE NO:</strong> {formData.number}</span>
-              <span><strong>DATE:</strong> {new Date(formData.date).toLocaleDateString('en-GB')}</span>
-            </div>
-            
-            {/* Reference and Dispatch Details Row */}
-            <div className={PRINT_STYLES.invoice.infoRow}>
-              <div className={PRINT_STYLES.invoice.infoFlex}>
-                {formData.referenceNo && <span><strong>REF NO:</strong> {formData.referenceNo}</span>}
-                {formData.dispatchDetails?.docNo && <span><strong>DISPATCH DOC NO:</strong> {formData.dispatchDetails.docNo}</span>}
-              </div>
-              <div className={PRINT_STYLES.invoice.infoFlex}>
-                {formData.dispatchDetails?.through && <span><strong>DISPATCH THROUGH:</strong> {formData.dispatchDetails.through}</span>}
-                {formData.dispatchDetails?.destination && <span><strong>DESTINATION:</strong> {formData.dispatchDetails.destination}</span>}
-              </div>
-            </div>
-            
-            {/* Company Details Section */}
-            <div className={PRINT_STYLES.invoice.companySection}>
-              <div className={PRINT_STYLES.invoice.companyHeader}>
-                <div className={PRINT_STYLES.invoice.companyLogo}>
-                  <span className={PRINT_STYLES.invoice.companyLogoText}>
-                    {safeCompanyInfo.name.charAt(0)}
-                  </span>
-                </div>
-                <div>
-                  <h2 className={PRINT_STYLES.invoice.companyName}>
-                    {safeCompanyInfo.name}
-                  </h2>
-                  <p className={PRINT_STYLES.invoice.companyAddress}>{safeCompanyInfo.address || 'Your Business Address'}</p>
-                </div>
-              </div>
-              <div className={PRINT_STYLES.invoice.companyInfo}>
-                <span><strong>GSTIN:</strong> {safeCompanyInfo.gstNumber || 'N/A'}</span>
-                <span><strong>PAN NO:</strong> {safeCompanyInfo.panNumber || 'N/A'}</span>
-              </div>
-            </div>
-              {/* Customer Details Section */}
-            <div className={PRINT_STYLES.invoice.partySection}>
-              <div className={PRINT_STYLES.invoice.partyHeader}>
-                <strong className={PRINT_STYLES.invoice.partyLabel}>PARTY'S NAME:</strong>
-              </div>
-              <div className={PRINT_STYLES.invoice.partyDetails}>
-                <div><strong>{formData.partyId ? getPartyName(formData.partyId) : 'No Party Selected'}</strong></div>
-                {formData.partyId && (
-                  <>
-                    <div>GSTIN: {safeLedgers.find(l => l.id === formData.partyId)?.gstNumber || 'N/A'}</div>
-                    <div>Address: {safeLedgers.find(l => l.id === formData.partyId)?.address || 'N/A'}</div>
-                    <div>State: {safeLedgers.find(l => l.id === formData.partyId)?.state || 'N/A'}</div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>          {/* Particulars Table */}
-          <table className={PRINT_STYLES.table.main}>            <thead>
-              <tr className={PRINT_STYLES.table.headerRow}>
-                <th className={`${PRINT_STYLES.table.headerCellCenter} w-12`}>Sr No</th>
-                <th className={PRINT_STYLES.table.headerCell}>Particulars (Description & Specifications)</th>
-                <th className={`${PRINT_STYLES.table.headerCell} w-20`}>HSN Code</th>
-                <th className={`${PRINT_STYLES.table.headerCellCenter} w-15`}>Qty</th>
-                <th className={`${PRINT_STYLES.table.headerCellRight} w-20`}>Rate</th>
-                <th className={`${PRINT_STYLES.table.headerCellCenter} w-15`}>GST %</th>
-                <th className={`${PRINT_STYLES.table.headerCellRight} w-25`}>Amount</th>
-              </tr>
-            </thead>            <tbody>
-              {formData.entries
-                .filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select')
-                .map((entry, index) => {
-                  const itemDetails = getItemDetails(entry.itemId || '');
-                  const baseAmount = (entry.quantity || 0) * (entry.rate || 0);
-                  const gstRate = itemDetails.gstRate || 0;
-                  
-                  return (
-                    <tr key={entry.id}>
-                      <td className={PRINT_STYLES.table.dataCellCenter}>
-                        {index + 1}
-                      </td>
-                      <td className={PRINT_STYLES.table.dataCell}>
-                        <strong>{itemDetails.name}</strong>
-                      </td>
-                      <td className={PRINT_STYLES.table.dataCellCenter}>
-                        {itemDetails.hsnCode}
-                      </td>
-                      <td className={PRINT_STYLES.table.dataCellCenter}>
-                        {entry.quantity?.toLocaleString() || '0'} {itemDetails.unit}
-                      </td>
-                      <td className={PRINT_STYLES.table.dataCellRight}>
-                        ₹{entry.rate?.toLocaleString() || '0'}
-                      </td>
-                      <td className={PRINT_STYLES.table.dataCellCenter}>
-                        {gstRate}%
-                      </td>
-                      <td className={PRINT_STYLES.table.dataCellRight}>
-                        ₹{baseAmount.toLocaleString()}
-                      </td>
-                    </tr>
-                  );
-                })}
-              
-              {/* Add empty rows for spacing if no items */}
-              {formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length === 0 && (
-                <>                  <tr>
-                    <td className={`${PRINT_STYLES.table.emptyCell} text-center`} colSpan={7}>
-                      No items selected
-                    </td>
-                  </tr>
-                  {Array(3).fill(0).map((_, index) => (
-                    <tr key={`empty-${index}`}>
-                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                      <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                    </tr>
-                  ))}
-                </>
-              )}
-              
-              {/* Add empty rows for spacing when items exist */}
-              {formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length > 0 && formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length < 4 &&
-                Array(Math.max(0, 4 - formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length)).fill(0).map((_, index) => (
-                  <tr key={`empty-${index}`}>
-                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                    <td className={PRINT_STYLES.table.emptyCell}>&nbsp;</td>
-                  </tr>
-                ))
-              }
-            </tbody>
+      )}
 
-            {/* Tax Summary */}
-            <tfoot>
-              <tr>
-                <td colSpan={5} className="border border-black p-1_5 text-9pt">
-                  <strong>Terms & Conditions:</strong><br/>
-                  <span className="text-8pt">
-                    • Goods once sold will not be taken back.<br/>
-                    • Interest @ 18% p.a. will be charged on delayed payments.<br/>
-                    • Subject to {safeCompanyInfo.address || 'Local'} Jurisdiction only.<br/>
-                    • Our responsibility ceases as soon as goods leave our premises.<br/>
-                    • Delivery charges extra as applicable.
-                  </span>
-                </td>
-                <td className={PRINT_STYLES.table.totalCell}>
-                  <div className="mb-1_5">Subtotal</div>
-                  {cgstTotal > 0 && <div className="mb-1_5"> CGST</div>}
-                  {sgstTotal > 0 && <div className="mb-1_5"> SGST</div>}
-                  {igstTotal > 0 && <div className="mb-1_5"> IGST</div>}
-                  {discountTotal > 0 && <div className="mb-1_5">Less: Discount</div>}
-                  <div className="font-bold text-11pt">Grand Total</div>
-                </td>
-                <td className={PRINT_STYLES.table.totalValues}>
-                  <div className="mb-1_5">₹{subtotal.toLocaleString()}</div>
-                  {cgstTotal > 0 && <div className="mb-1_5">₹{cgstTotal.toLocaleString()}</div>}
-                  {sgstTotal > 0 && <div className="mb-1_5">₹{sgstTotal.toLocaleString()}</div>}
-                  {igstTotal > 0 && <div className="mb-1_5">₹{igstTotal.toLocaleString()}</div>}
-                  {discountTotal > 0 && <div className="mb-1_5">₹{discountTotal.toLocaleString()}</div>}
-                  <div className="font-bold text-11pt">₹{total.toLocaleString()}</div>
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-
-          {/* Amount in Words */}
-          <div className={PRINT_STYLES.totals.amountWords}>
-            <strong className={PRINT_STYLES.totals.amountWordsLabel}>Total Amount (Rs. in Words):</strong>
-            <div className={PRINT_STYLES.totals.amountWordsText}>
-              Rupees {total > 0 ? total.toLocaleString() : 'Zero'} Only
-              {total > 0 && ` (₹${total.toLocaleString()})`}
+      {/* Print Options Modal */}
+      {showPrintOptions && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className={`p-8 rounded-lg max-w-md w-full mx-4 ${theme === 'dark' ? 'bg-gray-800 text-white' : 'bg-white text-gray-900 shadow-xl'}`}>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold flex items-center">
+                <Printer className="mr-3 text-blue-600" size={28} />
+                Print Options
+              </h2>
+              <button
+                onClick={() => setShowPrintOptions(false)}
+                className={`p-2 rounded-full transition-colors ${
+                  theme === 'dark' 
+                    ? 'hover:bg-gray-700 text-gray-400 hover:text-white' 
+                    : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
+                }`}
+                title="Close"
+              >
+                <X size={20} />
+              </button>
             </div>
-          </div>
 
-          {/* GST Calculation Summary */}
-          {formData.entries.filter(entry => entry.itemId && entry.itemId !== '' && entry.itemId !== 'select').length > 0 && (
-            <div className={PRINT_STYLES.totals.gstSummary}>
-              <strong className={PRINT_STYLES.totals.gstSummaryLabel}>GST Calculation Summary:</strong>
-              <div className={PRINT_STYLES.totals.gstSummaryContent}>
-                {(() => {
-                  const gstInfo = getGstRateInfo();
-                  return (
-                    <div>
-                      <div className={PRINT_STYLES.totals.gstRateHeader}>
-                        <span>Total Items: {gstInfo.totalItems}</span>
-                        <span>GST Rates Applied: {gstInfo.uniqueGstRatesCount}</span>
-                      </div>
-                      <div className={PRINT_STYLES.totals.gstRateDetails}>
-                        <strong>GST Rates Used:</strong> {gstInfo.gstRatesUsed.join('%, ')}%
-                      </div>
-                      {Object.entries(gstInfo.breakdown).map(([rate, data]) => (
-                        <div key={rate} className={PRINT_STYLES.totals.gstRateRow}>
-                          <span>GST {rate}%: {data.count} item{data.count > 1 ? 's' : ''}</span>
-                          <span>₹{data.gstAmount.toLocaleString()} GST</span>
-                        </div>
-                      ))}
-                      <div className={PRINT_STYLES.totals.gstNote}>
-                        This invoice includes {gstInfo.uniqueGstRatesCount} different GST rate{gstInfo.uniqueGstRatesCount > 1 ? 's' : ''} as per item specifications
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          )}
-
-          {/* Footer Section */}
-          <div className={PRINT_STYLES.signatures.container}>
-            <div className={PRINT_STYLES.signatures.section}>
-              <div className={PRINT_STYLES.signatures.label}>
-                For {safeCompanyInfo.name.toUpperCase()}
-              </div>
-              <div className={PRINT_STYLES.signatures.signatureArea}>
-                <div className={PRINT_STYLES.signatures.signatureLine}>
-                  Authorised Signatory
+            {/* Print Options Grid */}
+            <div className="grid grid-cols-1 gap-4">
+              {/* Generate Invoice */}
+              <button
+                onClick={handleGenerateInvoice}
+                className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'border-gray-600 hover:border-blue-500 hover:bg-gray-700 bg-gray-750'
+                    : 'border-gray-200 hover:border-blue-500 hover:bg-blue-50 bg-white'
+                } group`}
+              >
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mr-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                  <FileText size={24} />
                 </div>
-              </div>
-            </div>
-            <div className={PRINT_STYLES.signatures.sectionRight}>
-              <div className={PRINT_STYLES.signatures.label}>
-                Customer's Signature
-              </div>
-              <div className={PRINT_STYLES.signatures.signatureArea}>
-                <div className={PRINT_STYLES.signatures.signatureLine}>
-                  Receiver's Signature
+                <div className="text-left">
+                  <h3 className="font-semibold text-lg">📄 Generate Invoice</h3>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Print regular tax invoice
+                  </p>
                 </div>
-              </div>
+              </button>
+
+              {/* Generate E-way Bill */}
+              <button
+                onClick={handleGenerateEWayBill}
+                className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'border-gray-600 hover:border-green-500 hover:bg-gray-700 bg-gray-750'
+                    : 'border-gray-200 hover:border-green-500 hover:bg-green-50 bg-white'
+                } group`}
+              >
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-100 text-green-600 mr-4 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                  <Truck size={24} />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-lg">🚛 Generate E-way Bill</h3>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Generate E-way bill for transportation
+                  </p>
+                </div>
+              </button>
+
+              {/* Generate E-Invoice */}
+              <button
+                onClick={handleGenerateEInvoice}
+                className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'border-gray-600 hover:border-purple-500 hover:bg-gray-700 bg-gray-750'
+                    : 'border-gray-200 hover:border-purple-500 hover:bg-purple-50 bg-white'
+                } group`}
+              >
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-purple-100 text-purple-600 mr-4 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                  <FileText size={24} />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-lg">⚡ Generate E-Invoice</h3>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Generate government E-Invoice
+                  </p>
+                </div>
+              </button>
+
+              {/* Send to Email */}
+              <button
+                onClick={handleSendToEmail}
+                className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'border-gray-600 hover:border-orange-500 hover:bg-gray-700 bg-gray-750'
+                    : 'border-gray-200 hover:border-orange-500 hover:bg-orange-50 bg-white'
+                } group`}
+              >
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-orange-100 text-orange-600 mr-4 group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                  <Mail size={24} />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-lg">📧 Send to Email</h3>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Email invoice to customer
+                  </p>
+                </div>
+              </button>
+
+              {/* Send to WhatsApp */}
+              <button
+                onClick={handleSendToWhatsApp}
+                className={`flex items-center p-4 rounded-lg border-2 transition-all duration-200 ${
+                  theme === 'dark'
+                    ? 'border-gray-600 hover:border-green-500 hover:bg-gray-700 bg-gray-750'
+                    : 'border-gray-200 hover:border-green-500 hover:bg-green-50 bg-white'
+                } group`}
+              >
+                <div className="flex items-center justify-center w-12 h-12 rounded-full bg-green-100 text-green-600 mr-4 group-hover:bg-green-600 group-hover:text-white transition-colors">
+                  <MessageCircle size={24} />
+                </div>
+                <div className="text-left">
+                  <h3 className="font-semibold text-lg">💬 Send to WhatsApp</h3>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Share invoice via WhatsApp
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <button
+                onClick={() => setShowPrintOptions(false)}
+                className={`w-full py-2 px-4 rounded-lg transition-colors ${
+                  theme === 'dark'
+                    ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                }`}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* E-way Bill Generation Modal */}
+      {showEWayBill && (
+        <EWayBillGeneration
+          theme={theme}
+          voucherData={formData}
+          onClose={() => setShowEWayBill(false)}
+          getPartyName={getPartyName}
+          getItemDetails={getItemDetails}
+          calculateTotals={calculateTotals}
+        />
+      )}
+
+      {/* Invoice Print Modal */}
+      {showInvoicePrint && (
+        <InvoicePrint
+          theme={theme}
+          voucherData={formData}
+          isQuotation={isQuotation}
+          onClose={() => setShowInvoicePrint(false)}
+          getPartyName={getPartyName}
+          getItemDetails={getItemDetails}
+          calculateTotals={calculateTotals}
+          getGstRateInfo={getGstRateInfo}
+          companyInfo={safeCompanyInfo}
+          ledgers={safeLedgers}
+        />
+      )}
 
       <div className={`mt-6 p-4 rounded ${theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'}`}>
         <p className="text-sm">
