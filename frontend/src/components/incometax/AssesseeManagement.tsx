@@ -96,35 +96,6 @@ useEffect(() => {
       console.warn('Failed to save assessees to localStorage', e);
     }
   }, [assessees]);
-  
-  // Persist/Load assessees locally so other modules (like ITR Filing) can fetch by PAN without backend
-  const ASSESSEE_STORAGE_KEY = 'assessee_list_v1';
-
-  // Load from localStorage once on mount (if present), otherwise keep initial seed
-  React.useEffect(() => {
-    try {
-      const raw = localStorage.getItem(ASSESSEE_STORAGE_KEY);
-      if (raw) {
-        const saved = JSON.parse(raw);
-        if (Array.isArray(saved) && saved.length >= 0) {
-          setAssessees(saved);
-        }
-      }
-    } catch (e) {
-      // ignore JSON/Storage errors silently
-      console.warn('Failed to read assessees from localStorage', e);
-    }
-  }, []);
-
-  // Save to localStorage whenever list changes
-  React.useEffect(() => {
-    try {
-      localStorage.setItem(ASSESSEE_STORAGE_KEY, JSON.stringify(assessees));
-    } catch (e) {
-      console.warn('Failed to save assessees to localStorage', e);
-    }
-  }, [assessees]);
-
   const [formData, setFormData] = useState<Omit<Assessee, 'id' | 'createdDate'>>({
     name: '',
     fatherName: '',
