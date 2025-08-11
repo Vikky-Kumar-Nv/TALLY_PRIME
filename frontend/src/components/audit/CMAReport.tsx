@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Download, Save, FileText, TrendingUp, DollarSign, PieChart, BarChart, Printer } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -23,6 +23,7 @@ interface TableRowData {
   projectedYear2?: number;
   projectedYear3?: number;
   projectedYear4?: number;
+  projectedYear5?: number;
   format?: string;
 }
 
@@ -38,10 +39,13 @@ const SectionCard: React.FC<{ title: string; children: React.ReactNode; classNam
   </div>
 );
 
+type YearField = 'actualYear1' | 'actualYear2' | 'currentYear' | 'projectedYear1' | 'projectedYear2' | 'projectedYear3' | 'projectedYear4' | 'projectedYear5';
+
 const FinancialTable: React.FC<{
   title: string;
   data: TableRowData[];
-}> = ({ title, data }) => (
+  onChange: (rowIndex: number, field: YearField, value: number) => void;
+}> = ({ title, data, onChange }) => (
   <div className="overflow-x-auto">
     <h4 className="font-medium text-gray-800 mb-3">{title}</h4>
     <table className="w-full border border-gray-300 text-xs">
@@ -56,6 +60,7 @@ const FinancialTable: React.FC<{
           <th className="border border-gray-300 px-2 py-1 text-center font-medium">Projected Year 2</th>
           <th className="border border-gray-300 px-2 py-1 text-center font-medium">Projected Year 3</th>
           <th className="border border-gray-300 px-2 py-1 text-center font-medium">Projected Year 4</th>
+          <th className="border border-gray-300 px-2 py-1 text-center font-medium">Projected Year 5</th>
         </tr>
       </thead>
       <tbody>
@@ -63,41 +68,22 @@ const FinancialTable: React.FC<{
           <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
             <td className="border border-gray-300 px-2 py-1 text-center">{row.srNo}</td>
             <td className="border border-gray-300 px-2 py-1 font-medium">{row.particulars}</td>
-            <td className="border border-gray-300 px-2 py-1 text-right">
-              {row.format === 'currency' ? `₹${row.actualYear1?.toLocaleString() || '0'}` : 
-               row.format === 'percentage' ? `${row.actualYear1 || '0'}%` : 
-               row.actualYear1?.toLocaleString() || '0'}
-            </td>
-            <td className="border border-gray-300 px-2 py-1 text-right">
-              {row.format === 'currency' ? `₹${row.actualYear2?.toLocaleString() || '0'}` : 
-               row.format === 'percentage' ? `${row.actualYear2 || '0'}%` : 
-               row.actualYear2?.toLocaleString() || '0'}
-            </td>
-            <td className="border border-gray-300 px-2 py-1 text-right">
-              {row.format === 'currency' ? `₹${row.currentYear?.toLocaleString() || '0'}` : 
-               row.format === 'percentage' ? `${row.currentYear || '0'}%` : 
-               row.currentYear?.toLocaleString() || '0'}
-            </td>
-            <td className="border border-gray-300 px-2 py-1 text-right">
-              {row.format === 'currency' ? `₹${row.projectedYear1?.toLocaleString() || '0'}` : 
-               row.format === 'percentage' ? `${row.projectedYear1 || '0'}%` : 
-               row.projectedYear1?.toLocaleString() || '0'}
-            </td>
-            <td className="border border-gray-300 px-2 py-1 text-right">
-              {row.format === 'currency' ? `₹${row.projectedYear2?.toLocaleString() || '0'}` : 
-               row.format === 'percentage' ? `${row.projectedYear2 || '0'}%` : 
-               row.projectedYear2?.toLocaleString() || '0'}
-            </td>
-            <td className="border border-gray-300 px-2 py-1 text-right">
-              {row.format === 'currency' ? `₹${row.projectedYear3?.toLocaleString() || '0'}` : 
-               row.format === 'percentage' ? `${row.projectedYear3 || '0'}%` : 
-               row.projectedYear3?.toLocaleString() || '0'}
-            </td>
-            <td className="border border-gray-300 px-2 py-1 text-right">
-              {row.format === 'currency' ? `₹${row.projectedYear4?.toLocaleString() || '0'}` : 
-               row.format === 'percentage' ? `${row.projectedYear4 || '0'}%` : 
-               row.projectedYear4?.toLocaleString() || '0'}
-            </td>
+            {(['actualYear1','actualYear2','currentYear','projectedYear1','projectedYear2','projectedYear3','projectedYear4','projectedYear5'] as YearField[]).map((field) => (
+              <td key={field} className="border border-gray-300 px-2 py-1 text-right">
+                <input
+                  aria-label={`${row.particulars} - ${field}`}
+                  className="w-full bg-transparent text-right focus:outline-none focus:ring-1 focus:ring-blue-300 px-1 py-0.5"
+                  type="number"
+                  step={row.format === 'percentage' || row.format === 'ratio' ? 0.01 : 1}
+                  value={(row[field] ?? '').toString()}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? NaN : Number(e.target.value);
+                    onChange(index, field, isNaN(val) ? 0 : val);
+                  }}
+                  placeholder={row.format === 'percentage' ? '0.00' : '0'}
+                />
+              </td>
+            ))}
           </tr>
         ))}
       </tbody>
@@ -220,6 +206,7 @@ const CMAReport: React.FC = () => {
                   <th>Projected Year 2</th>
                   <th>Projected Year 3</th>
                   <th>Projected Year 4</th>
+                  <th>Projected Year 5</th>
                 </tr>
               </thead>
               <tbody>
@@ -234,6 +221,7 @@ const CMAReport: React.FC = () => {
                     <td class="text-right">${row.format === 'currency' ? '₹' + (row.projectedYear2?.toLocaleString() || '0') : row.projectedYear2?.toLocaleString() || '0'}</td>
                     <td class="text-right">${row.format === 'currency' ? '₹' + (row.projectedYear3?.toLocaleString() || '0') : row.projectedYear3?.toLocaleString() || '0'}</td>
                     <td class="text-right">${row.format === 'currency' ? '₹' + (row.projectedYear4?.toLocaleString() || '0') : row.projectedYear4?.toLocaleString() || '0'}</td>
+                    <td class="text-right">${row.format === 'currency' ? '₹' + (row.projectedYear5?.toLocaleString() || '0') : row.projectedYear5?.toLocaleString() || '0'}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -254,6 +242,7 @@ const CMAReport: React.FC = () => {
                   <th>Projected Year 2</th>
                   <th>Projected Year 3</th>
                   <th>Projected Year 4</th>
+                  <th>Projected Year 5</th>
                 </tr>
               </thead>
               <tbody>
@@ -268,6 +257,7 @@ const CMAReport: React.FC = () => {
                     <td class="text-right">₹${row.projectedYear2?.toLocaleString() || '0'}</td>
                     <td class="text-right">₹${row.projectedYear3?.toLocaleString() || '0'}</td>
                     <td class="text-right">₹${row.projectedYear4?.toLocaleString() || '0'}</td>
+                    <td class="text-right">₹${row.projectedYear5?.toLocaleString() || '0'}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -288,6 +278,7 @@ const CMAReport: React.FC = () => {
                   <th>Projected Year 2</th>
                   <th>Projected Year 3</th>
                   <th>Projected Year 4</th>
+                  <th>Projected Year 5</th>
                 </tr>
               </thead>
               <tbody>
@@ -302,6 +293,7 @@ const CMAReport: React.FC = () => {
                     <td class="text-right">${row.projectedYear2?.toLocaleString() || '0'}</td>
                     <td class="text-right">${row.projectedYear3?.toLocaleString() || '0'}</td>
                     <td class="text-right">${row.projectedYear4?.toLocaleString() || '0'}</td>
+                    <td class="text-right">${row.projectedYear5?.toLocaleString() || '0'}</td>
                   </tr>
                 `).join('')}
               </tbody>
@@ -332,17 +324,17 @@ const CMAReport: React.FC = () => {
   };
 
   // Sample Company Data
-  const companyInfo: CompanyInfo = {
+  const companyInfo = useMemo<CompanyInfo>(() => ({
     name: "ABC Foods Pvt Ltd",
     address: "21, 2nd Floor, DEF Building, 27th Street, Mumbai. Phone 98xxxxxxxx",
     phone: "98xxxxxxxx",
     constitution: "Company",
     companyType: "Private Limited",
     workingCapitalLimit: 60000000
-  };
+  }), []);
 
-  // Operating Statement Data
-  const operatingStatementData = [
+  // Operating Statement Data (placed into state below)
+  const defaultOperatingStatementData: TableRowData[] = [
     { srNo: 1, particulars: "Sales Operation", actualYear1: 10000, actualYear2: 14000, currentYear: 16000, projectedYear1: 20540, projectedYear2: 26268, projectedYear3: 33814, projectedYear4: 43207, format: "currency" },
     { srNo: "", particulars: "Export Sales", actualYear1: 1000, actualYear2: 500, currentYear: 1100, projectedYear1: 1344, projectedYear2: 1560, projectedYear3: 2345, projectedYear4: 2412, format: "currency" },
     { srNo: "", particulars: "Gross Sales", actualYear1: 11000, actualYear2: 14500, currentYear: 17100, projectedYear1: 21884, projectedYear2: 28944, projectedYear3: 35659, projectedYear4: 45719, format: "currency" },
@@ -359,7 +351,7 @@ const CMAReport: React.FC = () => {
   ];
 
   // Balance Sheet Data
-  const balanceSheetData = [
+  const defaultBalanceSheetData: TableRowData[] = [
     { srNo: 1, particulars: "Current Liabilities", actualYear1: 0, actualYear2: 0, currentYear: 0, projectedYear1: 0, projectedYear2: 0, projectedYear3: 0, projectedYear4: 0, format: "currency" },
     { srNo: "", particulars: "Short-term borrowings (including bills purchased)", actualYear1: 400, actualYear2: 410, currentYear: 460, projectedYear1: 600, projectedYear2: 600, projectedYear3: 600, projectedYear4: 600, format: "currency" },
     { srNo: "", particulars: "Trade Creditors", actualYear1: 300, actualYear2: 370, currentYear: 370, projectedYear1: 530, projectedYear2: 590, projectedYear3: 590, projectedYear4: 590, format: "currency" },
@@ -373,7 +365,7 @@ const CMAReport: React.FC = () => {
   ];
 
   // Current Assets Data
-  const currentAssetsData = [
+  const defaultCurrentAssetsData: TableRowData[] = [
     { srNo: 6, particulars: "Current Assets", actualYear1: 0, actualYear2: 0, currentYear: 0, projectedYear1: 0, projectedYear2: 0, projectedYear3: 0, projectedYear4: 0, format: "currency" },
     { srNo: "", particulars: "Cash and Cash Equivalents", actualYear1: 100, actualYear2: 110, currentYear: 105, projectedYear1: 133, projectedYear2: 167, projectedYear3: 209, projectedYear4: 261, format: "currency" },
     { srNo: "", particulars: "Cash and bank balances", actualYear1: 10, actualYear2: 10, currentYear: 10, projectedYear1: 13, projectedYear2: 17, projectedYear3: 21, projectedYear4: 26, format: "currency" },
@@ -384,7 +376,7 @@ const CMAReport: React.FC = () => {
   ];
 
   // MPBF Data
-  const mpbfData = [
+  const defaultMpbfData: TableRowData[] = [
     { srNo: 1, particulars: "Total Current Assets", actualYear1: 6460, actualYear2: 7330, currentYear: 8395, projectedYear1: 10662, projectedYear2: 13406, projectedYear3: 16939, projectedYear4: 21290, format: "currency" },
     { srNo: 2, particulars: "Current Liabilities (Other than bank borrowing)", actualYear1: 2340, actualYear2: 2860, currentYear: 3105, projectedYear1: 4179, projectedYear2: 5393, projectedYear3: 6985, projectedYear4: 8997, format: "currency" },
     { srNo: 3, particulars: "Working Capital Gap (WCG)", actualYear1: 4120, actualYear2: 4470, currentYear: 5290, projectedYear1: 6503, projectedYear2: 8013, projectedYear3: 9955, projectedYear4: 12292, format: "currency" },
@@ -396,7 +388,7 @@ const CMAReport: React.FC = () => {
   ];
 
   // Funds Flow Data
-  const fundsFlowData = [
+  const defaultFundsFlowData: TableRowData[] = [
     { srNo: "A", particulars: "SOURCES OF FUNDS", actualYear1: 0, actualYear2: 0, currentYear: 0, projectedYear1: 0, projectedYear2: 0, projectedYear3: 0, projectedYear4: 0, format: "currency" },
     { srNo: 1, particulars: "Cash loss for the year", actualYear1: 600, actualYear2: 400, currentYear: 542, projectedYear1: 1266, projectedYear2: 1766, projectedYear3: 2399, projectedYear4: 3399, format: "currency" },
     { srNo: 2, particulars: "Depreciation", actualYear1: 700, actualYear2: 750, currentYear: 934, projectedYear1: 1122, projectedYear2: 1742, projectedYear3: 1569, projectedYear4: 1569, format: "currency" },
@@ -409,7 +401,7 @@ const CMAReport: React.FC = () => {
   ];
 
   // Ratio Analysis Data
-  const ratioData = [
+  const defaultRatioData: TableRowData[] = [
     { srNo: "A", particulars: "Long-term Solvency Ratios", actualYear1: 0, actualYear2: 0, currentYear: 0, projectedYear1: 0, projectedYear2: 0, projectedYear3: 0, projectedYear4: 0, format: "" },
     { srNo: 1, particulars: "Debt Equity Ratio", actualYear1: 0.25, actualYear2: 0.26, currentYear: 0.21, projectedYear1: 0.18, projectedYear2: 0.15, projectedYear3: 0.12, projectedYear4: 0.10, format: "ratio" },
     { srNo: 2, particulars: "Capital Gearing Ratio", actualYear1: 0.25, actualYear2: 0.53, currentYear: 0.55, projectedYear1: 0.53, projectedYear2: 0.13, projectedYear3: 0.54, projectedYear4: 0.52, format: "ratio" },
@@ -420,6 +412,115 @@ const CMAReport: React.FC = () => {
     { srNo: 2, particulars: "Quick Ratio/Liquid Ratio/Acid Test Ratio", actualYear1: 1.42, actualYear2: 1.37, currentYear: 1.52, projectedYear1: 1.55, projectedYear2: 1.41, projectedYear3: 1.37, projectedYear4: 1.34, format: "ratio" },
     { srNo: 3, particulars: "Absolute Liquid Ratio", actualYear1: 0.04, actualYear2: 0.03, currentYear: 0.03, projectedYear1: 0.03, projectedYear2: 0.03, projectedYear3: 0.03, projectedYear4: 0.03, format: "ratio" }
   ];
+
+  // State with localStorage hydration
+  const [operatingStatementData, setOperatingStatementData] = useState<TableRowData[]>(() => {
+    const saved = localStorage.getItem('cma_report_data');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const arr = parsed?.operatingStatement as TableRowData[] | undefined;
+        if (Array.isArray(arr)) return arr.map(r => ({ ...r, projectedYear5: r.projectedYear5 ?? 0 }));
+      } catch {
+        /* ignore hydration errors */
+      }
+    }
+    return defaultOperatingStatementData.map(r => ({ ...r, projectedYear5: 0 }));
+  });
+  const [balanceSheetData, setBalanceSheetData] = useState<TableRowData[]>(() => {
+    const saved = localStorage.getItem('cma_report_data');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const arr = parsed?.balanceSheet as TableRowData[] | undefined;
+        if (Array.isArray(arr)) return arr.map(r => ({ ...r, projectedYear5: r.projectedYear5 ?? 0 }));
+      } catch {
+        /* ignore hydration errors */
+      }
+    }
+    return defaultBalanceSheetData.map(r => ({ ...r, projectedYear5: 0 }));
+  });
+  const [currentAssetsData, setCurrentAssetsData] = useState<TableRowData[]>(() => {
+    const saved = localStorage.getItem('cma_report_data');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const arr = parsed?.currentAssets as TableRowData[] | undefined;
+        if (Array.isArray(arr)) return arr.map(r => ({ ...r, projectedYear5: r.projectedYear5 ?? 0 }));
+      } catch {
+        /* ignore hydration errors */
+      }
+    }
+    return defaultCurrentAssetsData.map(r => ({ ...r, projectedYear5: 0 }));
+  });
+  const [mpbfData, setMpbfData] = useState<TableRowData[]>(() => {
+    const saved = localStorage.getItem('cma_report_data');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const arr = parsed?.mpbf as TableRowData[] | undefined;
+        if (Array.isArray(arr)) return arr.map(r => ({ ...r, projectedYear5: r.projectedYear5 ?? 0 }));
+      } catch {
+        /* ignore hydration errors */
+      }
+    }
+    return defaultMpbfData.map(r => ({ ...r, projectedYear5: 0 }));
+  });
+  const [fundsFlowData, setFundsFlowData] = useState<TableRowData[]>(() => {
+    const saved = localStorage.getItem('cma_report_data');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const arr = parsed?.fundsFlow as TableRowData[] | undefined;
+        if (Array.isArray(arr)) return arr.map(r => ({ ...r, projectedYear5: r.projectedYear5 ?? 0 }));
+      } catch {
+        /* ignore hydration errors */
+      }
+    }
+    return defaultFundsFlowData.map(r => ({ ...r, projectedYear5: 0 }));
+  });
+  const [ratioData, setRatioData] = useState<TableRowData[]>(() => {
+    const saved = localStorage.getItem('cma_report_data');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        const arr = parsed?.ratios as TableRowData[] | undefined;
+        if (Array.isArray(arr)) return arr.map(r => ({ ...r, projectedYear5: r.projectedYear5 ?? 0 }));
+      } catch {
+        /* ignore hydration errors */
+      }
+    }
+    return defaultRatioData.map(r => ({ ...r, projectedYear5: 0 }));
+  });
+
+  // Auto-persist on change
+  useEffect(() => {
+    const reportData = {
+      companyInfo,
+      operatingStatement: operatingStatementData,
+      balanceSheet: balanceSheetData,
+      currentAssets: currentAssetsData,
+      mpbf: mpbfData,
+      fundsFlow: fundsFlowData,
+      ratios: ratioData,
+      generatedDate: new Date().toISOString()
+    };
+    try {
+      localStorage.setItem('cma_report_data', JSON.stringify(reportData));
+    } catch {
+      /* ignore persistence errors */
+    }
+  }, [companyInfo, operatingStatementData, balanceSheetData, currentAssetsData, mpbfData, fundsFlowData, ratioData]);
+
+  // Inline cell update helpers
+  const updateRowField = (
+    setter: React.Dispatch<React.SetStateAction<TableRowData[]>>,
+    rowIndex: number,
+    field: YearField,
+    value: number
+  ) => {
+    setter(prev => prev.map((r, i) => (i === rowIndex ? { ...r, [field]: value } : r)));
+  };
 
   const tabs = [
     { id: 'executive', label: 'Executive Summary', icon: TrendingUp },
@@ -606,61 +707,67 @@ const CMAReport: React.FC = () => {
           )}
 
           {/* Operating Statement */}
-          {activeTab === 'operating' && (
+      {activeTab === 'operating' && (
             <SectionCard title="Form II - Operating Statement">
               <FinancialTable
                 title="Income and Expenditure Statement"
-                data={operatingStatementData}
+        data={operatingStatementData}
+        onChange={(row, field, value) => updateRowField(setOperatingStatementData, row, field, value)}
               />
             </SectionCard>
           )}
 
           {/* Balance Sheet */}
-          {activeTab === 'balance' && (
+      {activeTab === 'balance' && (
             <SectionCard title="Form III - Analysis of Balance Sheet">
               <FinancialTable
                 title="Balance Sheet Analysis"
-                data={balanceSheetData}
+        data={balanceSheetData}
+        onChange={(row, field, value) => updateRowField(setBalanceSheetData, row, field, value)}
               />
             </SectionCard>
           )}
 
           {/* Current Assets & Liabilities */}
-          {activeTab === 'current' && (
+      {activeTab === 'current' && (
             <SectionCard title="Form IV - Comparative Statement of Current Assets and Current Liabilities">
               <FinancialTable
                 title="Current Assets and Liabilities Analysis"
-                data={currentAssetsData}
+        data={currentAssetsData}
+        onChange={(row, field, value) => updateRowField(setCurrentAssetsData, row, field, value)}
               />
             </SectionCard>
           )}
 
           {/* MPBF Computation */}
-          {activeTab === 'mpbf' && (
+      {activeTab === 'mpbf' && (
             <SectionCard title="Form V - Computation of Maximum Permissible Bank Finance (MPBF) for Working Capital">
               <FinancialTable
                 title="MPBF Calculation"
-                data={mpbfData}
+        data={mpbfData}
+        onChange={(row, field, value) => updateRowField(setMpbfData, row, field, value)}
               />
             </SectionCard>
           )}
 
           {/* Funds Flow */}
-          {activeTab === 'funds' && (
+      {activeTab === 'funds' && (
             <SectionCard title="Form VI - Funds Flow Statement">
               <FinancialTable
                 title="Sources and Application of Funds"
-                data={fundsFlowData}
+        data={fundsFlowData}
+        onChange={(row, field, value) => updateRowField(setFundsFlowData, row, field, value)}
               />
             </SectionCard>
           )}
 
           {/* Ratio Analysis */}
-          {activeTab === 'ratios' && (
+      {activeTab === 'ratios' && (
             <SectionCard title="Ratio Analysis">
               <FinancialTable
                 title="Financial Ratios"
-                data={ratioData}
+        data={ratioData}
+        onChange={(row, field, value) => updateRowField(setRatioData, row, field, value)}
               />
             </SectionCard>
           )}

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Printer } from 'lucide-react';
 import type { VoucherEntry, VoucherEntryLine, VoucherType } from '../../types';
+import { useAppContext } from '../../context/AppContext';
+import PrintOptions from '../vouchers/sales/PrintOptions';
 
 interface VoucherRegisterBaseProps {
   title: string;
@@ -138,6 +140,7 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
   onView
 }) => {
   const navigate = useNavigate();
+  const { theme } = useAppContext();
   const [vouchers, setVouchers] = useState<VoucherEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -145,6 +148,8 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
   const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [showPrintOptions, setShowPrintOptions] = useState(false);
+  const [selectedVoucher, setSelectedVoucher] = useState<VoucherEntry | null>(null);
   
   // New state for Change View functionality
   const [viewType, setViewType] = useState<'Daily' | 'Weekly' | 'Fortnightly' | 'Monthly' | 'Quarterly' | 'Half-yearly'>('Daily');
@@ -523,6 +528,132 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
     }
   };
 
+  // Row-level print options handlers
+  const openPrintOptions = (voucher: VoucherEntry) => {
+    setSelectedVoucher(voucher);
+    setShowPrintOptions(true);
+  };
+
+  const closePrintOptions = () => {
+    setShowPrintOptions(false);
+    setSelectedVoucher(null);
+  };
+
+  const printSingleVoucher = (voucher: VoucherEntry) => {
+    try {
+      const { debit, credit } = calculateDebitCredit(voucher);
+      const particulars = getParticulars(voucher);
+      const content = `
+        <html>
+          <head>
+            <title>Invoice ${voucher.number}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 24px; }
+              h1 { margin: 0 0 8px 0; }
+              .muted { color: #666; }
+              table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+              th { background: #f7f7f7; }
+              .right { text-align: right; }
+            </style>
+          </head>
+          <body>
+            <h1>Invoice</h1>
+            <div class="muted">Voucher No: ${voucher.number} | Date: ${voucher.date} | Type: ${voucher.type.toUpperCase()}</div>
+            <div>Particulars: ${particulars}</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Line</th>
+                  <th>Ledger/Item</th>
+                  <th class="right">Debit</th>
+                  <th class="right">Credit</th>
+                  <th>Narration</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${voucher.entries.map((e, idx) => `
+                  <tr>
+                    <td>${idx + 1}</td>
+                    <td>${e.ledgerId || e.itemId || '-'}</td>
+                    <td class="right">${e.type === 'debit' ? e.amount.toFixed(2) : '-'}</td>
+                    <td class="right">${e.type === 'credit' ? e.amount.toFixed(2) : '-'}</td>
+                    <td>${e.narration || ''}</td>
+                  </tr>`).join('')}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="2" class="right"><strong>Totals</strong></td>
+                  <td class="right"><strong>${debit.toFixed(2)}</strong></td>
+                  <td class="right"><strong>${credit.toFixed(2)}</strong></td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </body>
+        </html>`;
+
+      const w = window.open('', '_blank');
+      if (!w) {
+        alert('Please allow pop-ups to print the invoice.');
+        return false;
+      }
+      w.document.write(content);
+      w.document.close();
+      w.focus();
+      w.print();
+      return true;
+    } catch (err) {
+      console.error('Error printing voucher:', err);
+      alert('Failed to print invoice');
+      return false;
+    }
+  };
+
+  const handleGenerateEWayBill = (voucher: VoucherEntry) => {
+    // Placeholder: integrate real E-Way Bill modal/API here
+    console.log('E-Way Bill generation started for', voucher.number);
+    alert(`E-Way Bill generated (mock) for ${voucher.number}`);
+  };
+
+  const handleGenerateEInvoice = (voucher: VoucherEntry) => {
+    // Placeholder: integrate real E-Invoice (IRN) API/print here
+    console.log('E-Invoice generation started for', voucher.number);
+    alert(`E-Invoice generated (mock) for ${voucher.number}`);
+  };
+
+  const onGenerateInvoice = () => {
+    if (!selectedVoucher) return;
+    const ok = printSingleVoucher(selectedVoucher);
+    // Auto-run E-Way Bill then E-Invoice after invoice generation
+    if (ok) {
+      setTimeout(() => handleGenerateEWayBill(selectedVoucher), 300);
+      setTimeout(() => handleGenerateEInvoice(selectedVoucher), 800);
+    }
+  };
+
+  const onGenerateEWayBillClick = () => {
+    if (!selectedVoucher) return;
+    handleGenerateEWayBill(selectedVoucher);
+  };
+
+  const onGenerateEInvoiceClick = () => {
+    if (!selectedVoucher) return;
+    handleGenerateEInvoice(selectedVoucher);
+  };
+
+  const onSendToEmail = () => {
+    if (!selectedVoucher) return;
+    // Placeholder email hook
+    alert(`Invoice ${selectedVoucher.number} queued for email (mock).`);
+  };
+
+  const onSendToWhatsApp = () => {
+    if (!selectedVoucher) return;
+    // Placeholder WhatsApp hook
+    alert(`Invoice ${selectedVoucher.number} shared to WhatsApp (mock).`);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -797,7 +928,7 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-3 items-center">
                         {hasPermission('view') && onView && (
                           <button
                             onClick={() => onView(voucher)}
@@ -823,6 +954,15 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
                             title="Delete voucher"
                           >
                             Delete
+                          </button>
+                        )}
+                        {hasPermission('print') && (
+                          <button
+                            onClick={() => openPrintOptions(voucher)}
+                            className="text-gray-700 hover:text-gray-900 flex items-center"
+                            title="Print options"
+                          >
+                            <Printer size={16} className="mr-1" /> Print
                           </button>
                         )}
                       </div>
@@ -924,6 +1064,18 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
           </div>
         )}
       </div>
+
+      {/* Print Options Modal */}
+      <PrintOptions
+        theme={theme}
+        showPrintOptions={showPrintOptions}
+        onClose={closePrintOptions}
+        onGenerateInvoice={onGenerateInvoice}
+        onGenerateEWayBill={onGenerateEWayBillClick}
+        onGenerateEInvoice={onGenerateEInvoiceClick}
+        onSendToEmail={onSendToEmail}
+        onSendToWhatsApp={onSendToWhatsApp}
+      />
 
       {filteredVouchers.length === 0 && (
         <div className="text-center py-12">

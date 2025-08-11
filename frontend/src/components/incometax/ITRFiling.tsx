@@ -270,7 +270,7 @@ const ITRFiling: React.FC = () => {
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold">ITR Filing - Statement of Taxable Income</h1>
+        <h1 className="text-2xl font-bold">ITR Computation  - Statement of Taxable Income</h1>
         <div className="ml-auto flex space-x-2">
           <button
             className={`p-2 rounded-md ${

@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import type { VoucherEntry, Ledger, VoucherEntryLine } from '../../../types';
-import { Save, Plus, Trash2, ArrowLeft } from 'lucide-react';
+import { Save, Plus, Trash2, ArrowLeft, Printer } from 'lucide-react';
+import PrintOptions from '../sales/PrintOptions';
+import EWayBillGeneration from '../sales/EWayBillGeneration';
+import InvoicePrint from '../sales/InvoicePrint';
 
 const DebitNoteVoucher: React.FC = () => {
   const { theme, ledgers, stockItems, addVoucher } = useAppContext();
@@ -21,6 +24,11 @@ const DebitNoteVoucher: React.FC = () => {
       { id: '2', ledgerId: '', amount: 0, type: 'credit' }
     ]
   });
+
+  // Print-related state
+  const [showPrintOptions, setShowPrintOptions] = useState(false);
+  const [showEWayBill, setShowEWayBill] = useState(false);
+  const [showInvoicePrint, setShowInvoicePrint] = useState(false);
 
   // Safe fallbacks for context data
   const safeStockItems = stockItems || [];
@@ -163,8 +171,23 @@ const DebitNoteVoucher: React.FC = () => {
   // Calculate totals based on mode
   const calculateTotals = () => {
     if (formData.mode === 'item-invoice') {
-      const total = formData.entries.reduce((sum: number, entry: VoucherEntryLine) => sum + (entry.amount || 0), 0);
-      return { total, totalDebit: 0, totalCredit: 0, isBalanced: true };
+      const subtotal = formData.entries.reduce((sum, e) => sum + ((e.quantity ?? 0) * (e.rate ?? 0)), 0);
+      const cgstTotal = formData.entries.reduce((sum, e) => sum + ((e.quantity ?? 0) * (e.rate ?? 0) * (e.cgstRate ?? 0) / 100), 0);
+      const sgstTotal = formData.entries.reduce((sum, e) => sum + ((e.quantity ?? 0) * (e.rate ?? 0) * (e.sgstRate ?? 0) / 100), 0);
+      const igstTotal = formData.entries.reduce((sum, e) => sum + ((e.quantity ?? 0) * (e.rate ?? 0) * (e.igstRate ?? 0) / 100), 0);
+      const discountTotal = formData.entries.reduce((sum, e) => sum + (e.discount ?? 0), 0);
+      const total = subtotal + cgstTotal + sgstTotal + igstTotal - discountTotal;
+      return { subtotal, cgstTotal, sgstTotal, igstTotal, discountTotal, total };
+    } else {
+      const total = formData.entries.reduce((sum, e) => sum + (e.amount ?? 0), 0);
+      return { subtotal: total, cgstTotal: 0, sgstTotal: 0, igstTotal: 0, discountTotal: 0, total };
+    }
+  };
+
+  // Get balance info for traditional calculation
+  const getBalanceInfo = () => {
+    if (formData.mode === 'item-invoice') {
+      return { totalDebit: 0, totalCredit: 0, isBalanced: true };
     } else {
       const totalDebit = formData.entries
         .filter((entry: VoucherEntryLine) => entry.type === 'debit')
@@ -175,11 +198,76 @@ const DebitNoteVoucher: React.FC = () => {
         .reduce((sum: number, entry: VoucherEntryLine) => sum + entry.amount, 0);
         
       const isBalanced = Math.abs(totalDebit - totalCredit) < 0.01;
-      return { totalDebit, totalCredit, isBalanced, total: totalDebit };
+      return { totalDebit, totalCredit, isBalanced };
     }
   };
 
-  const { totalDebit, totalCredit, isBalanced } = calculateTotals();
+  const { totalDebit, totalCredit, isBalanced } = getBalanceInfo();
+
+  // Print Options Handlers
+  const handlePrintClick = () => {
+    console.log('Print button clicked');
+    
+    if (!formData.partyId) {
+      alert('Please select a party before printing the debit note.');
+      return;
+    }
+    
+    // Show print options popup instead of direct print
+    setShowPrintOptions(true);
+  };
+
+  const handleGenerateInvoice = () => {
+    console.log('Generating Debit Note Invoice...');
+    setShowPrintOptions(false);
+    setShowInvoicePrint(true); // Show invoice print modal
+  };
+
+  const handleGenerateEWayBill = () => {
+    console.log('Generating E-way Bill...');
+    setShowPrintOptions(false);
+    setShowEWayBill(true); // Show E-way Bill generation modal
+  };
+
+  const handleGenerateEInvoice = () => {
+    console.log('Generating E-Invoice...');
+    setShowPrintOptions(false);
+    // TODO: Implement E-Invoice generation for debit note
+    alert('E-Invoice generation feature will be implemented soon!');
+  };
+
+  const handleSendToEmail = () => {
+    console.log('Sending to Email...');
+    setShowPrintOptions(false);
+    // TODO: Implement email functionality for debit note
+    alert('Email sending feature will be implemented soon!');
+  };
+
+  const handleSendToWhatsApp = () => {
+    console.log('Sending to WhatsApp...');
+    setShowPrintOptions(false);
+    // TODO: Implement WhatsApp sharing for debit note
+    alert('WhatsApp sharing feature will be implemented soon!');
+  };
+
+  // Helper function to get party name
+  const getPartyName = (partyId: string) => {
+    if (!safeLedgers || safeLedgers.length === 0) return 'Unknown Party';
+    
+    const party = safeLedgers.find(ledger => ledger.id === partyId);
+    return party ? party.name : 'Unknown Party';
+  };
+
+  // Company info for invoice printing
+  const { companyInfo } = useAppContext();
+  const safeCompanyInfo = companyInfo || {
+    name: 'Your Company Name',
+    address: 'Your Company Address',
+    gstNumber: 'N/A',
+    phoneNumber: 'N/A',
+    state: 'Default State',
+    panNumber: 'N/A'
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -777,6 +865,15 @@ const DebitNoteVoucher: React.FC = () => {
               Cancel
             </button>
             <button
+              title='Print'
+              type="button"
+              onClick={handlePrintClick}
+              className={`flex items-center px-4 py-2 rounded ${theme === 'dark' ? 'bg-green-600 hover:bg-green-700' : 'bg-green-600 hover:bg-green-700 text-white'}`}
+            >
+              <Printer size={18} className="mr-1" />
+              Print
+            </button>
+            <button
               type="submit"
               disabled={formData.mode !== 'item-invoice' && !isBalanced}
               className={`flex items-center px-4 py-2 rounded ${
@@ -801,6 +898,46 @@ const DebitNoteVoucher: React.FC = () => {
           <span className="font-semibold">Note:</span> Debit notes are issued to increase the amount due from a customer or to a supplier.
         </p>
       </div>
+
+      {/* Print Options Component */}
+      <PrintOptions
+        theme={theme}
+        showPrintOptions={showPrintOptions}
+        onClose={() => setShowPrintOptions(false)}
+        onGenerateInvoice={handleGenerateInvoice}
+        onGenerateEWayBill={handleGenerateEWayBill}
+        onGenerateEInvoice={handleGenerateEInvoice}
+        onSendToEmail={handleSendToEmail}
+        onSendToWhatsApp={handleSendToWhatsApp}
+      />
+
+      {/* E-way Bill Generation Modal */}
+      {showEWayBill && (
+        <EWayBillGeneration
+          theme={theme}
+          voucherData={formData}
+          onClose={() => setShowEWayBill(false)}
+          getPartyName={getPartyName}
+          getItemDetails={getItemDetails}
+          calculateTotals={calculateTotals}
+        />
+      )}
+
+      {/* Invoice Print Modal */}
+      {showInvoicePrint && (
+        <InvoicePrint
+          theme={theme}
+          voucherData={formData}
+          isQuotation={false}
+          onClose={() => setShowInvoicePrint(false)}
+          getPartyName={getPartyName}
+          getItemDetails={getItemDetails}
+          calculateTotals={calculateTotals}
+          getGstRateInfo={() => ({ uniqueGstRatesCount: 1, gstRatesUsed: [18], totalItems: formData.entries.length, breakdown: {} })}
+          companyInfo={safeCompanyInfo}
+          ledgers={safeLedgers}
+        />
+      )}
     </div>
   );
 };
