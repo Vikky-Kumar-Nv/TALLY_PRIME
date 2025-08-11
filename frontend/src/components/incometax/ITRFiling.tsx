@@ -163,6 +163,49 @@ const ITRFiling: React.FC = () => {
       { date: '', chequeNo: '', bsrCode: '', bankName: '', amount: 0 }
     ]
   });
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  try {
+    const employee_id = localStorage.getItem('employee_id');
+    if (!employee_id) {
+      alert('Employee ID not found in local storage');
+      return;
+    }
+
+    const payload = {
+      ...formData,
+      employee_id,
+    };
+
+    const response = await fetch('http://localhost:5000/api/itr-filling', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      // If the server responds with an error status
+      const errorData = await response.json();
+      alert('Failed to file ITR: ' + (errorData.error || response.statusText));
+      return;
+    }
+
+    const data: { success: boolean; id?: number; error?: string } = await response.json();
+
+    if (data.success) {
+      alert(`ITR filed successfully with ID: ${data.id}`);
+      // Optionally reset form or redirect here
+    } else {
+      alert('Failed to file ITR');
+    }
+  } catch (error: any) {
+    alert('Error submitting ITR: ' + (error.message || "Unknown error"));
+  }
+};
+
 
   const handleInputChange = (section: keyof ITRData, field: string, value: string | number | boolean) => {
     setFormData(prev => {
@@ -258,6 +301,53 @@ const ITRFiling: React.FC = () => {
 
   const sectionClass = `p-6 mb-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`;
 
+  // Frontend-only PAN based autofill from AssesseeManagement localStorage
+  const ASSESSEE_STORAGE_KEY = 'assessee_list_v1';
+  type StoredAssessee = {
+    name?: string;
+    fatherName?: string;
+    dateOfBirth?: string;
+    pan?: string;
+    aadhar?: string;
+    email?: string;
+    phone?: string;
+    address?: { line1?: string; line2?: string; city?: string; state?: string; pincode?: string };
+  };
+
+  const tryAutofillFromPAN = (pan: string) => {
+    const normalized = (pan || '').toUpperCase().trim();
+    if (normalized.length !== 10) return; // basic PAN length check
+    try {
+      const raw = localStorage.getItem(ASSESSEE_STORAGE_KEY);
+      if (!raw) return;
+      const list: unknown = JSON.parse(raw);
+      if (!Array.isArray(list)) return;
+      const match = (list as StoredAssessee[]).find((a) => ((a?.pan ?? '').toUpperCase() === normalized));
+      if (!match) return;
+
+      const combinedAddress = [match.address?.line1, match.address?.line2, match.address?.city, match.address?.state, match.address?.pincode]
+        .filter(Boolean)
+        .join(', ');
+
+      setFormData(prev => ({
+        ...prev,
+        assessee: {
+          ...prev.assessee,
+          name: match.name || '',
+          fatherName: match.fatherName || '',
+          dateOfBirth: match.dateOfBirth || '',
+          address: combinedAddress,
+          pan: normalized,
+          aadhar: match.aadhar || '',
+          email: match.email || '',
+          phone: match.phone || ''
+        }
+      }));
+    } catch (e) {
+      console.warn('PAN autofill failed', e);
+    }
+  };
+
   return (
     <div className="pt-[56px] px-4">
       <div className="flex items-center mb-6">
@@ -270,7 +360,7 @@ const ITRFiling: React.FC = () => {
         >
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold">ITR Filing - Statement of Taxable Income</h1>
+        <h1 className="text-2xl font-bold">ITR Computation  - Statement of Taxable Income</h1>
         <div className="ml-auto flex space-x-2">
           <button
             className={`p-2 rounded-md ${
@@ -300,6 +390,8 @@ const ITRFiling: React.FC = () => {
       </div>
 
       {/* Assessee Information */}
+      <form onSubmit={handleSubmit}>
+
       <div className={sectionClass}>
         <div className="flex items-center mb-4">
           <User size={20} className="mr-2" />
@@ -352,10 +444,12 @@ const ITRFiling: React.FC = () => {
               type="text"
               value={formData.assessee.pan}
               onChange={(e) => handleInputChange('assessee', 'pan', e.target.value.toUpperCase())}
+              onBlur={(e) => tryAutofillFromPAN(e.target.value)}
               className={inputClass()}
               placeholder="ABCDE1234F"
               maxLength={10}
             />
+            <div className="mt-1 text-xs text-gray-500">Enter PAN and tab out to auto-fill from Assessee Management.</div>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Aadhar</label>
@@ -1046,6 +1140,7 @@ const ITRFiling: React.FC = () => {
           Submit ITR
         </button>
       </div>
+</form>
 
       <div className={`mt-6 p-4 rounded ${
         theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { ArrowLeft, PiggyBank, Plus, Edit, Trash2, Calculator, TrendingUp } from 'lucide-react';
@@ -25,57 +25,7 @@ const InvestmentManagement: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
 
-  const [investments, setInvestments] = useState<Investment[]>([
-    {
-      id: '1',
-      assesseeId: '1',
-      section: '80C',
-      investmentType: 'LIC Premium',
-      instituteName: 'Life Insurance Corporation',
-      policyNumber: 'LIC123456789',
-      amount: 75000,
-      dateOfInvestment: '2023-04-15',
-      maturityDate: '2043-04-15',
-      interestRate: 6.5,
-      taxBenefit: 75000,
-      financialYear: '2023-24',
-      status: 'active',
-      documents: ['policy_document.pdf', 'premium_receipt.pdf'],
-      createdDate: '2023-04-15'
-    },
-    {
-      id: '2',
-      assesseeId: '1',
-      section: '80C',
-      investmentType: 'PPF',
-      instituteName: 'State Bank of India',
-      amount: 150000,
-      dateOfInvestment: '2023-04-01',
-      maturityDate: '2038-04-01',
-      interestRate: 7.1,
-      taxBenefit: 150000,
-      financialYear: '2023-24',
-      status: 'active',
-      documents: ['ppf_statement.pdf'],
-      createdDate: '2023-04-01'
-    },
-    {
-      id: '3',
-      assesseeId: '1',
-      section: '80D',
-      investmentType: 'Health Insurance',
-      instituteName: 'HDFC ERGO',
-      policyNumber: 'HDFC789456123',
-      amount: 25000,
-      dateOfInvestment: '2023-05-01',
-      maturityDate: '2024-05-01',
-      taxBenefit: 25000,
-      financialYear: '2023-24',
-      status: 'active',
-      documents: ['health_policy.pdf'],
-      createdDate: '2023-05-01'
-    }
-  ]);
+  const [investments, setInvestments] = useState<Investment[]>([]);
 
   const [showForm, setShowForm] = useState(false);
   const [editingInvestment, setEditingInvestment] = useState<Investment | null>(null);
@@ -141,28 +91,70 @@ const InvestmentManagement: React.FC = () => {
       [field]: value
     }));
   };
+useEffect(() => {
+  const fetchInvestments = async () => {
+    const employee_id = localStorage.getItem('employee_id');
+    if (!employee_id) {
+      console.error('No employee_id found in localStorage');
+      setInvestments([]); // Optional: clear on logout
+      return;
+    }
+    try {
+      const response = await fetch(`http://localhost:5000/api/investments?employee_id=${encodeURIComponent(employee_id)}`, {
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch investments');
+      }
+      const data = await response.json();
+      setInvestments(data);
+    } catch (err) {
+      console.error('Error fetching investments:', err);
+      setInvestments([]);
+    }
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  fetchInvestments();
+}, []);
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    const employee_id = localStorage.getItem('employee_id');
+    if (!employee_id) return alert('Employee ID missing');
     const taxBenefit = calculateTaxBenefit(formData.section, formData.amount);
-    
-    if (editingInvestment) {
-      setInvestments(prev => prev.map(investment => 
-        investment.id === editingInvestment.id 
-          ? { ...formData, taxBenefit, id: editingInvestment.id, createdDate: editingInvestment.createdDate }
-          : investment
-      ));
-    } else {
-      const newInvestment: Investment = {
-        ...formData,
-        taxBenefit,
-        id: Date.now().toString(),
-        createdDate: new Date().toISOString().split('T')[0]
-      };
-      setInvestments(prev => [...prev, newInvestment]);
+
+    const payload = {
+      ...formData,
+      employee_id,
+      taxBenefit
+    };
+
+    const url = editingInvestment
+      ? `http://localhost:5000/api/investments/${editingInvestment.id}`
+      : 'http://localhost:5000/api/investments';
+    const method = editingInvestment ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errData = await res.json();
+      alert('Error: ' + (errData.error || res.statusText));
+      return;
     }
 
+    const data = await res.json();
+    if (editingInvestment) {
+      setInvestments((prev) =>
+        prev.map((inv) =>
+          inv.id === editingInvestment.id ? { ...data.investment, id: editingInvestment.id } : inv
+        )
+      );
+    } else {
+      setInvestments((prev) => [...prev, data.investment]);
+    }
     resetForm();
   };
 
@@ -185,29 +177,17 @@ const InvestmentManagement: React.FC = () => {
     setShowForm(false);
   };
 
-  const handleEdit = (investment: Investment) => {
-    setFormData({
-      assesseeId: investment.assesseeId,
-      section: investment.section,
-      investmentType: investment.investmentType,
-      instituteName: investment.instituteName,
-      policyNumber: investment.policyNumber,
-      amount: investment.amount,
-      dateOfInvestment: investment.dateOfInvestment,
-      maturityDate: investment.maturityDate,
-      interestRate: investment.interestRate,
-      financialYear: investment.financialYear,
-      status: investment.status,
-      documents: investment.documents
-    });
-    setEditingInvestment(investment);
+   const handleEdit = (inv: Investment) => {
+    setFormData({ ...inv });
+    setEditingInvestment(inv);
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this investment record?')) {
-      setInvestments(prev => prev.filter(investment => investment.id !== id));
-    }
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Delete this investment?')) return;
+    const res = await fetch(`http://localhost:5000/api/investments/${id}`, { method: 'DELETE' });
+    if (res.ok) setInvestments((prev) => prev.filter((inv) => inv.id !== id));
+    else alert('Delete failed');
   };
 
   const filteredInvestments = investments.filter(investment => 

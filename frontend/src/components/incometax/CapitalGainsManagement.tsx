@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '../../context/AppContext';
 import { ArrowLeft, Plus, Edit, Trash2, Search, Download, Upload } from 'lucide-react';
 import type { CapitalGain, CapitalAsset } from '../../types';
+import { useAppContext } from '../../context/AppContext';
+
+const API_BASE = 'http://localhost:5000/api/capital-gains';
 
 const CapitalGainsManagement: React.FC = () => {
-  const { capitalGains, addCapitalGain, updateCapitalGain, deleteCapitalGain, theme } = useAppContext();
+  const { theme} = useAppContext();
+  // Replace context for capitalGains with local state
+  const [capitalGains, setCapitalGains] = useState<CapitalGain[]>([]);
   const navigate = useNavigate();
+  // Other states as in your original code
   const [showForm, setShowForm] = useState(false);
   const [editingGain, setEditingGain] = useState<CapitalGain | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,12 +31,35 @@ const CapitalGainsManagement: React.FC = () => {
   const assetTypes: CapitalAsset[] = [
     'equity', 'mutual_fund', 'real_estate', 'gold', 'bonds', 'other'
   ];
+  const employeeId = localStorage.getItem('employee_id') || '';
+  // const theme: 'dark' | 'light' = 'light';
 
-  const handleSubmit = (e: React.FormEvent) => {
+    // Fetch capital gains from backend API on mount
+  useEffect(() => {
+    const fetchGains = async () => {
+      try {
+        const res = await fetch(API_BASE);
+        if (!res.ok) throw new Error('Failed to load capital gains');
+        const data = await res.json();
+        setCapitalGains(data);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchGains();
+  }, [employeeId]);
+
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
+    if (!employeeId) {
+      alert('Employee ID not found. Please login again.');
+      return;
+    }
+
     const gainData: CapitalGain = {
       id: editingGain?.id || Date.now().toString(),
+      employeeId, // include employeeId here
       assetType: formData.assetType!,
       gainType: formData.gainType!,
       purchaseDate: formData.purchaseDate!,
@@ -47,12 +75,41 @@ const CapitalGainsManagement: React.FC = () => {
       updatedAt: new Date().toISOString()
     };
 
-    if (editingGain) {
-      updateCapitalGain(gainData);
-    } else {
-      addCapitalGain(gainData);
+    try {
+      if (editingGain) {
+        // PUT update
+        const res = await fetch(`${API_BASE}/${gainData.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(gainData)
+        });
+        if (!res.ok) throw new Error('Update failed');
+        const updatedGain = await res.json();
+        setCapitalGains((prev) =>
+          prev.map((gain) => (gain.id === updatedGain.id ? updatedGain : gain))
+        );
+      } else {
+        // POST create
+        const res = await fetch(API_BASE, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(gainData)
+        });
+        if (!res.ok) throw new Error('Add failed');
+        const newGain = await res.json();
+        setCapitalGains((prev) => [newGain, ...prev]);
+      }
+      setShowForm(false);
+      setEditingGain(null);
+      resetForm();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save capital gain.');
     }
+  };
 
+ // reset form and form state
+ const resetForm = () => {
     setShowForm(false);
     setEditingGain(null);
     setFormData({
@@ -67,22 +124,7 @@ const CapitalGainsManagement: React.FC = () => {
       description: ''
     });
   };
-
-  const resetForm = () => {
-    setShowForm(false);
-    setEditingGain(null);
-    setFormData({
-      assetType: 'equity',
-      gainType: 'short',
-      purchaseDate: '',
-      saleDate: '',
-      purchaseValue: 0,
-      saleValue: 0,
-      indexationBenefit: 0,
-      exemptionClaimed: 0,
-      description: ''
-    });
-  };
+  //  const theme = '' 'light'; // Replace with your theme from context
 
   const handleEdit = (gain: CapitalGain) => {
     setEditingGain(gain);
@@ -90,9 +132,16 @@ const CapitalGainsManagement: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this capital gain?')) {
-      deleteCapitalGain(id);
+    // Delete capital gain using API
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this capital gain?')) return;
+    try {
+      const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
+      setCapitalGains((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete capital gain.');
     }
   };
 
