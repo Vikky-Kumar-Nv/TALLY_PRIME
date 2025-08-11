@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Download, Save, FileText, TrendingUp, DollarSign, BarChart, Printer, Building, Target, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -33,6 +33,8 @@ interface CostBreakdown {
   percentage: number;
 }
 
+type YearField = 'year1' | 'year2' | 'year3' | 'year4' | 'year5';
+
 interface TableRowData {
   srNo: string | number;
   particulars: string;
@@ -60,7 +62,9 @@ const SectionCard: React.FC<{ title: string; children: React.ReactNode; classNam
 const ProjectionTable: React.FC<{
   title: string;
   data: TableRowData[];
-}> = ({ title, data }) => (
+  editable?: boolean;
+  onChange?: (rowIndex: number, field: YearField, value: number | undefined) => void;
+}> = ({ title, data, editable = false, onChange }) => (
   <div className="overflow-x-auto">
     <h4 className="font-medium text-gray-800 mb-3">{title}</h4>
     <table className="w-full border border-gray-300 text-xs">
@@ -80,36 +84,39 @@ const ProjectionTable: React.FC<{
           <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
             <td className="border border-gray-300 px-2 py-1 text-center">{row.srNo}</td>
             <td className="border border-gray-300 px-2 py-1 font-medium">{row.particulars}</td>
-            <td className="border border-gray-300 px-2 py-1 text-right">
-              {row.format === 'currency' ? `₹${row.year1?.toLocaleString() || '0'}` : 
-               row.format === 'percentage' ? `${row.year1 || '0'}%` : 
-               row.unit ? `${row.year1?.toLocaleString() || '0'} ${row.unit}` :
-               row.year1?.toLocaleString() || '0'}
-            </td>
-            <td className="border border-gray-300 px-2 py-1 text-right">
-              {row.format === 'currency' ? `₹${row.year2?.toLocaleString() || '0'}` : 
-               row.format === 'percentage' ? `${row.year2 || '0'}%` : 
-               row.unit ? `${row.year2?.toLocaleString() || '0'} ${row.unit}` :
-               row.year2?.toLocaleString() || '0'}
-            </td>
-            <td className="border border-gray-300 px-2 py-1 text-right">
-              {row.format === 'currency' ? `₹${row.year3?.toLocaleString() || '0'}` : 
-               row.format === 'percentage' ? `${row.year3 || '0'}%` : 
-               row.unit ? `${row.year3?.toLocaleString() || '0'} ${row.unit}` :
-               row.year3?.toLocaleString() || '0'}
-            </td>
-            <td className="border border-gray-300 px-2 py-1 text-right">
-              {row.format === 'currency' ? `₹${row.year4?.toLocaleString() || '0'}` : 
-               row.format === 'percentage' ? `${row.year4 || '0'}%` : 
-               row.unit ? `${row.year4?.toLocaleString() || '0'} ${row.unit}` :
-               row.year4?.toLocaleString() || '0'}
-            </td>
-            <td className="border border-gray-300 px-2 py-1 text-right">
-              {row.format === 'currency' ? `₹${row.year5?.toLocaleString() || '0'}` : 
-               row.format === 'percentage' ? `${row.year5 || '0'}%` : 
-               row.unit ? `${row.year5?.toLocaleString() || '0'} ${row.unit}` :
-               row.year5?.toLocaleString() || '0'}
-            </td>
+            {(['year1','year2','year3','year4','year5'] as YearField[]).map((field) => (
+              <td key={field} className="border border-gray-300 px-2 py-1 text-right">
+                {editable ? (
+                  <div className="flex items-center justify-end gap-1">
+                    {row.format === 'currency' && <span className="text-gray-500">₹</span>}
+                    <input
+                      className="w-24 border border-gray-300 rounded px-1 py-0.5 text-right focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                      type="number"
+                      step={row.format === 'percentage' || row.format === 'ratio' ? 0.01 : 1}
+                      aria-label={`${row.particulars} ${field}`}
+                      placeholder={row.format === 'percentage' ? '0.00' : '0'}
+                      value={(row[field] ?? '').toString()}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        const num = v === '' ? undefined : Number(v);
+                        if (onChange) {
+                          onChange(index, field, isNaN(Number(num)) ? undefined : num);
+                        }
+                      }}
+                    />
+                    {row.format === 'percentage' && <span className="text-gray-500">%</span>}
+                    {row.unit && <span className="text-gray-500">{row.unit}</span>}
+                  </div>
+                ) : (
+                  <span>
+                    {row.format === 'currency' ? `₹${row[field]?.toLocaleString() || '0'}` :
+                     row.format === 'percentage' ? `${row[field] ?? '0'}%` :
+                     row.unit ? `${row[field]?.toLocaleString() || '0'} ${row.unit}` :
+                     row[field]?.toLocaleString() || '0'}
+                  </span>
+                )}
+              </td>
+            ))}
           </tr>
         ))}
       </tbody>
@@ -294,18 +301,18 @@ const DPRReport: React.FC = () => {
     { year: "Year 5", revenue: 240000000, expenses: 180000000, ebitda: 60000000, netProfit: 52000000, cashFlow: 56000000 }
   ];
 
-  // Cost Breakdown
-  const costBreakdown: CostBreakdown[] = [
+  // Cost Breakdown (editable)
+  const [costBreakdown, setCostBreakdown] = useState<CostBreakdown[]>([
     { particular: "Land & Site Development", amount: 25000000, percentage: 16.67 },
     { particular: "Building & Civil Works", amount: 35000000, percentage: 23.33 },
     { particular: "Plant & Machinery", amount: 60000000, percentage: 40.00 },
     { particular: "Technical Know-how", amount: 5000000, percentage: 3.33 },
     { particular: "Pre-operative Expenses", amount: 8000000, percentage: 5.33 },
     { particular: "Working Capital", amount: 17000000, percentage: 11.33 }
-  ];
+  ]);
 
-  // Profitability Projections
-  const profitabilityProjections = [
+  // Profitability Projections (editable)
+  const [profitabilityProjections, setProfitabilityProjections] = useState<TableRowData[]>([
     { srNo: 1, particulars: "Sales Revenue", year1: 80000000, year2: 120000000, year3: 160000000, year4: 200000000, year5: 240000000, format: "currency" },
     { srNo: 2, particulars: "Cost of Goods Sold", year1: 48000000, year2: 72000000, year3: 96000000, year4: 120000000, year5: 144000000, format: "currency" },
     { srNo: 3, particulars: "Gross Profit", year1: 32000000, year2: 48000000, year3: 64000000, year4: 80000000, year5: 96000000, format: "currency" },
@@ -316,45 +323,77 @@ const DPRReport: React.FC = () => {
     { srNo: 8, particulars: "PBT (Profit Before Tax)", year1: 8000000, year2: 18000000, year3: 28000000, year4: 38000000, year5: 52000000, format: "currency" },
     { srNo: 9, particulars: "Tax", year1: 0, year2: 0, year3: 0, year4: 0, year5: 0, format: "currency" },
     { srNo: 10, particulars: "PAT (Profit After Tax)", year1: 8000000, year2: 18000000, year3: 28000000, year4: 38000000, year5: 52000000, format: "currency" }
-  ];
+  ]);
 
-  // Cash Flow Projections
-  const cashFlowProjections = [
+  // Cash Flow Projections (editable)
+  const [cashFlowProjections, setCashFlowProjections] = useState<TableRowData[]>([
     { srNo: 1, particulars: "Cash from Operations", year1: 12000000, year2: 22000000, year3: 32000000, year4: 42000000, year5: 56000000, format: "currency" },
     { srNo: 2, particulars: "Cash from Investments", year1: -150000000, year2: -5000000, year3: -8000000, year4: -10000000, year5: -12000000, format: "currency" },
     { srNo: 3, particulars: "Cash from Financing", year1: 105000000, year2: -8000000, year3: -10000000, year4: -12000000, year5: -15000000, format: "currency" },
     { srNo: 4, particulars: "Net Cash Flow", year1: -33000000, year2: 9000000, year3: 14000000, year4: 20000000, year5: 29000000, format: "currency" },
     { srNo: 5, particulars: "Cumulative Cash Flow", year1: -33000000, year2: -24000000, year3: -10000000, year4: 10000000, year5: 39000000, format: "currency" }
-  ];
+  ]);
 
-  // Ratio Analysis
-  const ratioAnalysis = [
+  // Ratio Analysis (editable)
+  const [ratioAnalysis, setRatioAnalysis] = useState<TableRowData[]>([
     { srNo: 1, particulars: "Gross Profit Margin (%)", year1: 40.0, year2: 40.0, year3: 40.0, year4: 40.0, year5: 40.0, format: "percentage" },
     { srNo: 2, particulars: "EBITDA Margin (%)", year1: 18.75, year2: 20.83, year3: 21.88, year4: 22.50, year5: 25.0, format: "percentage" },
     { srNo: 3, particulars: "Net Profit Margin (%)", year1: 10.0, year2: 15.0, year3: 17.5, year4: 19.0, year5: 21.67, format: "percentage" },
     { srNo: 4, particulars: "Return on Investment (%)", year1: 5.33, year2: 12.0, year3: 18.67, year4: 25.33, year5: 34.67, format: "percentage" },
     { srNo: 5, particulars: "Debt Service Coverage Ratio", year1: 1.5, year2: 2.8, year3: 4.0, year4: 5.3, year5: 7.0, format: "ratio" },
     { srNo: 6, particulars: "Current Ratio", year1: 1.8, year2: 2.2, year3: 2.5, year4: 2.8, year5: 3.2, format: "ratio" }
-  ];
+  ]);
 
-  // Implementation Schedule
-  const implementationSchedule = [
+  // Implementation Schedule (editable)
+  const [implementationSchedule, setImplementationSchedule] = useState<TableRowData[]>([
     { srNo: 1, particulars: "Land Acquisition", year1: 1, year2: 0, year3: 0, year4: 0, year5: 0, unit: "Months" },
     { srNo: 2, particulars: "Project Approvals", year1: 3, year2: 0, year3: 0, year4: 0, year5: 0, unit: "Months" },
     { srNo: 3, particulars: "Civil Construction", year1: 8, year2: 0, year3: 0, year4: 0, year5: 0, unit: "Months" },
     { srNo: 4, particulars: "Machinery Installation", year1: 4, year2: 0, year3: 0, year4: 0, year5: 0, unit: "Months" },
     { srNo: 5, particulars: "Trial Production", year1: 2, year2: 0, year3: 0, year4: 0, year5: 0, unit: "Months" },
     { srNo: 6, particulars: "Commercial Production", year1: 0, year2: 1, year3: 0, year4: 0, year5: 0, unit: "Start" }
-  ];
+  ]);
 
-  // Risk Analysis
-  const riskAnalysis = [
+  // Risk Analysis (editable)
+  const [riskAnalysis, setRiskAnalysis] = useState<TableRowData[]>([
     { srNo: 1, particulars: "Market Risk", year1: 15, year2: 12, year3: 10, year4: 8, year5: 5, format: "percentage" },
     { srNo: 2, particulars: "Technology Risk", year1: 10, year2: 8, year3: 5, year4: 3, year5: 2, format: "percentage" },
     { srNo: 3, particulars: "Financial Risk", year1: 20, year2: 15, year3: 12, year4: 10, year5: 8, format: "percentage" },
     { srNo: 4, particulars: "Regulatory Risk", year1: 12, year2: 10, year3: 8, year4: 6, year5: 5, format: "percentage" },
     { srNo: 5, particulars: "Operational Risk", year1: 18, year2: 15, year3: 12, year4: 10, year5: 8, format: "percentage" }
-  ];
+  ]);
+
+  // Load saved data if present
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('dpr_report_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.costBreakdown)) setCostBreakdown(parsed.costBreakdown);
+        if (Array.isArray(parsed.profitabilityProjections)) setProfitabilityProjections(parsed.profitabilityProjections);
+        if (Array.isArray(parsed.cashFlowProjections)) setCashFlowProjections(parsed.cashFlowProjections);
+        if (Array.isArray(parsed.ratioAnalysis)) setRatioAnalysis(parsed.ratioAnalysis);
+        if (Array.isArray(parsed.implementationSchedule)) setImplementationSchedule(parsed.implementationSchedule);
+        if (Array.isArray(parsed.riskAnalysis)) setRiskAnalysis(parsed.riskAnalysis);
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, []);
+
+  // Generic change helpers for editable tables
+  const handleRowChange = (
+    setter: React.Dispatch<React.SetStateAction<TableRowData[]>>,
+    rowIndex: number,
+    field: YearField,
+    value: number | undefined
+  ) => {
+    setter(prev => {
+      const copy = [...prev];
+      copy[rowIndex] = { ...copy[rowIndex], [field]: value } as TableRowData;
+      return copy;
+    });
+  };
 
   const tabs = [
     { id: 'overview', label: 'Project Overview', icon: Building },
@@ -557,15 +596,63 @@ const DPRReport: React.FC = () => {
                       {costBreakdown.map((item, index) => (
                         <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                           <td className="border border-gray-300 px-4 py-2 font-medium">{item.particular}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-right">₹{item.amount.toLocaleString()}</td>
-                          <td className="border border-gray-300 px-4 py-2 text-right">{item.percentage}%</td>
+                          <td className="border border-gray-300 px-2 py-2 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <span className="text-gray-500">₹</span>
+                              <input
+                                className="w-36 border border-gray-300 rounded px-2 py-1 text-right focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                type="number"
+                                step={1}
+                                aria-label={`${item.particular} amount`}
+                                placeholder="0"
+                                value={item.amount ?? ''}
+                                onChange={(e) => {
+                                  const v = e.target.value;
+                                  const num = v === '' ? 0 : Number(v);
+                                  setCostBreakdown(prev => {
+                                    const copy = [...prev];
+                                    copy[index] = { ...copy[index], amount: isNaN(num) ? 0 : num };
+                                    return copy;
+                                  });
+                                }}
+                              />
+                            </div>
+                          </td>
+                          <td className="border border-gray-300 px-2 py-2 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <input
+                                className="w-24 border border-gray-300 rounded px-2 py-1 text-right focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                type="number"
+                                step={0.01}
+                                aria-label={`${item.particular} percentage`}
+                                placeholder="0.00"
+                                value={item.percentage ?? ''}
+                                onChange={(e) => {
+                                  const v = e.target.value;
+                                  const num = v === '' ? 0 : Number(v);
+                                  setCostBreakdown(prev => {
+                                    const copy = [...prev];
+                                    copy[index] = { ...copy[index], percentage: isNaN(num) ? 0 : num };
+                                    return copy;
+                                  });
+                                }}
+                              />
+                              <span className="text-gray-500">%</span>
+                            </div>
+                          </td>
                         </tr>
                       ))}
-                      <tr className="bg-blue-50 font-semibold">
-                        <td className="border border-gray-300 px-4 py-2">Total Project Cost</td>
-                        <td className="border border-gray-300 px-4 py-2 text-right">₹{projectInfo.totalProjectCost.toLocaleString()}</td>
-                        <td className="border border-gray-300 px-4 py-2 text-right">100.00%</td>
-                      </tr>
+                      {(() => {
+                        const totalAmount = costBreakdown.reduce((sum, i) => sum + (i.amount || 0), 0);
+                        const totalPct = costBreakdown.reduce((sum, i) => sum + (i.percentage || 0), 0);
+                        return (
+                          <tr className="bg-blue-50 font-semibold">
+                            <td className="border border-gray-300 px-4 py-2">Total Project Cost</td>
+                            <td className="border border-gray-300 px-4 py-2 text-right">₹{totalAmount.toLocaleString()}</td>
+                            <td className="border border-gray-300 px-4 py-2 text-right">{totalPct.toFixed(2)}%</td>
+                          </tr>
+                        );
+                      })()}
                     </tbody>
                   </table>
                 </div>
@@ -631,32 +718,40 @@ const DPRReport: React.FC = () => {
               <ProjectionTable
                 title="Profitability Projections"
                 data={profitabilityProjections}
+                editable
+                onChange={(rowIdx, field, value) => handleRowChange(setProfitabilityProjections, rowIdx, field, value)}
               />
               <div className="mt-8">
                 <ProjectionTable
                   title="Cash Flow Projections"
                   data={cashFlowProjections}
+                  editable
+                  onChange={(rowIdx, field, value) => handleRowChange(setCashFlowProjections, rowIdx, field, value)}
                 />
               </div>
             </SectionCard>
           )}
 
           {/* Ratio Analysis */}
-          {activeTab === 'ratios' && (
+      {activeTab === 'ratios' && (
             <SectionCard title="Financial Ratio Analysis">
               <ProjectionTable
                 title="Key Financial Ratios"
-                data={ratioAnalysis}
+        data={ratioAnalysis}
+        editable
+        onChange={(rowIdx, field, value) => handleRowChange(setRatioAnalysis, rowIdx, field, value)}
               />
             </SectionCard>
           )}
 
           {/* Implementation Schedule */}
-          {activeTab === 'implementation' && (
+      {activeTab === 'implementation' && (
             <SectionCard title="Implementation Schedule & Timeline">
               <ProjectionTable
                 title="Project Implementation Timeline"
-                data={implementationSchedule}
+        data={implementationSchedule}
+        editable
+        onChange={(rowIdx, field, value) => handleRowChange(setImplementationSchedule, rowIdx, field, value)}
               />
               <div className="mt-6">
                 <h4 className="font-medium text-gray-800 mb-3">Critical Milestones</h4>
@@ -679,11 +774,13 @@ const DPRReport: React.FC = () => {
           )}
 
           {/* Risk Analysis */}
-          {activeTab === 'risk' && (
+      {activeTab === 'risk' && (
             <SectionCard title="Risk Analysis & Mitigation">
               <ProjectionTable
                 title="Risk Assessment (Probability %)"
-                data={riskAnalysis}
+        data={riskAnalysis}
+        editable
+        onChange={(rowIdx, field, value) => handleRowChange(setRiskAnalysis, rowIdx, field, value)}
               />
               <div className="mt-6">
                 <h4 className="font-medium text-gray-800 mb-3">Risk Mitigation Strategies</h4>
