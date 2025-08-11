@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { ArrowLeft, Download, Printer, FileText, Calculator, TrendingUp } from 'lucide-react';
+import ReportViewer from './reports/ReportViewer';
 
 const IncomeTaxReports: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
   const [selectedReport, setSelectedReport] = useState<string>('');
+  const previewRef = useRef<HTMLDivElement | null>(null);
   const [filters, setFilters] = useState({
     assessmentYear: '2024-25',
     fromDate: '',
@@ -82,8 +84,6 @@ const IncomeTaxReports: React.FC = () => {
 
   const generateReport = (reportId: string) => {
     setSelectedReport(reportId);
-    // Here you would implement the actual report generation logic
-    console.log(`Generating report: ${reportId}`, filters);
   };
 
   const exportReport = (format: 'pdf' | 'excel' | 'csv') => {
@@ -102,8 +102,24 @@ const IncomeTaxReports: React.FC = () => {
     window.print();
   };
 
+  // When a report is selected, scroll preview into view so it "opens" visually
+  useEffect(() => {
+    if (selectedReport && previewRef.current) {
+      previewRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [selectedReport]);
+
   return (
     <div className={`min-h-screen pt-16 ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-50 text-gray-900'}`}>
+      {/* Print CSS: only print the report preview area */}
+      <style>{`
+        @media print {
+          @page { size: A4; margin: 12mm; }
+          body * { visibility: hidden !important; }
+          #report-preview, #report-preview * { visibility: visible !important; }
+          #report-preview { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+      `}</style>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
@@ -277,6 +293,15 @@ const IncomeTaxReports: React.FC = () => {
                 <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
                   {report.description}
                 </p>
+                <div className="mt-4">
+                  <button
+                    className="px-3 py-1 text-sm rounded bg-blue-600 text-white hover:bg-blue-700"
+                    onClick={(e) => { e.stopPropagation(); generateReport(report.id); }}
+                    title="Open report"
+                  >
+                    View Report
+                  </button>
+                </div>
               </div>
             );
           })}
@@ -321,17 +346,9 @@ const IncomeTaxReports: React.FC = () => {
 
         {/* Report Preview Area */}
         {selectedReport && (
-          <div className={`mt-8 p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
+          <div id="report-preview" ref={previewRef} className={`mt-8 p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
             <h3 className="text-lg font-semibold mb-4">Report Preview</h3>
-            <div className={`p-4 rounded border ${
-              theme === 'dark' ? 'border-gray-600 bg-gray-700' : 'border-gray-300 bg-gray-50'
-            }`}>
-              <p className="text-center text-gray-500">
-                Report preview will be displayed here based on selected filters.
-                <br />
-                Selected Report: <strong>{reports.find(r => r.id === selectedReport)?.name}</strong>
-              </p>
-            </div>
+            <ReportViewer reportId={selectedReport} filters={filters} />
           </div>
         )}
       </div>
