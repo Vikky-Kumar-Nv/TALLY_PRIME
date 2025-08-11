@@ -172,6 +172,9 @@ app.use('/api/stock-items', bulkStockItemsRouter);
 const ledgerReportRouter = require('./routes/ledger-report');
 app.use('/api/ledger-report', ledgerReportRouter);
 
+const permissionsRouter = require('./routes/permissions');
+app.use(permissionsRouter);
+
 // ✅ MySQL Connection
 const db = mysql.createConnection({
   host: '192.145.238.16',
