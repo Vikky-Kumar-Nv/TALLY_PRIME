@@ -6,9 +6,10 @@ import { Save, Plus, Trash2, ArrowLeft, Printer } from 'lucide-react';
 import PrintOptions from '../sales/PrintOptions';
 import EWayBillGeneration from '../sales/EWayBillGeneration';
 import InvoicePrint from '../sales/InvoicePrint';
+import EInvoiceGeneration from '../sales/EInvoiceGeneration';
 
 const CreditNoteVoucher: React.FC = () => {
-  const { theme, ledgers, stockItems, addVoucher } = useAppContext();
+  const { theme, ledgers, stockItems } = useAppContext();
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>({
@@ -28,6 +29,7 @@ const CreditNoteVoucher: React.FC = () => {
   const [showPrintOptions, setShowPrintOptions] = useState(false);
   const [showEWayBill, setShowEWayBill] = useState(false);
   const [showInvoicePrint, setShowInvoicePrint] = useState(false);
+  const [showEInvoice, setShowEInvoice] = useState(false);
 
   // Safe fallbacks for context data
   const safeStockItems = stockItems || [];
@@ -201,10 +203,9 @@ const CreditNoteVoucher: React.FC = () => {
   };
 
   const handleGenerateEInvoice = () => {
-    console.log('Generating E-Invoice...');
+    console.log('Opening Credit Note e-Invoice modal...');
     setShowPrintOptions(false);
-    // TODO: Implement E-Invoice generation for credit note
-    alert('E-Invoice generation feature will be implemented soon!');
+    setShowEInvoice(true);
   };
 
   const handleSendToEmail = () => {
@@ -931,6 +932,53 @@ const CreditNoteVoucher: React.FC = () => {
           getGstRateInfo={() => ({ uniqueGstRatesCount: 1, gstRatesUsed: [18], totalItems: formData.entries.length, breakdown: {} })}
           companyInfo={safeCompanyInfo}
           ledgers={safeLedgers}
+        />
+      )}
+
+      {/* e-Invoice Modal for Credit Note */}
+      {showEInvoice && (
+        <EInvoiceGeneration
+          theme={theme}
+          onClose={() => setShowEInvoice(false)}
+          seller={{
+            gstin: safeCompanyInfo.gstNumber || 'N/A',
+            name: safeCompanyInfo.name || 'Company',
+            addressLines: (safeCompanyInfo.address || '').split(/,|\n/).map(l=>l.trim()).filter(Boolean),
+            pin: (safeCompanyInfo as unknown as { pin?: string }).pin || '000000',
+            state: safeCompanyInfo.state || 'State'
+          }}
+          purchaser={{
+            gstin: (safeLedgers.find(l => l.id === formData.partyId)?.gstNumber) || 'URP',
+            name: getPartyName(formData.partyId || ''),
+            addressLines: (safeLedgers.find(l => l.id === formData.partyId)?.address || 'Address').split(/,|\n/).map(l=>l.trim()).filter(Boolean),
+            pin: '000000',
+            state: safeLedgers.find(l => l.id === formData.partyId)?.state || safeCompanyInfo.state || 'State',
+            place: safeLedgers.find(l => l.id === formData.partyId)?.state || safeCompanyInfo.state || 'State'
+          }}
+          docInfo={{
+            number: formData.number || 'CRN0001',
+            date: formData.date,
+            category: 'B2B',
+            type: 'Credit Note'
+          }}
+          items={formData.entries
+            .filter(e => e.itemId)
+            .map(e => {
+              const item = getItemDetails(e.itemId || '');
+              const totalGstRate = (e.cgstRate || 0) + (e.sgstRate || 0) + (e.igstRate || 0);
+              return {
+                description: item.name,
+                hsn: e.hsnCode || item.hsnCode || '0000',
+                quantity: e.quantity || 0,
+                unitPrice: e.rate || 0,
+                discount: e.discount || 0,
+                gstRate: totalGstRate,
+                igst: (e.igstRate || 0) > 0,
+                unit: item.unit || 'NOS'
+              };
+            })
+          }
+          roundOff={0}
         />
       )}
     </div>

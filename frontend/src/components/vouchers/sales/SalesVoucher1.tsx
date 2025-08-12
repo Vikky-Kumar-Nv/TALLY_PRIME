@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../../../context/AppContext';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import type { VoucherEntry, Ledger, Godown } from '../../../types';
+import type { VoucherEntry, Ledger, Godown, CompanyInfo } from '../../../types';
 import { Save, Plus, Trash2, ArrowLeft, Printer } from 'lucide-react';
 import Swal from 'sweetalert2';
 import EWayBillGeneration from './EWayBillGeneration';
 import InvoicePrint from './InvoicePrint';
 import PrintOptions from './PrintOptions';
+import EInvoiceGeneration from './EInvoiceGeneration';
 
 // DRY Constants for Tailwind Classes
 const FORM_STYLES = {
@@ -39,8 +40,9 @@ const SalesVoucher: React.FC = () => {
     gstNumber: 'N/A',
     phoneNumber: 'N/A',
     state: 'Default State',
-    panNumber: 'N/A'
-  };
+    panNumber: 'N/A',
+    pin: '000000'
+  } as CompanyInfo;
 
   // State initialization first
   const [isQuotation, setIsQuotation] = useState(isQuotationMode); // Initialize with URL parameter
@@ -86,6 +88,7 @@ const SalesVoucher: React.FC = () => {
   const [showPrintOptions, setShowPrintOptions] = useState(false); // Print options popup state
   const [showEWayBill, setShowEWayBill] = useState(false); // E-way Bill modal state
   const [showInvoicePrint, setShowInvoicePrint] = useState(false); // Invoice print modal state
+  const [showEInvoice, setShowEInvoice] = useState(false); // e-Invoice generation modal state
 
   // Regenerate voucher number when quotation mode changes
   useEffect(() => {
@@ -450,10 +453,9 @@ const handleSubmit = async (e: React.FormEvent) => {
   };
 
   const handleGenerateEInvoice = () => {
-    console.log('Generating E-Invoice...');
-    // TODO: Implement E-Invoice generation using existing format
-    alert('E-Invoice generation feature will be implemented soon!');
+    console.log('Opening e-Invoice Generation modal...');
     setShowPrintOptions(false);
+    setShowEInvoice(true);
   };
 
   const handleSendToEmail = () => {
@@ -1147,6 +1149,52 @@ const handleSubmit = async (e: React.FormEvent) => {
           getGstRateInfo={getGstRateInfo}
           companyInfo={safeCompanyInfo}
           ledgers={safeLedgers}
+        />
+      )}
+
+      {/* e-Invoice Generation Modal */}
+      {showEInvoice && (
+        <EInvoiceGeneration
+          theme={theme}
+          onClose={() => setShowEInvoice(false)}
+          seller={{
+            gstin: safeCompanyInfo.gstNumber || 'N/A',
+            name: safeCompanyInfo.name || 'Company',
+            addressLines: (safeCompanyInfo.address || '').split(/,|\n/).map((l: string) => l.trim()).filter(Boolean),
+            pin: safeCompanyInfo.pin || '000000',
+            state: safeCompanyInfo.state || 'State'
+          }}
+          purchaser={{
+            gstin: (safeLedgers.find(l => l.id === formData.partyId)?.gstNumber) || 'URP',
+            name: getPartyName(formData.partyId || ''),
+            addressLines: (safeLedgers.find(l => l.id === formData.partyId)?.address || 'Address').split(/,|\n/).map((l: string) => l.trim()).filter(Boolean),
+            pin: '000000',
+            state: safeLedgers.find(l => l.id === formData.partyId)?.state || safeCompanyInfo.state || 'State',
+            place: safeLedgers.find(l => l.id === formData.partyId)?.state || safeCompanyInfo.state || 'State'
+          }}
+          docInfo={{
+            number: formData.number,
+            date: formData.date,
+            category: 'B2B',
+            type: 'Tax Invoice'
+          }}
+          items={formData.entries
+            .filter(e => e.itemId)
+            .map(e => {
+              const item = getItemDetails(e.itemId || '');
+              const totalGstRate = (e.cgstRate || 0) + (e.sgstRate || 0) + (e.igstRate || 0);
+              return {
+                description: item.name,
+                hsn: e.hsnCode || item.hsnCode || '0000',
+                quantity: e.quantity || 0,
+                unitPrice: e.rate || 0,
+                discount: e.discount || 0,
+                gstRate: totalGstRate,
+                igst: (e.igstRate || 0) > 0
+              };
+            })
+          }
+          roundOff={0}
         />
       )}
 

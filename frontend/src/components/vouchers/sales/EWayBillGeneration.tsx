@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useReactToPrint } from 'react-to-print';
-import {  Printer, Save, X } from 'lucide-react'; //ArrowLeft,
+import {  Printer, Save, X, FileJson } from 'lucide-react'; //ArrowLeft,
 import type { VoucherEntry } from '../../../types';
 
 interface ItemDetails {
@@ -50,7 +50,7 @@ const EWayBillGeneration: React.FC<EWayBillGenerationProps> = ({
     transactionType: '1', // 1-Regular, 2-Bill To Ship To, 3-Bill From Dispatch From, 4-Combination of 2 and 3
     supplyType: 'O', // O-Outward, I-Inward
     subSupplyType: '1', // 1-Supply, 2-Import, 3-Export, 4-Job Work, 5-For Own Use, 6-Job work Returns, 7-Sales Return, 8-Others
-    docType: 'INV', // INV-Tax Invoice, CHL-Delivery Challan, BIL-Bill of Supply, BOE-Bill of Entry, CNT-Credit Note, DNT-Debit Note
+    docType: 'INV', // INV-Tax Invoice, CHL-Delivery Challan, BIL-Bill of Supply, BOE-Bill of Entry, CRN-Credit Note, DN-Debit Note
     // Shipping Address Details
     shipToName: '',
     shipToAddress: '',
@@ -92,6 +92,94 @@ const EWayBillGeneration: React.FC<EWayBillGenerationProps> = ({
     setTimeout(() => {
       handlePrint();
     }, 500);
+  };
+
+  // Build JSON payload similar to e-way bill API schema (simplified placeholder)
+  const buildEWayBillJSON = () => {
+    const items = selectedItems.map((entry, index) => {
+      const item = getItemDetails(entry.itemId || '');
+      const taxableValue = (entry.quantity || 0) * (entry.rate || 0);
+      return {
+        slNo: index + 1,
+        productName: item.name,
+        hsnCode: entry.hsnCode || item.hsnCode || '',
+        quantity: entry.quantity || 0,
+        qtyUnit: item.unit,
+        taxableAmount: Number(taxableValue.toFixed(2)),
+        cgstRate: entry.cgstRate || 0,
+        sgstRate: entry.sgstRate || 0,
+        igstRate: entry.igstRate || 0,
+        cgstAmount: Number(((taxableValue * (entry.cgstRate || 0)) / 100).toFixed(2)),
+        sgstAmount: Number(((taxableValue * (entry.sgstRate || 0)) / 100).toFixed(2)),
+        igstAmount: Number(((taxableValue * (entry.igstRate || 0)) / 100).toFixed(2)),
+        totalAmount: Number((taxableValue +
+          (taxableValue * (entry.cgstRate || 0)) / 100 +
+          (taxableValue * (entry.sgstRate || 0)) / 100 +
+          (taxableValue * (entry.igstRate || 0)) / 100).toFixed(2))
+      };
+    });
+
+    return {
+      version: '1.0',
+      generatedOn: new Date().toISOString(),
+      document: {
+        docType: eWayBillData.docType,
+        docNo: voucherData.number,
+        docDate: new Date(voucherData.date).toISOString().split('T')[0]
+      },
+      supplyType: eWayBillData.supplyType,
+      subSupplyType: eWayBillData.subSupplyType,
+      transactionType: eWayBillData.transactionType,
+      from: {
+        name: eWayBillData.fromName,
+        address: eWayBillData.fromAddress,
+        gstin: eWayBillData.fromGSTIN,
+        stateCode: eWayBillData.fromStateCode,
+        place: eWayBillData.fromPlace,
+        pinCode: eWayBillData.fromPinCode
+      },
+      to: {
+        name: getPartyName(voucherData.partyId || ''),
+        address: 'Party Address',
+        gstin: 'Party GST Number',
+        stateCode: 'Party State Code',
+        place: 'Party City',
+        pinCode: 'Party PIN Code'
+      },
+      shipTo: {
+        name: eWayBillData.shipToName || getPartyName(voucherData.partyId || ''),
+        address: eWayBillData.shipToAddress || 'Same as billing address',
+        gstin: eWayBillData.shipToGSTIN || 'Same as billing GSTIN',
+        stateCode: eWayBillData.shipToStateCode || 'Same as billing state',
+        place: eWayBillData.shipToPlace || 'Same as billing place',
+        pinCode: eWayBillData.shipToPinCode || 'Same as billing PIN'
+      },
+      transportation: {
+        mode: eWayBillData.transportationMode,
+        vehicleType: eWayBillData.vehicleType,
+        vehicleNo: eWayBillData.vehicleNo,
+        approxDistance: eWayBillData.approxDistance,
+        transporterId: eWayBillData.transporterId,
+        transporterName: eWayBillData.transporterName
+      },
+      items,
+      totals: {
+        taxableValue: Number(totals.subtotal.toFixed(2)),
+        taxValue: Number((totals.cgstTotal + totals.sgstTotal + totals.igstTotal).toFixed(2)),
+        invoiceValue: Number(totals.total.toFixed(2))
+      }
+    };
+  };
+
+  const handleGenerateJSON = () => {
+    const json = buildEWayBillJSON();
+    const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `EWayBill_${voucherData.number}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handlePrint = useReactToPrint({
@@ -304,6 +392,13 @@ const EWayBillGeneration: React.FC<EWayBillGenerationProps> = ({
               className={`px-4 py-2 rounded ${theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
             >
               Cancel
+            </button>
+            <button
+              onClick={handleGenerateJSON}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded flex items-center"
+              title="Generate JSON"
+            >
+              <FileJson size={16} className="mr-2" /> JSON
             </button>
             <button
               onClick={handleGenerate}
@@ -553,7 +648,7 @@ const EWayBillGeneration: React.FC<EWayBillGenerationProps> = ({
                   </tr>
                   <tr>
                     <td><strong>Valid Upto:</strong></td>
-                    <td>{new Date(eWayBillData.validUpto).toLocaleDateString('en-GB')}</td>
+                    <td className="text-orange-600 font-semibold">{new Date(eWayBillData.validUpto).toLocaleDateString('en-GB')} (24 hrs)</td>
                     <td><strong>Generated By:</strong></td>
                     <td>Your Company Name</td>
                   </tr>

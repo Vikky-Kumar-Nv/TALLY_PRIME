@@ -61,9 +61,9 @@ const PrintOptions: React.FC<PrintOptionsProps> = ({
               <FileText size={24} />
             </div>
             <div className="text-left">
-              <h3 className="font-semibold text-lg">📄 Generate Invoice</h3>
+              <h3 className="font-semibold text-lg">📄 Tax Invoice</h3>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Print regular tax invoice
+                Commercial document (Rule 46 compliant)
               </p>
             </div>
           </button>
@@ -81,9 +81,9 @@ const PrintOptions: React.FC<PrintOptionsProps> = ({
               <Truck size={24} />
             </div>
             <div className="text-left">
-              <h3 className="font-semibold text-lg">🚛 Generate E-way Bill</h3>
+              <h3 className="font-semibold text-lg">🚛 E-Way Bill</h3>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Generate E-way bill for transportation
+                Transport authorization (&gt;₹50k goods)
               </p>
             </div>
           </button>
@@ -101,9 +101,9 @@ const PrintOptions: React.FC<PrintOptionsProps> = ({
               <FileText size={24} />
             </div>
             <div className="text-left">
-              <h3 className="font-semibold text-lg">⚡ Generate E-Invoice</h3>
+              <h3 className="font-semibold text-lg">⚡ E-Invoice</h3>
               <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                Generate government E-Invoice
+                IRP authenticated with IRN &amp; QR
               </p>
             </div>
           </button>

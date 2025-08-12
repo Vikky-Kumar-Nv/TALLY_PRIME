@@ -655,6 +655,24 @@ const InvoicePrint: React.FC<InvoicePrintProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* GST Compliance Footer */}
+            <div className="mt-4 text-center border-t border-gray-300 pt-2 print:text-xs">
+              <div className="mb-2">
+                <strong>GST Compliance:</strong> This {isQuotation ? 'quotation' : 'tax invoice'} is issued as per Rule 46 of CGST Rules 2017
+              </div>
+              <div className="text-xs text-gray-600">
+                For GST queries: Helpdesk 1800-103-4786 | www.cbic.gov.in
+              </div>
+              {isQuotation && (
+                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded print:bg-gray-100">
+                  <strong>QUOTATION NOTICE:</strong> This is not a tax invoice. No payment is due until confirmed order.
+                </div>
+              )}
+              <div className="mt-2 text-xs">
+                Generated on {new Date().toLocaleDateString('en-IN')} at {new Date().toLocaleTimeString('en-IN')}
+              </div>
+            </div>
           </div>
         </div>
       </div>
