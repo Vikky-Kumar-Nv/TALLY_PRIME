@@ -69,6 +69,16 @@ const DayBook: React.FC = () => {
   const [selectedVoucher, setSelectedVoucher] = useState<VoucherGroup | null>(null);
  const [groupedVouchers, setGroupedVouchers] = useState<VoucherGroup[]>([]);
 const [processedEntries, setProcessedEntries] = useState<DayBookEntry[]>([]);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  
+  // Calculate pagination
+  const totalPages = Math.ceil(groupedVouchers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedVouchers = groupedVouchers.slice(startIndex, startIndex + itemsPerPage);
+  
   // Process vouchers into Day Book entries
   useEffect(() => {
     const employeeId = localStorage.getItem('employee_id');
@@ -552,7 +562,7 @@ useEffect(() => {
       </td>
     </tr>
                 ) : (
-                  groupedVouchers.map((voucher) => (
+                  paginatedVouchers.map((voucher) => (
                     <tr 
                       key={voucher.voucherId}
                       className={`${
@@ -689,6 +699,78 @@ useEffect(() => {
           )}
         </div>
       </div>
+
+      {/* Pagination Controls - Only show for grouped view */}
+      {viewMode === 'grouped' && totalPages > 1 && (
+        <div className={`mt-6 flex justify-center items-center space-x-2 p-4 rounded-lg ${
+          theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+        }`}>
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className={`px-3 py-2 rounded-lg border transition-colors ${
+              currentPage === 1
+                ? 'cursor-not-allowed opacity-50'
+                : theme === 'dark'
+                ? 'border-gray-600 hover:bg-gray-700 text-white'
+                : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+            }`}
+          >
+            Previous
+          </button>
+          
+          <div className="flex space-x-1">
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+              
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`px-3 py-2 rounded-lg border transition-colors ${
+                    currentPage === pageNum
+                      ? theme === 'dark'
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : 'bg-blue-600 border-blue-600 text-white'
+                      : theme === 'dark'
+                      ? 'border-gray-600 hover:bg-gray-700 text-white'
+                      : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+          </div>
+          
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className={`px-3 py-2 rounded-lg border transition-colors ${
+              currentPage === totalPages
+                ? 'cursor-not-allowed opacity-50'
+                : theme === 'dark'
+                ? 'border-gray-600 hover:bg-gray-700 text-white'
+                : 'border-gray-300 hover:bg-gray-50 text-gray-700'
+            }`}
+          >
+            Next
+          </button>
+          
+          <div className={`ml-4 text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
+            Page {currentPage} of {totalPages} ({groupedVouchers.length} total vouchers)
+          </div>
+        </div>
+      )}
 
       {/* Voucher Detail Modal */}
       {selectedVoucher && (
