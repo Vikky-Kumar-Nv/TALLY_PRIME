@@ -163,6 +163,49 @@ const ITRFiling: React.FC = () => {
       { date: '', chequeNo: '', bsrCode: '', bankName: '', amount: 0 }
     ]
   });
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+
+  try {
+    const employee_id = localStorage.getItem('employee_id');
+    if (!employee_id) {
+      alert('Employee ID not found in local storage');
+      return;
+    }
+
+    const payload = {
+      ...formData,
+      employee_id,
+    };
+
+    const response = await fetch('http://localhost:5000/api/itr-filling', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      // If the server responds with an error status
+      const errorData = await response.json();
+      alert('Failed to file ITR: ' + (errorData.error || response.statusText));
+      return;
+    }
+
+    const data: { success: boolean; id?: number; error?: string } = await response.json();
+
+    if (data.success) {
+      alert(`ITR filed successfully with ID: ${data.id}`);
+      // Optionally reset form or redirect here
+    } else {
+      alert('Failed to file ITR');
+    }
+  } catch (error: any) {
+    alert('Error submitting ITR: ' + (error.message || "Unknown error"));
+  }
+};
+
 
   const handleInputChange = (section: keyof ITRData, field: string, value: string | number | boolean) => {
     setFormData(prev => {
@@ -347,6 +390,8 @@ const ITRFiling: React.FC = () => {
       </div>
 
       {/* Assessee Information */}
+      <form onSubmit={handleSubmit}>
+
       <div className={sectionClass}>
         <div className="flex items-center mb-4">
           <User size={20} className="mr-2" />
@@ -1095,6 +1140,7 @@ const ITRFiling: React.FC = () => {
           Submit ITR
         </button>
       </div>
+</form>
 
       <div className={`mt-6 p-4 rounded ${
         theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'

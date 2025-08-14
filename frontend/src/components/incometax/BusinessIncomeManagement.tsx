@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { ArrowLeft, Building2, Plus, Edit, Trash2, Calculator, FileText, TrendingUp } from 'lucide-react';
@@ -44,39 +44,7 @@ const BusinessIncomeManagement: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
 
-  const [businessIncomes, setBusinessIncomes] = useState<BusinessIncome[]>([
-    {
-      id: '1',
-      assesseeId: '1',
-      businessName: 'Tech Solutions Consulting',
-      businessType: 'profession',
-      registrationNumber: 'GST123456789',
-      financialYear: '2023-24',
-      grossReceipts: 2500000,
-      grossTurnover: 2500000,
-      otherIncome: 15000,
-      totalIncome: 2515000,
-      purchaseOfTradingGoods: 0,
-      directExpenses: 800000,
-      employeeBenefits: 600000,
-      financialCharges: 25000,
-      depreciation: 45000,
-      otherExpenses: 180000,
-      totalExpenses: 1650000,
-      netProfitLoss: 865000,
-      section44AD: false,
-      section44ADA: true,
-      section44AB: false,
-      presumptiveIncome: 1250000,
-      auditRequired: false,
-      booksProfitLoss: 865000,
-      additions: 35000,
-      deductions: 15000,
-      computedIncome: 885000,
-      status: 'finalized',
-      createdDate: '2024-04-01'
-    }
-  ]);
+  const [businessIncomes, setBusinessIncomes] = useState<BusinessIncome[]>([]);
 
   const [showForm, setShowForm] = useState(false);
   const [editingIncome, setEditingIncome] = useState<BusinessIncome | null>(null);
@@ -111,48 +79,75 @@ const BusinessIncomeManagement: React.FC = () => {
     computedIncome: 0,
     status: 'draft'
   });
+   useEffect(() => {
+    const fetchBusinessIncomes = async () => {
+      try {
+        const employee_id = localStorage.getItem('employee_id');
+        if (!employee_id) {
+          console.error('No employee_id in localStorage');
+          return;
+        }
 
+        const response = await fetch(`http://localhost:5000/api/business-income?employee_id=${encodeURIComponent(employee_id)}`, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch: ${response.statusText}`);
+        }
+
+        const data: BusinessIncome[] = await response.json();
+        setBusinessIncomes(data);
+      } catch (error) {
+        console.error('Error fetching business income:', error);
+      }
+    };
+
+    fetchBusinessIncomes();
+  }, []);
   // Auto-calculate fields
-  React.useEffect(() => {
-    const totalIncome = formData.grossReceipts + formData.grossTurnover + formData.otherIncome;
-    const totalExpenses = formData.purchaseOfTradingGoods + formData.directExpenses + 
-                         formData.employeeBenefits + formData.financialCharges + 
-                         formData.depreciation + formData.otherExpenses;
-    const netProfitLoss = totalIncome - totalExpenses;
-    const computedIncome = formData.booksProfitLoss + formData.additions - formData.deductions;
+  // React.useEffect(() => {
+  //   const totalIncome = formData.grossReceipts + formData.grossTurnover + formData.otherIncome;
+  //   const totalExpenses = formData.purchaseOfTradingGoods + formData.directExpenses + 
+  //                        formData.employeeBenefits + formData.financialCharges + 
+  //                        formData.depreciation + formData.otherExpenses;
+  //   const netProfitLoss = totalIncome - totalExpenses;
+  //   const computedIncome = formData.booksProfitLoss + formData.additions - formData.deductions;
 
-    setFormData(prev => ({
-      ...prev,
-      totalIncome,
-      totalExpenses,
-      netProfitLoss,
-      booksProfitLoss: netProfitLoss,
-      computedIncome
-    }));
-  }, [
-    formData.grossReceipts, formData.grossTurnover, formData.otherIncome,
-    formData.purchaseOfTradingGoods, formData.directExpenses, formData.employeeBenefits,
-    formData.financialCharges, formData.depreciation, formData.otherExpenses,
-    formData.additions, formData.deductions, formData.booksProfitLoss
-  ]);
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     totalIncome,
+  //     totalExpenses,
+  //     netProfitLoss,
+  //     booksProfitLoss: netProfitLoss,
+  //     computedIncome
+  //   }));
+  // }, [
+  //   formData.grossReceipts, formData.grossTurnover, formData.otherIncome,
+  //   formData.purchaseOfTradingGoods, formData.directExpenses, formData.employeeBenefits,
+  //   formData.financialCharges, formData.depreciation, formData.otherExpenses,
+  //   formData.additions, formData.deductions, formData.booksProfitLoss
+  // ]);
 
   // Check audit requirement
-  React.useEffect(() => {
-    const auditRequired = (!formData.section44AD && !formData.section44ADA && formData.grossTurnover > 10000000) ||
-                         (formData.section44AB && formData.grossTurnover > 20000000);
-    setFormData(prev => ({ ...prev, auditRequired }));
-  }, [formData.section44AD, formData.section44ADA, formData.section44AB, formData.grossTurnover]);
+  // React.useEffect(() => {
+  //   const auditRequired = (!formData.section44AD && !formData.section44ADA && formData.grossTurnover > 10000000) ||
+  //                        (formData.section44AB && formData.grossTurnover > 20000000);
+  //   setFormData(prev => ({ ...prev, auditRequired }));
+  // }, [formData.section44AD, formData.section44ADA, formData.section44AB, formData.grossTurnover]);
 
   // Calculate presumptive income
-  React.useEffect(() => {
-    let presumptiveIncome = 0;
-    if (formData.section44AD) {
-      presumptiveIncome = formData.grossTurnover * 0.08; // 8% of turnover
-    } else if (formData.section44ADA) {
-      presumptiveIncome = formData.grossReceipts * 0.50; // 50% of receipts
-    }
-    setFormData(prev => ({ ...prev, presumptiveIncome }));
-  }, [formData.section44AD, formData.section44ADA, formData.grossTurnover, formData.grossReceipts]);
+  // React.useEffect(() => {
+  //   let presumptiveIncome = 0;
+  //   if (formData.section44AD) {
+  //     presumptiveIncome = formData.grossTurnover * 0.08; // 8% of turnover
+  //   } else if (formData.section44ADA) {
+  //     presumptiveIncome = formData.grossReceipts * 0.50; // 50% of receipts
+  //   }
+  //   setFormData(prev => ({ ...prev, presumptiveIncome }));
+  // }, [formData.section44AD, formData.section44ADA, formData.grossTurnover, formData.grossReceipts]);
 
   const handleInputChange = (field: keyof typeof formData, value: string | number | boolean) => {
     setFormData(prev => ({
@@ -161,26 +156,47 @@ const BusinessIncomeManagement: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (editingIncome) {
-      setBusinessIncomes(prev => prev.map(income => 
-        income.id === editingIncome.id 
-          ? { ...formData, id: editingIncome.id, createdDate: editingIncome.createdDate }
-          : income
-      ));
-    } else {
-      const newIncome: BusinessIncome = {
-        ...formData,
-        id: Date.now().toString(),
-        createdDate: new Date().toISOString().split('T')[0]
-      };
-      setBusinessIncomes(prev => [...prev, newIncome]);
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const employee_id = localStorage.getItem('employee_id');
+    if (!employee_id) {
+      alert('Employee ID not found in local storage');
+      return;
     }
 
-    resetForm();
-  };
+    const payload = {
+      ...formData,
+      employee_id, // add employee_id here
+    };
+
+    const response = await fetch('http://localhost:5000/api/business-income', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      alert('Failed to save business income: ' + (errorData.error || response.statusText));
+      return;
+    }
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert('Business income saved successfully.');
+      setBusinessIncomes(prev => [...prev, data.businessIncome]);
+      resetForm();
+    } else {
+      alert('Failed to save business income');
+    }
+  } catch (error: any) {
+    alert('Error saving business income: ' + (error.message || 'Unknown error'));
+  }
+};
+
 
   const resetForm = () => {
     setFormData({
@@ -222,11 +238,30 @@ const BusinessIncomeManagement: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this business income record?')) {
-      setBusinessIncomes(prev => prev.filter(income => income.id !== id));
+  const handleDelete = async (id: string) => {
+  if (!window.confirm('Are you sure you want to delete this business income record?')) return;
+
+  try {
+    const response = await fetch(`http://localhost:5000/api/business-income/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      alert('Failed to delete business income: ' + (errorData.error || response.statusText));
+      return;
     }
-  };
+
+    const data = await response.json();
+    if (data.success) {
+      alert('Deleted successfully');
+      setBusinessIncomes(prev => prev.filter(item => item.id !== id));
+    }
+  } catch (error) {
+    alert('Error deleting business income');
+  }
+};
+
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {

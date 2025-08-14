@@ -175,6 +175,18 @@ app.use('/api/ledger-report', ledgerReportRouter);
 const permissionsRouter = require('./routes/permissions');
 app.use(permissionsRouter);
 
+const roleManagementRouter = require('./routes/roleManagement');
+app.use('/api', roleManagementRouter);
+
+const userAccountsRouter = require('./routes/userAccounts');
+app.use('/api', userAccountsRouter);
+
+const assessee = require('./routes/assessee');
+app.use('/api/assessee', assessee);
+
+const itrfiling = require('./routes/ITRFilling');
+app.use('/api/itr-filling', itrfiling);
+
 // ✅ MySQL Connection
 const db = mysql.createConnection({
   host: '192.145.238.16',

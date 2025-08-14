@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { ArrowLeft, User, Plus, Edit, Trash2, Search, Download, Upload } from 'lucide-react';
@@ -30,59 +30,46 @@ const AssesseeManagement: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
 
-  const [assessees, setAssessees] = useState<Assessee[]>([
-    {
-      id: '1',
-      name: 'Rajesh Kumar Sharma',
-      fatherName: 'Ram Kumar Sharma',
-      dateOfBirth: '1985-06-15',
-      pan: 'ABCDE1234F',
-      aadhar: '123456789012',
-      email: 'rajesh@example.com',
-      phone: '9876543210',
-      address: {
-        line1: '123 Main Street',
-        line2: 'Near City Center',
-        city: 'Mumbai',
-        state: 'Maharashtra',
-        pincode: '400001'
-      },
-      profession: 'Software Engineer',
-      category: 'individual',
-      assessmentYear: '2024-25',
-      status: 'active',
-      createdDate: '2024-01-15'
-    },
-    {
-      id: '2',
-      name: 'Priya Patel',
-      fatherName: 'Suresh Patel',
-      dateOfBirth: '1990-03-22',
-      pan: 'FGHIJ5678K',
-      aadhar: '987654321098',
-      email: 'priya@example.com',
-      phone: '8765432109',
-      address: {
-        line1: '456 Park Avenue',
-        line2: 'Sector 15',
-        city: 'Gurgaon',
-        state: 'Haryana',
-        pincode: '122001'
-      },
-      profession: 'Business Owner',
-      category: 'individual',
-      assessmentYear: '2024-25',
-      status: 'active',
-      createdDate: '2024-02-10'
+  const [assessees, setAssessees] = useState<Assessee[]>([]);
+
+useEffect(() => {
+  const fetchAssessees = async () => {
+    try {
+      const employee_id = localStorage.getItem('employee_id');
+      if (!employee_id) {
+        console.error('Employee ID not found in local storage');
+        return;
+      }
+
+      // Add employee_id as a query parameter
+      const response = await fetch(`http://localhost:5000/api/assessee?employee_id=${encodeURIComponent(employee_id)}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error fetching assessees: ${response.statusText}`);
+      }
+
+      const data: Assessee[] = await response.json();
+      setAssessees(data);
+    } catch (error: any) {
+      console.error('Failed to fetch assessees:', error);
+      // Optional: set error state or notify user here
     }
-  ]);
+  };
+
+  fetchAssessees();
+}, []);
+
+
 
   const [showForm, setShowForm] = useState(false);
   const [editingAssessee, setEditingAssessee] = useState<Assessee | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
-  
-  // Persist/Load assessees locally so other modules (like ITR Filing) can fetch by PAN without backend
+// Persist/Load assessees locally so other modules (like ITR Filing) can fetch by PAN without backend
   const ASSESSEE_STORAGE_KEY = 'assessee_list_v1';
 
   // Load from localStorage once on mount (if present), otherwise keep initial seed
@@ -109,7 +96,6 @@ const AssesseeManagement: React.FC = () => {
       console.warn('Failed to save assessees to localStorage', e);
     }
   }, [assessees]);
-
   const [formData, setFormData] = useState<Omit<Assessee, 'id' | 'createdDate'>>({
     name: '',
     fatherName: '',
@@ -130,7 +116,7 @@ const AssesseeManagement: React.FC = () => {
     assessmentYear: '2024-25',
     status: 'active'
   });
-
+  
   const handleInputChange = (field: string, value: string) => {
     if (field.startsWith('address.')) {
       const addressField = field.split('.')[1];
@@ -138,38 +124,75 @@ const AssesseeManagement: React.FC = () => {
         ...prev,
         address: {
           ...prev.address,
-          [addressField]: value
-        }
+          [addressField]: value,
+        },
       }));
     } else {
       setFormData(prev => ({
         ...prev,
-        [field]: value
+        [field]: value,
       }));
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (editingAssessee) {
-      setAssessees(prev => prev.map(assessee => 
-        assessee.id === editingAssessee.id 
-          ? { ...formData, id: editingAssessee.id, createdDate: editingAssessee.createdDate }
-          : assessee
-      ));
-    } else {
-      const newAssessee: Assessee = {
-        ...formData,
-        id: Date.now().toString(),
-        createdDate: new Date().toISOString().split('T')[0]
-      };
-      setAssessees(prev => [...prev, newAssessee]);
-    }
 
-    resetForm();
+    try {
+      const employee_id = localStorage.getItem('employee_id');
+      if (!employee_id) {
+        alert('Employee ID not found in local storage');
+        return;
+      }
+
+      const payload = {
+        ...formData,
+        employee_id,
+      };
+
+      const url = editingAssessee
+        ? `http://localhost:5000/api/assessee/${editingAssessee.id}` // For update (assuming you have PUT)
+        : 'http://localhost:5000/api/assessee'; // For create
+
+      const method = editingAssessee ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        alert('Failed to save assessee: ' + (errorData.error || response.statusText));
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(`Assessee ${editingAssessee ? 'updated' : 'added'} successfully.`);
+
+        if (editingAssessee) {
+          // Update assessee in list
+          setAssessees(prev =>
+            prev.map(a => (a.id === editingAssessee.id ? data.assessee : a))
+          );
+        } else {
+          // Add new assessee to list
+          setAssessees(prev => [...prev, data.assessee]);
+        }
+
+        resetForm();
+      } else {
+        alert('Failed to save assessee');
+      }
+    } catch (error: any) {
+      alert('Error submitting form: ' + (error.message || 'Unknown error'));
+    }
   };
 
+  // Reset form data and close form
   const resetForm = () => {
     setFormData({
       name: '',
@@ -179,44 +202,51 @@ const AssesseeManagement: React.FC = () => {
       aadhar: '',
       email: '',
       phone: '',
-      address: {
-        line1: '',
-        line2: '',
-        city: '',
-        state: '',
-        pincode: ''
-      },
+      address: { line1: '', line2: '', city: '', state: '', pincode: '' },
       profession: '',
       category: 'individual',
       assessmentYear: '2024-25',
-      status: 'active'
+      status: 'active',
     });
     setEditingAssessee(null);
     setShowForm(false);
   };
 
+
+ // Initialize form for edit
   const handleEdit = (assessee: Assessee) => {
     setFormData({
       name: assessee.name,
       fatherName: assessee.fatherName,
       dateOfBirth: assessee.dateOfBirth,
       pan: assessee.pan,
-      aadhar: assessee.aadhar,
+      aadhar: assessee.aadhar || '',
       email: assessee.email,
       phone: assessee.phone,
       address: assessee.address,
       profession: assessee.profession,
       category: assessee.category,
       assessmentYear: assessee.assessmentYear,
-      status: assessee.status
+      status: assessee.status,
     });
     setEditingAssessee(assessee);
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this assessee?')) {
-      setAssessees(prev => prev.filter(assessee => assessee.id !== id));
+const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this assessee?')) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/assessee/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        alert('Failed to delete assessee');
+        return;
+      }
+      setAssessees(prev => prev.filter(a => a.id !== id));
+    } catch (error) {
+      alert('Error deleting assessee');
     }
   };
 
