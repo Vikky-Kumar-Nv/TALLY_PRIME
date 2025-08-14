@@ -17,7 +17,7 @@ const GSTModule: React.FC = () => {
         { icon: <FileText size={20} />, name: 'GSTR-1', path: '/app/gst/gstr-1' },
         { icon: <FileText size={20} />, name: 'GSTR-3B', path: '/app/gst/gstr-3b' },
         { icon: <FileText size={20} />, name: 'Reconciliation', path: '/app/gst/reconciliation' },
-        { icon: <FileText size={20} />, name: 'E-Way-Bill', path: '/app/gst/e-way-bill' },
+        // { icon: <FileText size={20} />, name: 'E-Way-Bill', path: '/app/gst/e-way-bill' },
         
       ]
     },

@@ -5,6 +5,8 @@ import MainLayout from './components/layout/MainLayout';
 import Dashboard from './components/dashboard/Dashboard';
 import CompanyForm from './components/company/CompanyForm';
 
+
+
 // // Masters Components
 import MastersIndex from './components/masters/MastersIndex';
 import LedgerList from './components/masters/ledger/LedgerList';
@@ -76,13 +78,6 @@ import DeliveryNoteRegister from './components/voucherRegister/DeliveryNoteRegis
 import QuotationRegister from './components/voucherRegister/QuotationRegister';
 import SalesReturnRegister from './components/voucherRegister/SalesReturnRegister';
 
-//Accounting
-
-
-
-//inventry 
-
-
 
 
 
@@ -116,7 +111,8 @@ import PurchaseReport1 from './components/reports/PurchaseReport1';
 import PurchaseInvoiceMatching1 from './components/reports/PurchaseInvoiceMatching';
 import B2B from './components/reports/B2B';
 import B2C from './components/reports/B2C'; 
-import Consolidation from './components/reports/Consolidation'; 
+// Updated to use new modular consolidation
+import ConsolidationRoot from './components/reports/consolidation/ConsolidationRoot'; 
 
 // GST Module Components
 
@@ -132,7 +128,7 @@ import ImportData from './components/modules/gst/ImportData';
 import Reconciliation from './components/modules/gst/Reconciliation';
 import ExportReturns from './components/modules/gst/ExportReturns';
 import GSTSummary from './components/modules/gst/GSTSummary';
-import EWayBill from './components/modules/gst/EWayBill';
+// import EWayBill from './components/modules/gst/EWayBill';
 import TDSSummary from './components/modules/tds/TDSSummary';
 
 
@@ -381,7 +377,7 @@ function App() {
             {/* B2B and B2C Routes */}
             <Route path="reports/b2b" element={<B2B />} />
             <Route path="reports/b2c" element={<B2C />} />
-              <Route path="reports/consolidation" element={<Consolidation />} />
+            <Route path="reports/consolidation" element={<ConsolidationRoot />} />
                    
             {/* Reports Routes */}
             <Route path="reports" element={<ReportsIndex />} />
@@ -404,7 +400,7 @@ function App() {
             <Route path="gst/import" element={<ImportData />} />
             <Route path="gst/reconciliation" element={<Reconciliation />} />
             <Route path="gst/export" element={<ExportReturns />} />
-            <Route path="gst/e-way-bill" element={<EWayBill />} />
+            {/* <Route path="gst/e-way-bill" element={<EWayBill />} /> */}
             <Route path="gst/summary" element={<GSTSummary />} />
 
             {/* TDS Module Routes */}
@@ -461,12 +457,6 @@ function App() {
 
 
 
-
-
-
-
-
-
                {/* Other Module Routes */}
             
             {/* <Route path="inventory" element={<InventoryModule />} /> */}
@@ -486,9 +476,7 @@ function App() {
             <Route path='config/set-profit' element={<SetProfit />} />
             <Route path='config/sales-fifo' element={<SalesByFifo />} />
            
-
-
-
+          
 
           </Route>
         </Routes>
