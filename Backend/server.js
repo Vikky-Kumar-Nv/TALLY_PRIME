@@ -1,18 +1,30 @@
-// ✅ server.js (Updated without express-session)
+// ✅ Minimal server.js for Vercel testing
 const express = require('express');
-const mysql = require('mysql2');
 const cors = require('cors');
-const bodyParser = require('body-parser');
-require('dotenv').config();
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
 // Root route
 app.get('/', (req, res) => {
-  res.status(200).json({ message: 'Server is fine', status: 'OK' });
+  res.status(200).json({ 
+    message: 'Server is working!', 
+    status: 'OK',
+    timestamp: new Date().toISOString()
+  });
 });
+
+// Test API route
+app.get('/api/test', (req, res) => {
+  res.status(200).json({ 
+    message: 'API is working!', 
+    status: 'OK' 
+  });
+});
+
+// Export for Vercel (no app.listen needed)
+module.exports = app;
 
 // ✅ Routes
 const ledgerGroupRoutes = require('./routes/ledgerGroups');
