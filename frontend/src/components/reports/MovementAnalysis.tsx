@@ -58,7 +58,7 @@ const MovementAnalysis: React.FC = () => {
         if (toDate) queryParams.append('toDate', toDate);
         if (stockItemId) queryParams.append('stockItemId', stockItemId);
 
-        const url = `http://localhost:5000/api/movement-analysis?${queryParams.toString()}`;
+  const url = `https://tally-backend-dyn3.onrender.com/api/movement-analysis?${queryParams.toString()}`;
         const response = await fetch(url);
 
         if (!response.ok) {

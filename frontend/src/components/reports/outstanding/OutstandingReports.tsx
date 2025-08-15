@@ -20,7 +20,7 @@ const [summary, setSummary] = useState<{totalReceivables: number, totalPayables:
     async function fetchSummary() {
       setSummaryError(null);
       try {
-        const res = await fetch('http://localhost:5000/api/outstanding-summary');
+        const res = await fetch('https://tally-backend-dyn3.onrender.com/api/outstanding-summary');
         if (!res.ok) throw new Error('Failed to load summary');
         setSummary(await res.json());
       } catch (e:any) {

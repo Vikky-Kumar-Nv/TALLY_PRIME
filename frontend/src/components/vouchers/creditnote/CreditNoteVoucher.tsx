@@ -276,7 +276,7 @@ const CreditNoteVoucher: React.FC = () => {
   const employee_id = localStorage.getItem('employee_id');
 
   try {
-    const response = await fetch('http://localhost:5000/api/CreditNotevoucher', {
+  const response = await fetch('https://tally-backend-dyn3.onrender.com/api/CreditNotevoucher', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

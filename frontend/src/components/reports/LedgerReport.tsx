@@ -309,7 +309,7 @@ const [ledgerData, setLedgerData] = useState<LedgerApiResponse | null>(null);
   useEffect(() => {
       const fetchLedgers = async () => {
         try {
-          const res = await fetch("http://localhost:5000/api/ledger");
+          const res = await fetch("https://tally-backend-dyn3.onrender.com/api/ledger");
           const data = await res.json();
           setLedgers(data);
         } catch (err) {
@@ -341,7 +341,7 @@ const ledgerTransactions = ledgerData ? ledgerData.transactions : [];
 useEffect(() => {
   if (!ledgerId) return;
 
-  fetch(`http://localhost:5000/api/ledger-report/report?ledgerId=${ledgerId}&fromDate=${fromDate}&toDate=${toDate}&includeOpening=${includeOpening}&includeClosing=${includeClosing}`)
+  fetch(`https://tally-backend-dyn3.onrender.com/api/ledger-report/report?ledgerId=${ledgerId}&fromDate=${fromDate}&toDate=${toDate}&includeOpening=${includeOpening}&includeClosing=${includeClosing}`)
     .then(res => res.json())
     .then(data => {
       if(data.success) setLedgerData(data);

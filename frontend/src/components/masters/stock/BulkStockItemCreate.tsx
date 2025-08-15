@@ -109,7 +109,7 @@ const uploadCSVFile = async (file: File) => {
   formData.append('file', file);
 
   try {
-    const response = await fetch('http://localhost:5000/api/stock-items/bulk-csv', {
+  const response = await fetch('https://tally-backend-dyn3.onrender.com/api/stock-items/bulk-csv', {
       method: 'POST',
       body: formData,
     });
@@ -212,7 +212,7 @@ const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
 
 const handleSaveAll = async (bulkItems: BulkStockItemRow[]) => {
   try {
-    const response = await fetch('http://localhost:5000/api/stock-items/bulk', {
+  const response = await fetch('https://tally-backend-dyn3.onrender.com/api/stock-items/bulk', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(bulkItems),

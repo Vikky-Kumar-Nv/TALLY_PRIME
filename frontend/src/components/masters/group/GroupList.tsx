@@ -15,7 +15,7 @@ const GroupList: React.FC = () => {
     const fetchData = async () => {
       try {
         const [groupsRes] = await Promise.all([
-          fetch('http://localhost:5000/api/ledger-groups'),
+          fetch('https://tally-backend-dyn3.onrender.com/api/ledger-groups'),
         ]);
         const groups = await groupsRes.json();
         setGroups(groups);
@@ -30,7 +30,7 @@ const GroupList: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this group?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/ledger-groups/${id}`, {
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/ledger-groups/${id}`, {
         method: 'DELETE',
       });
       const data = await res.json();

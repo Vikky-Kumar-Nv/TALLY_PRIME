@@ -31,7 +31,7 @@ const MultiLedgerForm: React.FC = () => {
   useEffect(() => {
     const fetchLedgerGroups = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/ledger-groups");
+  const res = await fetch("https://tally-backend-dyn3.onrender.com/api/ledger-groups");
         const data = await res.json();
         setLedgerGroups(data);
       } catch (err) {
@@ -123,7 +123,7 @@ const MultiLedgerForm: React.FC = () => {
         panNumber: ''
       }));
 
-      const res = await fetch("http://localhost:5000/api/ledger/bulk", {
+  const res = await fetch("https://tally-backend-dyn3.onrender.com/api/ledger/bulk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ledgers: ledgersToCreate })

@@ -75,7 +75,7 @@ const UnitForm: React.FC = () => {
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
-  const apiUrl = 'http://localhost:5000/api/stock-units';
+  const apiUrl = 'https://tally-backend-dyn3.onrender.com/api/stock-units';
   const method = isEditMode ? 'PUT' : 'POST';
   const url = isEditMode ? `${apiUrl}/${id}` : apiUrl;
 

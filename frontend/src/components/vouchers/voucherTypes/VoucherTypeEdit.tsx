@@ -74,7 +74,7 @@ const VoucherTypeEdit: React.FC = () => {
   const loadVoucherType = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/voucher-types/${id}`);
+  const response = await fetch(`https://tally-backend-dyn3.onrender.com/api/voucher-types/${id}`);
       if (response.ok) {
         const data = await response.json();
         setFormData(data);
@@ -142,8 +142,8 @@ const VoucherTypeEdit: React.FC = () => {
     
     try {
       const url = id 
-        ? `http://localhost:5000/api/voucher-types/${id}`
-        : 'http://localhost:5000/api/voucher-types';
+  ? `https://tally-backend-dyn3.onrender.com/api/voucher-types/${id}`
+  : 'https://tally-backend-dyn3.onrender.com/api/voucher-types';
       
       const method = id ? 'PUT' : 'POST';
       

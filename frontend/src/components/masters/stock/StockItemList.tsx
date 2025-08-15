@@ -20,7 +20,7 @@ const StockItemList = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/stock-items');
+  const res = await fetch('https://tally-backend-dyn3.onrender.com/api/stock-items');
         const json = await res.json();
 
         if (json.success) {

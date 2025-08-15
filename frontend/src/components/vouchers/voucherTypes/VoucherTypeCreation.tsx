@@ -113,7 +113,7 @@ const VoucherTypeCreation: React.FC = () => {
   const loadVoucherType = async (voucherTypeId: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://localhost:5000/api/voucher-types/${voucherTypeId}`);
+  const response = await fetch(`https://tally-backend-dyn3.onrender.com/api/voucher-types/${voucherTypeId}`);
       if (response.ok) {
         const data = await response.json();
         setVoucherType(data);
@@ -160,8 +160,8 @@ const VoucherTypeCreation: React.FC = () => {
     setLoading(true);
     try {
       const url = isEditing 
-        ? `http://localhost:5000/api/voucher-types/${id}`
-        : 'http://localhost:5000/api/voucher-types';
+  ? `https://tally-backend-dyn3.onrender.com/api/voucher-types/${id}`
+  : 'https://tally-backend-dyn3.onrender.com/api/voucher-types';
       
       const method = isEditing ? 'PUT' : 'POST';
       

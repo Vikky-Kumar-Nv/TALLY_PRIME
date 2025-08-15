@@ -362,7 +362,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     if (isEditMode && id) {
       // Update existing voucher via backend
-      const res = await fetch(`http://localhost:5000/api/vouchers/${id}`, {
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/vouchers/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(voucherData)
@@ -386,7 +386,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       }
     } else {
       // Create new voucher via backend
-      const res = await fetch('http://localhost:5000/api/vouchers', {
+  const res = await fetch('https://tally-backend-dyn3.onrender.com/api/vouchers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(voucherData)

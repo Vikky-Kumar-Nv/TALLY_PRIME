@@ -43,7 +43,7 @@ function UserAccounts() {
   useEffect(() => {
     async function fetchRoles() {
       try {
-        const res = await fetch('http://localhost:5000/api/roles/names');
+  const res = await fetch('https://tally-backend-dyn3.onrender.com/api/roles/names');
         const data = await res.json();
         if (data.success) {
           setAvailableRoles(data.roles);
@@ -82,7 +82,7 @@ function UserAccounts() {
     });
 
     try {
-      const res = await fetch(`http://localhost:5000/api/users?${params.toString()}`);
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/users?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to fetch users');
       const data = await res.json();
       if (data.success) {
@@ -143,7 +143,7 @@ function UserAccounts() {
     };
 
     try {
-      const res = await fetch(`http://localhost:5000/api/users`, {
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -175,7 +175,7 @@ function UserAccounts() {
   async function handleDeleteUser(user: User) {
     if (!window.confirm(`Are you sure you want to delete ${user.name}?`)) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/users/${user.id}`, { method: 'DELETE' });
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/users/${user.id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         alert('User deleted successfully!');
@@ -192,7 +192,7 @@ function UserAccounts() {
   async function handleSuspendUser(user: User) {
     if (!window.confirm(`Are you sure you want to suspend ${user.name}?`)) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/users/${user.id}/suspend`, { method: 'PUT' });
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/users/${user.id}/suspend`, { method: 'PUT' });
       const data = await res.json();
       if (data.success) {
         alert('User suspended successfully!');

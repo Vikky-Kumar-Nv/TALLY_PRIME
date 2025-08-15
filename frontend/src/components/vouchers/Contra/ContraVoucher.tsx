@@ -105,7 +105,7 @@ const [cashBankLedgers, setCashBankLedgers] = useState<Ledgers[]>([]);
     setErrors(prev => ({ ...prev, [`ledgerId${index}`]: '', [`amount${index}`]: '' }));
   };
 useEffect(() => {
-  fetch('http://localhost:5000/api/ledger/cash-bank')
+  fetch('https://tally-backend-dyn3.onrender.com/api/ledger/cash-bank')
     .then(res => res.json())
     .then(data => setCashBankLedgers(data))
     .catch(err => console.error('Ledger fetch error:', err));
@@ -123,7 +123,7 @@ useEffect(() => {
     // }
   
     try {
-      const response = await fetch('http://localhost:5000/api/vouchers', {
+  const response = await fetch('https://tally-backend-dyn3.onrender.com/api/vouchers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

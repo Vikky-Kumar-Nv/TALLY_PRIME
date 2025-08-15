@@ -308,7 +308,7 @@ const StockItemForm = () => {
     godownAllocations,
   };
 
-  fetch('http://localhost:5000/api/stock-items', {
+  fetch('https://tally-backend-dyn3.onrender.com/api/stock-items', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

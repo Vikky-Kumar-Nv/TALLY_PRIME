@@ -19,7 +19,7 @@ const [_, setLoading] = useState(true);
 useEffect(() => {
   const fetchScenarios = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/scenario/list');
+  const response = await fetch('https://tally-backend-dyn3.onrender.com/api/scenario/list');
       const rawData = await response.json();
 
       const formatted = rawData.map((s: any) => ({

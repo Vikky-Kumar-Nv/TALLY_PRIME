@@ -430,7 +430,7 @@ useEffect(() => {
   if (selectedYear) params.append("year", selectedYear);
   if (selectedQuarter) params.append("quarter", selectedQuarter);
 
-  fetch(`http://localhost:5000/api/tcs27eq?${params.toString()}`)
+  fetch(`https://tally-backend-dyn3.onrender.com/api/tcs27eq?${params.toString()}`)
     .then((res) => res.json())
     .then((data) => {
       setReturnList(data);
@@ -452,7 +452,7 @@ const handleSaveForm = async (e: React.FormEvent) => {
   };
 
   try {
-    const response = await fetch("http://localhost:5000/api/tcs27eq", {
+  const response = await fetch("https://tally-backend-dyn3.onrender.com/api/tcs27eq", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

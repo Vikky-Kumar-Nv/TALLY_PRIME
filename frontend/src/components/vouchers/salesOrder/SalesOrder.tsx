@@ -281,7 +281,7 @@ const SalesOrder: React.FC = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/sales-orders', {
+  const response = await fetch('https://tally-backend-dyn3.onrender.com/api/sales-orders', {
         method: isEditMode ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -136,7 +136,7 @@ const handleSubmit = useCallback(async () => {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/api/stock-groups', {
+  const response = await fetch('https://tally-backend-dyn3.onrender.com/api/stock-groups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(stockGroupData)

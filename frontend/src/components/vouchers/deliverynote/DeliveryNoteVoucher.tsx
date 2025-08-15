@@ -81,7 +81,7 @@ const DeliveryNoteVoucher: React.FC = () => {
         employee_id: employeeId,
     };
 
-    fetch('http://localhost:5000/api/DeliveryItem', {
+  fetch('https://tally-backend-dyn3.onrender.com/api/DeliveryItem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

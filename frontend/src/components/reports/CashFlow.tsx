@@ -43,7 +43,7 @@ const [totalNetFlow, setTotalNetFlow] = useState<number>(0);
 useEffect(() => {
   async function fetchCashFlow() {
     try {
-      const res = await fetch(`http://localhost:5000/api/cash-flow?financialYear=${selectedYear}`);
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/cash-flow?financialYear=${selectedYear}`);
       if (!res.ok) throw new Error('Failed to load cash flow data');
       const data = await res.json();
       setCashFlowData(data.cashFlowData);

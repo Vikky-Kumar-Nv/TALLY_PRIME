@@ -13,7 +13,7 @@ const StockCategoryList: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/stock-categories');
+  const res = await fetch('https://tally-backend-dyn3.onrender.com/api/stock-categories');
         const data = await res.json();
         setCategories(data);
       } catch (err) {
@@ -27,7 +27,7 @@ const StockCategoryList: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this stock category?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/stock-categories/${id}`, {
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/stock-categories/${id}`, {
         method: 'DELETE',
       });
       const data = await res.json();

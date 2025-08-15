@@ -65,7 +65,7 @@ const OutstandingReceivables: React.FC = () => {
         if (sortBy) params.append('sortBy', sortBy);
         if (sortOrder) params.append('sortOrder', sortOrder);
 
-        const response = await fetch(`http://localhost:5000/api/outstanding-receivables?${params.toString()}`);
+  const response = await fetch(`https://tally-backend-dyn3.onrender.com/api/outstanding-receivables?${params.toString()}`);
 
         if (!response.ok) {
           const errorText = await response.text();

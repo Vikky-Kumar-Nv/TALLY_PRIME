@@ -59,7 +59,7 @@ const [showBillDetails, setShowBillDetails] = useState(false);
         if (sortBy) params.append('sortBy', sortBy);
         if (sortOrder) params.append('sortOrder', sortOrder);
 
-        const res = await fetch(`http://localhost:5000/api/billwise-receivables?${params.toString()}`);
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/billwise-receivables?${params.toString()}`);
         if (!res.ok) {
           throw new Error(`Error ${res.status} - ${await res.text()}`);
         }

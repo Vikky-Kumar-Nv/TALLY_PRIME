@@ -29,7 +29,7 @@ const [ledgerGroups, setLedgerGroups] = useState<LedgerGroup[]>([]);
   useEffect(() => {
     const fetchLedgerGroups = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/ledger-groups");
+  const res = await fetch("https://tally-backend-dyn3.onrender.com/api/ledger-groups");
         const data = await res.json();
         setLedgerGroups(data);
       } catch (err) {
@@ -132,7 +132,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 
   try {
-    const res = await fetch("http://localhost:5000/api/ledger", {
+  const res = await fetch("https://tally-backend-dyn3.onrender.com/api/ledger", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData)

@@ -57,7 +57,7 @@ const VoucherTypesList: React.FC = () => {
   const loadVoucherTypes = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:5000/api/voucher-types');
+  const response = await fetch('https://tally-backend-dyn3.onrender.com/api/voucher-types');
       if (response.ok) {
         const data = await response.json();
         setVoucherTypes(data || []);
@@ -74,7 +74,7 @@ const VoucherTypesList: React.FC = () => {
   const handleDelete = async (id: string, name: string) => {
     if (window.confirm(`Are you sure you want to delete "${name}" voucher type?`)) {
       try {
-        const response = await fetch(`http://localhost:5000/api/voucher-types/${id}`, {
+  const response = await fetch(`https://tally-backend-dyn3.onrender.com/api/voucher-types/${id}`, {
           method: 'DELETE',
         });
         
@@ -92,7 +92,7 @@ const VoucherTypesList: React.FC = () => {
 
   const toggleActiveStatus = async (id: string, currentStatus: boolean) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/voucher-types/${id}/toggle-status`, {
+  const response = await fetch(`https://tally-backend-dyn3.onrender.com/api/voucher-types/${id}/toggle-status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

@@ -18,7 +18,7 @@ const BudgetList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/budgets')
+  fetch('https://tally-backend-dyn3.onrender.com/api/budgets')
       .then(res => res.json())
       .then(data => setBudgets(data))
       .catch(err => console.error('Failed to fetch budgets:', err));

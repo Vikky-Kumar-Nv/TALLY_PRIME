@@ -35,7 +35,7 @@ const OutstandingLedger: React.FC = () => {
         if (dateRange.from) params.append('from', dateRange.from);
         if (dateRange.to)   params.append('to', dateRange.to);
 
-        const res = await fetch(`http://localhost:5000/api/outstanding-ledger?${params.toString()}`);
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/outstanding-ledger?${params.toString()}`);
         if (!res.ok) throw new Error(await res.text());
         setOutstandingData(await res.json());
       } catch (e: unknown) {
@@ -49,7 +49,7 @@ const OutstandingLedger: React.FC = () => {
   useEffect(() => {
       const fetchLedgers = async () => {
         try {
-          const res = await fetch("http://localhost:5000/api/ledger");
+          const res = await fetch("https://tally-backend-dyn3.onrender.com/api/ledger");
           const data = await res.json();
           setLedgers(data);
         } catch (err) {

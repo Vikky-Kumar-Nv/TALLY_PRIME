@@ -16,7 +16,7 @@ const StockGroupList: React.FC = () => {
   useEffect(() => {
       const fetchData = async () => {
         try {
-          const res = await fetch('http://localhost:5000/api/stock-groups/list');
+          const res = await fetch('https://tally-backend-dyn3.onrender.com/api/stock-groups/list');
           const data = await res.json();
           setStockGroupData(data);
         } catch (err) {

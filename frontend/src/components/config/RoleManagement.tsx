@@ -61,13 +61,13 @@ function RoleManagement() {
 
   const fetchRoles = async () => {
     setLoading(true);
-    const res = await fetch('http://localhost:5000/api/roles');
+  const res = await fetch('https://tally-backend-dyn3.onrender.com/api/roles');
     const data = await res.json();
     setRoles(data.roles || []);
     setLoading(false);
   };
   const fetchOptions = async () => {
-    const res = await fetch('http://localhost:5000/api/role-management/options');
+  const res = await fetch('https://tally-backend-dyn3.onrender.com/api/role-management/options');
     const data = await res.json();
     setPermissions(data.permissions || []);
     setScreens(data.screens || []);
@@ -114,7 +114,7 @@ function RoleManagement() {
       .filter(([, permIds]) => (permIds as number[]).length > 0)
       .map(([sid, permIds]) => ({ screen_id: Number(sid), permission_ids: permIds }));
     setLoading(true);
-    const res = await fetch('http://localhost:5000/api/roles', {
+  const res = await fetch('https://tally-backend-dyn3.onrender.com/api/roles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: roleForm.name, description: roleForm.description, permissions: permsPayload })
@@ -135,7 +135,7 @@ function RoleManagement() {
       .map(([sid, permIds]) => ({ screen_id: Number(sid), permission_ids: permIds }));
 
     setLoading(true);
-    const res = await fetch(`http://localhost:5000/api/roles/${editingRoleId}`, {
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/roles/${editingRoleId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: roleForm.name, description: roleForm.description, permissions: permsPayload })
@@ -152,7 +152,7 @@ function RoleManagement() {
     if (role.isSystem) return alert('System roles cannot be deleted!');
     if (!window.confirm(`Delete ${role.name}? This affects ${role.userCount} users.`)) return;
     setLoading(true);
-    const res = await fetch(`http://localhost:5000/api/roles/${role.id}`, { method: 'DELETE' });
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/roles/${role.id}`, { method: 'DELETE' });
     if (res.ok) {
       await fetchRoles();
     } else {

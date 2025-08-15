@@ -17,12 +17,12 @@ const LedgerList: React.FC = () => {
     const fetchData = async () => {
       try {
         // Fetch ledgers
-        const ledgerRes = await fetch("http://localhost:5000/api/ledger");
+  const ledgerRes = await fetch("https://tally-backend-dyn3.onrender.com/api/ledger");
         const ledgerData = await ledgerRes.json();
         setLedgers(ledgerData);
 
         // Fetch ledger groups
-        const groupRes = await fetch("http://localhost:5000/api/ledger-groups");
+  const groupRes = await fetch("https://tally-backend-dyn3.onrender.com/api/ledger-groups");
         const groupData = await groupRes.json();
         setLedgerGroups(groupData);
       } catch (err) {

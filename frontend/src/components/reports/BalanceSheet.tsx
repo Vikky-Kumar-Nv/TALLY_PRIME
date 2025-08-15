@@ -36,7 +36,7 @@ const BalanceSheet: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch('http://localhost:5000/api/balance-sheet');
+  const res = await fetch('https://tally-backend-dyn3.onrender.com/api/balance-sheet');
         if (!res.ok) throw new Error('Failed to load balance sheet data');
         const data = await res.json();
 

@@ -13,7 +13,7 @@ const UnitList: React.FC = () => {
   // 🔹 Fetch units from backend
   const fetchUnits = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/stock-units');
+  const res = await fetch('https://tally-backend-dyn3.onrender.com/api/stock-units');
       const data = await res.json();
       setUnits(data);
     } catch (error) {
@@ -34,7 +34,7 @@ const UnitList: React.FC = () => {
 
     if (confirm.isConfirmed) {
       try {
-        const res = await fetch(`http://localhost:5000/api/stock-units/${unitId}`, {
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/stock-units/${unitId}`, {
           method: 'DELETE'
         });
 

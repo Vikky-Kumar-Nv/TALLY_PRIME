@@ -106,7 +106,7 @@ const ScenarioForm: React.FC = () => {
     }
   
     try {
-      const response = await fetch('http://localhost:5000/api/scenario/create', {
+  const response = await fetch('https://tally-backend-dyn3.onrender.com/api/scenario/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -20,7 +20,7 @@ const CurrencyList: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/currencies')
+  fetch('https://tally-backend-dyn3.onrender.com/api/currencies')
       .then(res => res.json())
       .then(data => {
         setCurrencies(data);

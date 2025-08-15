@@ -11,7 +11,7 @@ const CostCenterList: React.FC = () => {
   const [costCenters, setCostCenters] = useState<{ id: string; name: string; category: string }[]>([]);
 
  useEffect(() => {
-  fetch('http://localhost:5000/api/cost-centers/list/all')
+  fetch('https://tally-backend-dyn3.onrender.com/api/cost-centers/list/all')
     .then((res) => res.json())
     .then((data) => setCostCenters(data))
     .catch((err) => console.error('Error loading cost centers:', err));

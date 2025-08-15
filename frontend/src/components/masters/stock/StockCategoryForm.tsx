@@ -57,7 +57,7 @@ const StockCategoryForm: React.FC = () => {
   };
 
   try {
-    const res = await fetch('http://localhost:5000/api/stock-categories', {
+  const res = await fetch('https://tally-backend-dyn3.onrender.com/api/stock-categories', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newCategory)

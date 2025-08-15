@@ -61,8 +61,8 @@ const GroupForm: React.FC = () => {
   //   const fetchData = async () => {
   //     try {
   //       const [groupsRes, classificationsRes] = await Promise.all([
-  //         fetch('http://localhost:5000/api/ledger-groups'),
-  //         fetch('http://localhost:5000/api/gst-classifications'),
+  //         fetch('https://tally-backend-dyn3.onrender.com/api/ledger-groups'),
+  //         fetch('https://tally-backend-dyn3.onrender.com/api/gst-classifications'),
   //       ]);
   //       if (!groupsRes.ok || !classificationsRes.ok) {
   //         throw new Error('Failed to fetch data');
@@ -192,7 +192,7 @@ const GroupForm: React.FC = () => {
   //   };
 
   //   try {
-  //     const url = isEditMode && id ? `http://localhost:5000/api/ledger-groups/${id}` : 'http://localhost:5000/api/ledger-groups';
+  //     const url = isEditMode && id ? `https://tally-backend-dyn3.onrender.com/api/ledger-groups/${id}` : 'https://tally-backend-dyn3.onrender.com/api/ledger-groups';
   //     const method = isEditMode ? 'PUT' : 'POST';
   //     const res = await fetch(url, {
   //       method,
@@ -221,7 +221,7 @@ if (!validateForm()) {
        return;
     }
   try {
-    const res = await fetch('http://localhost:5000/api/group', {
+  const res = await fetch('https://tally-backend-dyn3.onrender.com/api/group', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)

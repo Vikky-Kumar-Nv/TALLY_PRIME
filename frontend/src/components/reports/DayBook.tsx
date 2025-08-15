@@ -77,7 +77,7 @@ const [processedEntries] = useState<DayBookEntry[]>([]);
     const employeeId = localStorage.getItem('employee_id');
     if (!employeeId) return;
 
-    fetch(`http://localhost:5000/api/DayBookCards`)
+  fetch(`https://tally-backend-dyn3.onrender.com/api/DayBookCards`)
         .then(res => res.json())
         .then(data => {
             setTotals({
@@ -92,7 +92,7 @@ const [processedEntries] = useState<DayBookEntry[]>([]);
 
 useEffect(() => {
   const fetchData = async () => {
-    const res = await fetch('http://localhost:5000/api/daybookTable');
+  const res = await fetch('https://tally-backend-dyn3.onrender.com/api/daybookTable');
     const data = await res.json();
 
     setGroupedVouchers(data.groupedVouchers  || []);

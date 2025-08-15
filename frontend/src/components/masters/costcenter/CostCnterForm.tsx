@@ -24,7 +24,7 @@ const CostCenterForm: React.FC = () => {
 
   useEffect(() => {
   if (isEditMode && id) {
-    fetch(`http://localhost:5000/api/cost-centers/${id}`)
+  fetch(`https://tally-backend-dyn3.onrender.com/api/cost-centers/${id}`)
       .then(res => res.json())
       .then(data => {
         setFormData({
@@ -47,7 +47,7 @@ const CostCenterForm: React.FC = () => {
     e.preventDefault();
   
     try {
-      const response = await fetch('http://localhost:5000/api/cost-centers/save', {
+  const response = await fetch('https://tally-backend-dyn3.onrender.com/api/cost-centers/save', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ const CostCenterForm: React.FC = () => {
 //   const handleSubmit = async (e: React.FormEvent) => {
 //   e.preventDefault();
 // try {
-//     const response = await fetch('http://localhost:5000/api/cost-centers/save', {
+//     const response = await fetch('https://tally-backend-dyn3.onrender.com/api/cost-centers/save', {
 //       method: 'POST',
 //       headers: { 'Content-Type': 'application/json' },
 //       body: JSON.stringify({ ...formData, id }),

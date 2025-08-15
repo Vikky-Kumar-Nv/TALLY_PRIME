@@ -47,8 +47,8 @@ const GroupSummary: React.FC = () => {
       try {
         // Call backend API with optional query param for groupType filtering
         const url = groupType
-          ? `http://localhost:5000/api/group-summary?groupType=${encodeURIComponent(groupType)}`
-          : 'http://localhost:5000/api/group-summary';
+          ? `https://tally-backend-dyn3.onrender.com/api/group-summary?groupType=${encodeURIComponent(groupType)}`
+          : 'https://tally-backend-dyn3.onrender.com/api/group-summary';
 
         const res = await fetch(url);
         if (!res.ok) throw new Error('Failed to load group summary data');

@@ -11,7 +11,7 @@ const GodownList: React.FC = () => {
   const [godowns, setGodowns] = useState<{ id: string, name: string, address: string }[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/godowns')
+  fetch('https://tally-backend-dyn3.onrender.com/api/godowns')
       .then(res => res.json())
       .then(data => {
         if (data.success) setGodowns(data.data);

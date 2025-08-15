@@ -121,7 +121,7 @@ const JournalVoucher: React.FC = () => {
           id: isEditMode ? id! : Math.random().toString(36).substring(2, 9),
           ...formData,
         };
-        const res = await fetch(`http://localhost:5000/api/vouchers${isEditMode ? `/${id}` : ''}`, {
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/vouchers${isEditMode ? `/${id}` : ''}`, {
           method: isEditMode ? 'PUT' : 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(voucherData),

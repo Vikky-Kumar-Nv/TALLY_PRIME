@@ -40,7 +40,7 @@ const GodownSummary: React.FC = () => {
         if (filters.godownId) params.append('godownId', filters.godownId);
         if (filters.asOnDate) params.append('asOnDate', filters.asOnDate);
 
-        const res = await fetch(`http://localhost:5000/api/godown-summary?${params.toString()}`);
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/godown-summary?${params.toString()}`);
         if (!res.ok) {
           const text = await res.text();
           throw new Error(text || `Error: ${res.status}`);

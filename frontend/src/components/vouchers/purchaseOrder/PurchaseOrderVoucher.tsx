@@ -244,7 +244,7 @@ const PurchaseOrderVoucher: React.FC = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/purchase-orders', {
+  const response = await fetch('https://tally-backend-dyn3.onrender.com/api/purchase-orders', {
         method: isEditMode ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',

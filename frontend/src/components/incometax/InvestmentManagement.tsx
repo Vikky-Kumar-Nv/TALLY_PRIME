@@ -100,7 +100,7 @@ useEffect(() => {
       return;
     }
     try {
-      const response = await fetch(`http://localhost:5000/api/investments?employee_id=${encodeURIComponent(employee_id)}`, {
+  const response = await fetch(`https://tally-backend-dyn3.onrender.com/api/investments?employee_id=${encodeURIComponent(employee_id)}`, {
         headers: { 'Content-Type': 'application/json' }
       });
       if (!response.ok) {
@@ -129,8 +129,8 @@ const handleSubmit = async (e: React.FormEvent) => {
     };
 
     const url = editingInvestment
-      ? `http://localhost:5000/api/investments/${editingInvestment.id}`
-      : 'http://localhost:5000/api/investments';
+  ? `https://tally-backend-dyn3.onrender.com/api/investments/${editingInvestment.id}`
+  : 'https://tally-backend-dyn3.onrender.com/api/investments';
     const method = editingInvestment ? 'PUT' : 'POST';
 
     const res = await fetch(url, {
@@ -185,7 +185,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Delete this investment?')) return;
-    const res = await fetch(`http://localhost:5000/api/investments/${id}`, { method: 'DELETE' });
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/investments/${id}`, { method: 'DELETE' });
     if (res.ok) setInvestments((prev) => prev.filter((inv) => inv.id !== id));
     else alert('Delete failed');
   };

@@ -42,7 +42,7 @@ const BatchList: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
-    fetch('http://localhost:5000/api/stock-items')
+  fetch('https://tally-backend-dyn3.onrender.com/api/stock-items')
       .then(res => res.json())
       .then(json => {
         if (isMounted) {

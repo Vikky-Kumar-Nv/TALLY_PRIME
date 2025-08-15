@@ -57,7 +57,7 @@ const AgeingAnalysis: React.FC = () => {
           if (value) params.append(key, String(value));
         });
 
-        const res = await fetch(`http://localhost:5000/api/ageing-analysis?${params.toString()}`);
+  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/ageing-analysis?${params.toString()}`);
         if (!res.ok) throw new Error(`Error fetching data: ${res.status}`);
 
         const json = await res.json();

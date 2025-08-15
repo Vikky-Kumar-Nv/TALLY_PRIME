@@ -414,7 +414,7 @@ const CompanyForm: React.FC = () => {
       };
 
       // Step 4: Submit to backend
-      const res = await fetch("http://localhost:5000/api/company/company", {
+      const res = await fetch("https://tally-backend-dyn3.onrender.com/api/company/company", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

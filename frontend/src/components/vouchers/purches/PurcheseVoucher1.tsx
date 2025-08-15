@@ -409,7 +409,7 @@ const PurchaseVoucher: React.FC = () => {
     }
   
     try {
-      const res = await fetch('http://localhost:5000/api/purchase-vouchers', {
+      const res = await fetch('https://tally-backend-dyn3.onrender.com/api/purchase-vouchers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

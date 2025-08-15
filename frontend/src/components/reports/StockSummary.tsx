@@ -61,7 +61,7 @@ const StockSummary: React.FC = () => {
         if (filters.basis) params.append('basis', filters.basis);
         if (filters.show) params.append('show', String(filters.show));
 
-        const response = await fetch(`http://localhost:5000/api/stock-summary?${params.toString()}`);
+  const response = await fetch(`https://tally-backend-dyn3.onrender.com/api/stock-summary?${params.toString()}`);
         if (!response.ok) {
           const text = await response.text();
           throw new Error(text || `Error: ${response.status}`);
