@@ -25,8 +25,6 @@ const GroupSummary: React.FC = () => {
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
   const [ledgerGroups, setLedgerGroups] = useState<LedgerGroup[]>([]);
   const [showFilterPanel, setShowFilterPanel] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'consolidated' | 'monthly'>('consolidated');
 
   // Map group types to display names for header
@@ -46,8 +44,6 @@ const GroupSummary: React.FC = () => {
   // Fetch ledger groups and ledgers filtered by groupType (optional)
   useEffect(() => {
     async function fetchGroupSummary() {
-      setLoading(true);
-      setError(null);
       try {
         // Call backend API with optional query param for groupType filtering
         const url = groupType
@@ -67,11 +63,9 @@ const GroupSummary: React.FC = () => {
         setLedgers(normalizedLedgers);
         setLedgerGroups(data.ledgerGroups || []);
       } catch (err: any) {
-        setError(err.message || 'Unexpected error');
+        console.error('Failed to load group summary data:', err);
         setLedgers([]);
         setLedgerGroups([]);
-      } finally {
-        setLoading(false);
       }
     }
 
@@ -113,7 +107,7 @@ const GroupSummary: React.FC = () => {
   };
 
   // You can replace this with your actual theme logic or context
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme] = useState<'light' | 'dark'>('light');
 
   return (
     <div className='pt-[56px] px-4'>

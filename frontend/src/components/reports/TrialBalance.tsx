@@ -18,12 +18,6 @@ interface GroupData {
   total: { debit: number; credit: number };
 }
 
-interface TrialBalanceResponse {
-  groupedData: Record<string, GroupData>;
-  totalDebit: number;
-  totalCredit: number;
-}
-
 const TrialBalance: React.FC = () => {
   const navigate = useNavigate();
   const [showFilterPanel, setShowFilterPanel] = useState(false);

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState } from 'react';
 import { Printer, Save, Trash2, Edit, FileJson, X } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import QRCode from 'qrcode';

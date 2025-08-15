@@ -179,7 +179,6 @@ const Form27EQ: React.FC = () => {
 const [returnList, setReturnList] = useState([]);
 const [selectedYear] = useState("2024-25");
 const [selectedQuarter] = useState("");
-const [loading, setLoading] = useState(false);
   // Form data state
   const [collectorDetails, setCollectorDetails] = useState<CollectorDetails>({
     tan: '',
@@ -427,7 +426,6 @@ const [loading, setLoading] = useState(false);
   
 useEffect(() => {
   if (activeTab !== "list") return;
-  setLoading(true);
   const params = new URLSearchParams();
   if (selectedYear) params.append("year", selectedYear);
   if (selectedQuarter) params.append("quarter", selectedQuarter);
@@ -436,11 +434,9 @@ useEffect(() => {
     .then((res) => res.json())
     .then((data) => {
       setReturnList(data);
-      setLoading(false);
     })
     .catch(() => {
       setReturnList([]);
-      setLoading(false);
     });
 }, [activeTab, selectedYear, selectedQuarter]);
 const handleSaveForm = async (e: React.FormEvent) => {

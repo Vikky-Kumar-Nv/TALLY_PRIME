@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Printer, Download, Filter } from 'lucide-react';
@@ -58,13 +58,6 @@ const GodownSummary: React.FC = () => {
 
     fetchGodownSummary();
   }, [filters]);
-
-  // Memoize total calculation
-  const totals = useMemo(() => {
-    const totalQty = data.reduce((sum, row) => sum + row.quantity, 0);
-    const totalValue = data.reduce((sum, row) => sum + row.value, 0);
-    return { totalQty, totalValue };
-  }, [data]);
 
   return (
     <div className="pt-[56px] px-4">

@@ -79,9 +79,6 @@ const MovementAnalysis: React.FC = () => {
     fetchMovementData();
   }, [fromDate, toDate, stockItemId]);
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 2 }).format(amount);
-
   return (
     <div className="pt-[56px] px-4">
       {/* Header */}

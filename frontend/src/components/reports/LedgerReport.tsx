@@ -67,9 +67,7 @@ const LedgerReport: React.FC = () => {
   const [includeOpening] = useState(true);
   const [includeClosing] = useState(true);
   // To drive output
-  const [loading, setLoading] = useState(false);
 const [ledgerData, setLedgerData] = useState<LedgerApiResponse | null>(null);
-  const [error, setError] = useState(null);
     const [ledgers, setLedgers] = useState<Ledger[]>([]);
   const [ledgerId, setLedgerId] = useState(''); // default
 
@@ -342,19 +340,16 @@ const ledgerTransactions = ledgerData ? ledgerData.transactions : [];
 // Use effect to fetch data on ledgerId or filters change
 useEffect(() => {
   if (!ledgerId) return;
-  setLoading(true);
-  setError(null);
 
   fetch(`http://localhost:5000/api/ledger-report/report?ledgerId=${ledgerId}&fromDate=${fromDate}&toDate=${toDate}&includeOpening=${includeOpening}&includeClosing=${includeClosing}`)
     .then(res => res.json())
     .then(data => {
       if(data.success) setLedgerData(data);
-      else setError(data.message || 'Error loading ledger data');
+      else console.error('Error loading ledger data:', data.message);
     })
     .catch(err => {
-      setError(err.message || 'Network error');
-    })
-    .finally(() => setLoading(false));
+      console.error('Network error:', err);
+    });
 }, [ledgerId, fromDate, toDate, includeOpening, includeClosing]);
 
 // Group transactions by month for monthly view

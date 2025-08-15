@@ -2,9 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { ArrowLeft, Printer, Download, Filter } from 'lucide-react';
-import FilterPanel from '../reports/FilterPanel';
 import ReportTable from './ReportTable';
-import type { StockItem, StockGroup, VoucherEntry } from '../../types';
+import type { StockItem, StockGroup } from '../../types';
 
 // Define types for summary data
 interface ItemSummary {
@@ -25,10 +24,8 @@ interface GroupSummary {
   profit: number;
 }
 
-type SummaryData = ItemSummary | GroupSummary;
-
 const StockSummary: React.FC = () => {
-  const { theme, stockGroups, stockItems, companyInfo } = useAppContext();
+  const { theme, stockGroups, companyInfo } = useAppContext();
   const navigate = useNavigate();
    const [showFilterPanel, setShowFilterPanel] = useState(false);
    const [view, setView] = useState<'Item' | 'Group'>('Item'); 
@@ -167,96 +164,6 @@ const StockSummary: React.FC = () => {
       }]
     : []),
 ], [view, filters.show]);
-
-  // Mock voucher entries
-  const [voucherEntries] = useState<VoucherEntry[]>([
-    {
-      id: '1',
-      date: '2025-06-01',
-      type: 'purchase',
-      number: 'PUR-001',
-      entries: [
-        { id: '1-1', itemId: '1', quantity: 100, rate: 50, amount: 5000, type: 'debit', godownId: '1' },
-        { id: '1-2', ledgerId: 'L1', amount: 5000, type: 'credit' },
-      ],
-    },
-    {
-      id: '2',
-      date: '2025-06-15',
-      type: 'sales',
-      number: 'SAL-001',
-      entries: [
-        { id: '2-1', itemId: '1', quantity: 20, rate: 70, amount: 1400, type: 'credit', godownId: '1' },
-        { id: '2-2', ledgerId: 'L2', amount: 1400, type: 'debit' },
-      ],
-    },
-    {
-      id: '3',
-      date: '2025-05-01',
-      type: 'stock-journal',
-      number: 'SJ-001',
-      entries: [
-        { id: '3-1', itemId: '1', quantity: 50, rate: 50, amount: 2500, type: 'source', godownId: '1' },
-        { id: '3-2', itemId: '2', quantity: 25, rate: 150, amount: 3750, type: 'destination', godownId: '2' },
-      ],
-    },
-  ]);
-
-  const filteredItems = stockItems.filter(item => (
-    (!filters.stockGroupId || item.stockGroupId === filters.stockGroupId) &&
-    (!filters.stockItemId || item.id === filters.stockItemId) &&
-    (!filters.godownId || item.godownAllocations?.some(alloc => alloc.godownId === filters.godownId)) &&
-    (!filters.batchId || item.batchDetails?.some(batch => batch.id === filters.batchId))
-  ));
-
-  const groupedItems = stockGroups.map(group => ({
-    group,
-    items: filteredItems.filter(item => item.stockGroupId === group.id),
-  })).filter(g => g.items.length > 0);
-
-  const calculateSummary = (items: StockItem[]) => {
-    return items.map(item => {
-      const itemTxns = voucherEntries
-        .flatMap(voucher => voucher.entries.filter(entry => 
-          entry.itemId === item.id &&
-          voucher.date >= filters.fromDate &&
-          voucher.date <= filters.toDate &&
-          (!filters.godownId || entry.godownId === filters.godownId) &&
-          (!filters.batchId || entry.batchId === filters.batchId)
-        ));
-      const inwardQty = itemTxns
-        .filter(entry => entry.type === 'debit' || entry.type === 'destination')
-        .reduce((sum, entry) => sum + (entry.quantity || 0), 0);
-      const outwardQty = itemTxns
-        .filter(entry => entry.type === 'credit' || entry.type === 'source')
-        .reduce((sum, entry) => sum + (entry.quantity || 0), 0);
-      const outwardValue = itemTxns
-        .filter(entry => entry.type === 'credit' || entry.type === 'source')
-        .reduce((sum, entry) => sum + (entry.amount || 0), 0);
-      const closingQty = item.openingBalance + inwardQty - outwardQty;
-      const closingValue = filters.basis === 'Cost'
-        ? closingQty * (item.standardPurchaseRate || 0)
-        : closingQty * (item.standardSaleRate || 0);
-      const profit = filters.show
-        ? (outwardValue - (outwardQty * (item.standardPurchaseRate || 0)))
-        : 0;
-      return { item, inwardQty, outwardQty, closingQty, closingValue, profit };
-    });
-  };
-
-  const calculateGroupSummary = () => {
-    return groupedItems.map(({ group, items }) => {
-      const summary = calculateSummary(items);
-      return {
-        group,
-        inwardQty: summary.reduce((sum, s) => sum + s.inwardQty, 0),
-        outwardQty: summary.reduce((sum, s) => sum + s.outwardQty, 0),
-        closingQty: summary.reduce((sum, s) => sum + s.closingQty, 0),
-        closingValue: summary.reduce((sum, s) => sum + s.closingValue, 0),
-        profit: summary.reduce((sum, s) => sum + s.profit, 0),
-      };
-    });
-  };
 
   // Footer totals
   const footer = useMemo(() => {

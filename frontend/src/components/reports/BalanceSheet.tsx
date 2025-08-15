@@ -72,10 +72,6 @@ const BalanceSheet: React.FC = () => {
     navigate('/app/reports/profit-loss');
   };
 
-  const handleStockClick = () => {
-    navigate('/app/reports/stock-summary');
-  };
-
   // Helper: Calculate total for given groupType using ledgers and ledgerGroups
   const getGroupTotal = (groupType: string) => {
     return ledgers

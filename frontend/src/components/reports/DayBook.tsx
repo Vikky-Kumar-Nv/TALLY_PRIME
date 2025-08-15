@@ -1,4 +1,4 @@
-import React, { useState, useMemo,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Printer, Download, Filter, Calendar, Eye } from 'lucide-react';
@@ -35,7 +35,7 @@ interface VoucherGroup {
 }
 
 const DayBook: React.FC = () => {
-  const { theme, vouchers, ledgers, stockItems } = useAppContext();
+  const { theme, stockItems } = useAppContext();
   const navigate = useNavigate();
   
   const getItemName = (itemId: string | undefined) => {
@@ -54,13 +54,6 @@ const DayBook: React.FC = () => {
         vouchersCount: 0,
     });
 
-    const [daybookTotals, setDaybookTotals] = useState({
-    totalDebit: 0,
-    totalCredit: 0,
-    netDifference:0,
-    vouchersCount:0,
-    supplier_invoice_date:0
-});
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [selectedDateRange, setSelectedDateRange] = useState('today');
@@ -68,7 +61,7 @@ const DayBook: React.FC = () => {
   const [viewMode, setViewMode] = useState<'detailed' | 'grouped'>('grouped');
   const [selectedVoucher, setSelectedVoucher] = useState<VoucherGroup | null>(null);
  const [groupedVouchers, setGroupedVouchers] = useState<VoucherGroup[]>([]);
-const [processedEntries, setProcessedEntries] = useState<DayBookEntry[]>([]);
+const [processedEntries] = useState<DayBookEntry[]>([]);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -103,13 +96,6 @@ useEffect(() => {
     const data = await res.json();
 
     setGroupedVouchers(data.groupedVouchers  || []);
-    setDaybookTotals({
-      totalDebit: data.totalDebit,
-      totalCredit: data.totalCredit,
-      netDifference: data.netDifference,
-      vouchersCount: data.vouchersCount,
-      supplier_invoice_date:data.supplier_invoice_date
-    });
   };
   fetchData();
 },[]); // Whatever triggers your refetch.
