@@ -5,9 +5,11 @@ const db = mysql.createPool({
   host: '192.145.238.16',
   user: 'amtbug5_usrtally',
   password: 'Tally@786$',
-  database: 'amtbug5_dbtally'
-
-  
+  database: 'amtbug5_dbtally',
+  connectionLimit: 10,
+  queueLimit: 0,
+  timeout: 60000,
+  acquireTimeout: 60000
 });
 
 module.exports = db;
