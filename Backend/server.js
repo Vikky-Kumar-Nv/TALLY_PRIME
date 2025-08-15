@@ -196,22 +196,24 @@ app.use('/api/assessee', assessee);
 const itrfiling = require('./routes/ITRFilling');
 app.use('/api/itr-filling', itrfiling);
 
-// ✅ MySQL Connection
-const db = mysql.createConnection({
-  host: '192.145.238.16',
-  user: 'amtbug5_usrtally',
-  password: 'Tally@786$',
-  database: 'amtbug5_dbtally'
-});
+// ✅ MySQL Connection (for serverless, we'll use the db.js pool instead)
+// const db = mysql.createConnection({
+//   host: '192.145.238.16',
+//   user: 'amtbug5_usrtally',
+//   password: 'Tally@786$',
+//   database: 'amtbug5_dbtally'
+// });
 
-db.connect((err) => {
-  if (err) throw err;
-  console.log('MySQL Connected!');
-});
+// db.connect((err) => {
+//   if (err) throw err;
+//   console.log('MySQL Connected!');
+// });
 
-// ✅ Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ✅ Start Server (only for local development)
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
 
 // Export for Vercel
 module.exports = app;
