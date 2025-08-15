@@ -61,6 +61,11 @@ import VoucherImport from './components/vouchers/import/VoucherImport';
 import QuotationList from './components/vouchers/quotation/QuotationList';
 import QuotationCreate from './components/vouchers/quotation/QuotationCreate';
 
+// Voucher Types Management
+import VoucherTypesList from './components/vouchers/voucherTypes/VoucherTypesList';
+import VoucherTypeCreation from './components/vouchers/voucherTypes/VoucherTypeCreation';
+import VoucherTypeEdit from './components/vouchers/voucherTypes/VoucherTypeEdit';
+
 // Voucher Register Components
 import VoucherRegisterIndex from './components/voucherRegister/VoucherRegisterIndex';
 import PaymentRegister from './components/voucherRegister/PaymentRegister';
@@ -325,6 +330,11 @@ function App() {
             <Route path="vouchers/purchase-order/edit/:id" element={<PurchaseOrderVoucher />} />
             <Route path="vouchers/view/:voucherType/:voucherNo" element={<VoucherView />} />
             <Route path="vouchers/import" element={<VoucherImport />} />
+            
+            {/* Voucher Types Management Routes */}
+            <Route path="vouchers/types" element={<VoucherTypesList />} />
+            <Route path="vouchers/types/create" element={<VoucherTypeCreation />} />
+            <Route path="vouchers/types/edit/:id" element={<VoucherTypeEdit />} />
            
             {/* Voucher Register Routes */}
             <Route path="voucher-register" element={<VoucherRegisterIndex />} />

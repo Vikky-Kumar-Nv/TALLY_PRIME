@@ -28,6 +28,9 @@ app.use('/api/budgets', budgetRoutes);
 const voucherRoutes = require('./routes/vouchers');
 app.use('/api/vouchers', voucherRoutes);
 
+const voucherTypesRoutes = require('./routes/voucherTypes');
+app.use('/api/voucher-types', voucherTypesRoutes);
+
 const saleVoucherRoutes = require('./routes/salevoucher');
 app.use('/api/sale-vouchers', saleVoucherRoutes);
 
