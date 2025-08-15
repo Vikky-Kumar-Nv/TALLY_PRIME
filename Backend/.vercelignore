@@ -10,4 +10,4 @@ yarn-error.log*
 *.log
 uploads/*
 logs/*
-tsconfig.tsbuildinfo
+tsconfig.tsbuildinfo 
