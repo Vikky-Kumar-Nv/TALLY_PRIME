@@ -9,8 +9,14 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+// Root route
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'Server is fine', status: 'OK' });
+});
+
 // ✅ Routes
 const ledgerGroupRoutes = require('./routes/ledgerGroups');
+
 app.use('/api/ledger-groups', ledgerGroupRoutes);
 
 const ledgerRoutes = require('./routes/ledger');
