@@ -7,7 +7,6 @@
     "start": "node public/index.js",
     "dev": "concurrently \"tsc -b --watch\" \"nodemon public/index.js\"",
     "build": "tsc",
-    "postinstall": "npx prisma generate"
   },
   "keywords": [],
   "author": "",
