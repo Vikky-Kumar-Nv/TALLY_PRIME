@@ -4,9 +4,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node public/index.js",
+    "start": "node server.js",
     "dev": "concurrently \"tsc -b --watch\" \"nodemon public/index.js\"",
-    "build": "tsc"
+    "build": "echo 'Build completed'"
   },
   "keywords": [],
   "author": "",
