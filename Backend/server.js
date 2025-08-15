@@ -1,34 +1,16 @@
-// ✅ Minimal server.js for Vercel testing
+// ✅ server.js (Updated without express-session)
 const express = require('express');
+const mysql = require('mysql2');
 const cors = require('cors');
+const bodyParser = require('body-parser');
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
-
-// Root route
-app.get('/', (req, res) => {
-  res.status(200).json({ 
-    message: 'Server is working!', 
-    status: 'OK',
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Test API route
-app.get('/api/test', (req, res) => {
-  res.status(200).json({ 
-    message: 'API is working!', 
-    status: 'OK' 
-  });
-});
-
-// Export for Vercel (no app.listen needed)
-module.exports = app;
+app.use(bodyParser.json());
 
 // ✅ Routes
 const ledgerGroupRoutes = require('./routes/ledgerGroups');
-
 app.use('/api/ledger-groups', ledgerGroupRoutes);
 
 const ledgerRoutes = require('./routes/ledger');
@@ -208,24 +190,19 @@ app.use('/api/assessee', assessee);
 const itrfiling = require('./routes/ITRFilling');
 app.use('/api/itr-filling', itrfiling);
 
-// ✅ MySQL Connection (for serverless, we'll use the db.js pool instead)
-// const db = mysql.createConnection({
-//   host: '192.145.238.16',
-//   user: 'amtbug5_usrtally',
-//   password: 'Tally@786$',
-//   database: 'amtbug5_dbtally'
-// });
+// ✅ MySQL Connection
+const db = mysql.createConnection({
+  host: '192.145.238.16',
+  user: 'amtbug5_usrtally',
+  password: 'Tally@786$',
+  database: 'amtbug5_dbtally'
+});
 
-// db.connect((err) => {
-//   if (err) throw err;
-//   console.log('MySQL Connected!');
-// });
+db.connect((err) => {
+  if (err) throw err;
+  console.log('MySQL Connected!');
+});
 
-// ✅ Start Server (only for local development)
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-}
-
-// Export for Vercel
-module.exports = app;
+// ✅ Start Server
+const PORT = 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
