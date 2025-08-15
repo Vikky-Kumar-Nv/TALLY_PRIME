@@ -45,15 +45,11 @@ const [showBillDetails, setShowBillDetails] = useState(false);
 
   // New state for fetched bills
   const [billsData, setBillsData] = useState<BillDetails[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
 
   // Fetch data
   useEffect(() => {
     async function fetchBills() {
-      setLoading(true);
-      setError(null);
       try {
         const params = new URLSearchParams();
         if (searchTerm) params.append('searchTerm', searchTerm);
@@ -69,11 +65,9 @@ const [showBillDetails, setShowBillDetails] = useState(false);
         }
         const data: BillDetails[] = await res.json();
         setBillsData(data);
-      } catch (e: any) {
-        setError(e.message || 'Failed to load data');
+      } catch (e: unknown) {
+        console.error('Failed to load data:', e);
         setBillsData([]);
-      } finally {
-        setLoading(false);
       }
     }
     fetchBills();

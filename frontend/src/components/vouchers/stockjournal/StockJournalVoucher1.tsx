@@ -6,7 +6,7 @@ import { Save, Plus, Trash2, ArrowLeft } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 const StockJournalVoucher: React.FC = () => {
-  const { theme, stockItems, godowns = [], updateStockItem, addVoucher } = useAppContext();
+  const { theme, stockItems, godowns = [], addVoucher } = useAppContext();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>({
@@ -99,36 +99,6 @@ const StockJournalVoucher: React.FC = () => {
     const updatedEntries = [...formData.entries];
     updatedEntries.splice(index, 1);
     setFormData(prev => ({ ...prev, entries: updatedEntries }));
-  };
-
-  const validateForm = () => {
-    const newErrors: { [key: string]: string } = {};
-    if (!formData.date) newErrors.date = 'Date is required';
-
-    const sourceEntries = formData.entries.filter(e => e.type === 'source');
-    const destEntries = formData.entries.filter(e => e.type === 'destination');
-
-    if (formData.mode === 'transfer' && (!sourceEntries.length || !destEntries.length)) {
-      newErrors.entries = 'At least one source and one destination item are required for transfer';
-    } else if (formData.mode === 'adjustment' && !formData.entries.length) {
-      newErrors.entries = 'At least one item is required for adjustment';
-    }
-
-    formData.entries.forEach((entry, index) => {
-      if (!entry.itemId) newErrors[`entry${index}.itemId`] = 'Item is required';
-      if ((entry.quantity ?? 0) <= 0) newErrors[`entry${index}.quantity`] = 'Quantity must be greater than 0';
-      if (godowns?.length > 0 && !entry.godownId) newErrors[`entry${index}.godownId`] = 'Godown is required';
-
-      if (entry.type === 'source' && entry.itemId) {
-        const stockItem = stockItems.find(item => item.id === entry.itemId);
-        if (stockItem && (entry.quantity ?? 0) > stockItem.openingBalance) {
-          newErrors[`entry${index}.quantity`] = `Quantity exceeds available stock (${stockItem.openingBalance})`;
-        }
-      }
-    });
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -8,7 +8,7 @@ import EWayBillGeneration from '../sales/EWayBillGeneration';
 import InvoicePrint from '../sales/InvoicePrint';
 
 const DebitNoteVoucher: React.FC = () => {
-  const { theme, ledgers, stockItems, addVoucher } = useAppContext();
+  const { theme, ledgers, stockItems } = useAppContext();
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>({

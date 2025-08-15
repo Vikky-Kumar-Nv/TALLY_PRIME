@@ -6,7 +6,7 @@ import { Save, Plus, Trash2, ArrowLeft } from 'lucide-react';
 import Swal from 'sweetalert2';
 
 const DeliveryNoteVoucher: React.FC = () => {
-  const { theme, ledgers, addVoucher } = useAppContext();
+  const { theme, ledgers } = useAppContext();
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState<Omit<VoucherEntry, 'id'>>({

@@ -41,10 +41,8 @@ const OutstandingPayables: React.FC = () => {
   const [sortBy, setSortBy] = useState<'amount' | 'overdue' | 'supplier' | 'risk'>('amount');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  // Add state for fetched data, loading, error
+  // Add state for fetched data
   const [suppliersData, setSuppliersData] = useState<SupplierOutstanding[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   // Filtering and sorting logic
   const filteredData = useMemo(() => {
     const filtered = suppliersData.filter(supplier => {
@@ -130,9 +128,6 @@ const OutstandingPayables: React.FC = () => {
 // Fetch data on filters change
   useEffect(() => {
     async function fetchData() {
-      setLoading(true);
-      setError(null);
-
       try {
         const params = new URLSearchParams();
         if (searchTerm) params.append('searchTerm', searchTerm);
@@ -147,11 +142,9 @@ const OutstandingPayables: React.FC = () => {
         }
         const data: SupplierOutstanding[] = await res.json();
         setSuppliersData(data);
-      } catch (e: any) {
-        setError(e.message || 'Failed to load data');
+      } catch (e: unknown) {
+        console.error('Failed to load data:', e);
         setSuppliersData([]);
-      } finally {
-        setLoading(false);
       }
     }
 

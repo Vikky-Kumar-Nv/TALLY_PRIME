@@ -20,37 +20,17 @@ interface OutstandingLedgerData {
 
 const OutstandingLedger: React.FC = () => {
   const { theme } = useAppContext();
-  const [selectedLedger, setSelectedLedger] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
   const [ledgers, setLedgers] = useState<Ledger[]>([]);
-
-  // Mock ledger options
-  const ledgerOptions = [
-    'ABC Enterprises',
-    'XYZ Corporation',
-    'Reliable Suppliers',
-    'Tech Solutions Ltd',
-    'Global Trading Co',
-    'Modern Industries',
-    'Premier Services',
-    'Elite Marketing',
-    'Swift Logistics',
-    'Alpha Systems'
-  ];
-    const [outstandingData, setOutstandingData] = useState<OutstandingLedgerData[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+  const [outstandingData, setOutstandingData] = useState<OutstandingLedgerData[]>([]);
 
   // Mock outstanding data - grouped by ledger
   
   useEffect(() => {
     async function fetchData() {
-      setLoading(true);
-      setError(null);
       try {
         const params = new URLSearchParams();
-        if (selectedLedger) params.append('ledgerName', selectedLedger);
         if (searchTerm) params.append('searchTerm', searchTerm);
         if (dateRange.from) params.append('from', dateRange.from);
         if (dateRange.to)   params.append('to', dateRange.to);
@@ -58,15 +38,13 @@ const OutstandingLedger: React.FC = () => {
         const res = await fetch(`http://localhost:5000/api/outstanding-ledger?${params.toString()}`);
         if (!res.ok) throw new Error(await res.text());
         setOutstandingData(await res.json());
-      } catch (e: any) {
-        setError(e.message || 'Error fetching data');
+      } catch (e: unknown) {
+        console.error('Error fetching data:', e);
         setOutstandingData([]);
-      } finally {
-        setLoading(false);
       }
     }
     fetchData();
-  }, [selectedLedger, searchTerm, dateRange.from, dateRange.to]);
+  }, [searchTerm, dateRange.from, dateRange.to]);
 
   useEffect(() => {
       const fetchLedgers = async () => {
@@ -83,14 +61,13 @@ const OutstandingLedger: React.FC = () => {
     }, []);
   
   const filteredData = outstandingData.filter(ledger => {
-    const matchesLedger = !selectedLedger || ledger.ledgerName === selectedLedger;
     const matchesSearch = !searchTerm || 
       ledger.entries.some(entry => 
         entry.refNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
         entry.particular.toLowerCase().includes(searchTerm.toLowerCase())
       ) ||
       ledger.ledgerName.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesLedger && matchesSearch;
+    return matchesSearch;
   });
 
   const formatCurrency = (amount: number) => {
@@ -141,8 +118,6 @@ const OutstandingLedger: React.FC = () => {
         }`}>
           Filters
         </h3>
-        {loading && <div className="py-6 text-center">Loading...</div>}
-        {error && <div className="py-6 text-center text-red-600">{error}</div>}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Ledger Dropdown */}

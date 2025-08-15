@@ -33,7 +33,7 @@ const numberToWords = (num: number): string => {
 };
 
 const QuotationList: React.FC = () => {
-  const { theme, vouchers, ledgers } = useAppContext();
+  const { theme, vouchers, ledgers, stockItems } = useAppContext();
   const navigate = useNavigate();
 
   // Pagination state
@@ -43,6 +43,20 @@ const QuotationList: React.FC = () => {
   // Safe fallbacks with proper typing
   const safeVouchers = vouchers || [];
   const safeLedgers = ledgers || [];
+  const safeStockItems = stockItems || [];
+
+  // Helper function to get item details
+  const getItemName = (itemId?: string) => {
+    if (!itemId) return '-';
+    const item = safeStockItems.find(i => i.id === itemId);
+    return item?.name || '-';
+  };
+
+  const getItemUnit = (itemId?: string) => {
+    if (!itemId) return 'Nos';
+    const item = safeStockItems.find(i => i.id === itemId);
+    return item?.unit || 'Nos';
+  };
 
   // Filter only quotation vouchers
   const quotationVouchers = safeVouchers.filter(voucher => 
@@ -973,10 +987,10 @@ const QuotationList: React.FC = () => {
                                         ${quotation.entries?.map((entry, index) => `
                                           <tr>
                                             <td class="text-center">${index + 1}</td>
-                                            <td style="font-weight: 500;">${entry.itemName || '-'}</td>
+                                            <td style="font-weight: 500;">${getItemName(entry.itemId)}</td>
                                             <td class="text-center">${entry.hsnCode || '-'}</td>
                                             <td class="text-center">${entry.quantity || 0}</td>
-                                            <td class="text-center">${entry.unit || 'Nos'}</td>
+                                            <td class="text-center">${getItemUnit(entry.itemId)}</td>
                                             <td class="amount-cell">₹${(entry.rate || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
                                             <td class="text-center">${entry.discount || 0}%</td>
                                             <td class="text-center">18%</td>

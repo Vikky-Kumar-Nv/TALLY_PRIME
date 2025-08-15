@@ -595,9 +595,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     { id: 'gc3', name: 'Food - 5%', hsnCode: '2106', gstRate: 5 }
   ]);
   const [units, setUnits] = useState<UnitOfMeasurement[]>([
-    { id: '1', name: 'Number', symbol: 'Nos' },
-    { id: '2', name: 'Kilogram', symbol: 'Kg' },
-    { id: '3', name: 'Meter', symbol: 'Mtr' }
+    { id: '1', name: 'Number', symbol: 'Nos', type: 'Simple' },
+    { id: '2', name: 'Kilogram', symbol: 'Kg', type: 'Simple' },
+    { id: '3', name: 'Meter', symbol: 'Mtr', type: 'Simple' }
   ]);
   const [godowns, setGodowns] = useState<Godown[]>([
     { id: 'g1', name: 'Main Godown' },
