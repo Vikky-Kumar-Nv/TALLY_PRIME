@@ -249,6 +249,7 @@ const GSTRegistration: React.FC = () => {
       phoneNumber: companyInfo?.phoneNumber || '',
       email: companyInfo?.email || '',
       panNumber: companyInfo?.panNumber || '',
+      cinNumber: companyInfo?.cinNumber || '',
       gstNumber: formData.gstNumber,
       vatNumber: companyInfo?.vatNumber || '',
       state: formData.state,

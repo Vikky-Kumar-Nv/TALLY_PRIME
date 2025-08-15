@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Users, Plus, Edit, Trash2, Search, Filter, Shield, Mail, Phone, Eye, Lock, ArrowLeft } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Trash2, Search, Filter, Mail, Phone, Eye, Lock, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface User {
@@ -21,10 +21,9 @@ function UserAccounts() {
   const [loading, setLoading] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [roleFilter] = useState<string>('all');
   const [showAddUser, setShowAddUser] = useState<boolean>(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string>('');
 
   // New User form state
   const [newUser, setNewUser] = useState({
@@ -69,12 +68,11 @@ function UserAccounts() {
 
   async function fetchUsers() {
     if (!creatorEmployeeId) {
-      setErrorMsg('Creator employee ID not found. Please login again.');
+      console.error('Creator employee ID not found. Please login again.');
       return;
     }
 
     setLoading(true);
-    setErrorMsg('');
 
     const params = new URLSearchParams({
       creatorEmployeeId,
@@ -90,10 +88,10 @@ function UserAccounts() {
       if (data.success) {
         setUsers(data.users);
       } else {
-        setErrorMsg(data.error || 'Failed to load users');
+        console.error('Failed to load users:', data.error);
       }
-    } catch (e: any) {
-      setErrorMsg(e.message || 'Unexpected error fetching users');
+    } catch (e: unknown) {
+      console.error('Unexpected error fetching users:', e);
     }
 
     setLoading(false);
@@ -126,7 +124,6 @@ function UserAccounts() {
   }
 
   async function handleAddUser() {
-    setErrorMsg('');
     if (newUser.password !== newUser.confirmPassword) {
       alert('Passwords do not match!');
       return;
@@ -169,8 +166,9 @@ function UserAccounts() {
       } else {
         alert(data.error || 'Failed to add user');
       }
-    } catch (e: any) {
-      alert(e.message || 'Unexpected error adding user');
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Unexpected error adding user';
+      alert(errorMessage);
     }
   }
 
@@ -185,8 +183,9 @@ function UserAccounts() {
       } else {
         alert(data.error || 'Failed to delete user');
       }
-    } catch (e: any) {
-      alert(e.message || 'Unexpected error deleting user');
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Unexpected error deleting user';
+      alert(errorMessage);
     }
   }
 
@@ -201,8 +200,9 @@ function UserAccounts() {
       } else {
         alert(data.error || 'Failed to suspend user');
       }
-    } catch (e: any) {
-      alert(e.message || 'Unexpected error suspending user');
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : 'Unexpected error suspending user';
+      alert(errorMessage);
     }
   }
 

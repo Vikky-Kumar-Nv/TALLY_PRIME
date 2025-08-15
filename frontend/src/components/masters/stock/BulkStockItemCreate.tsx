@@ -11,7 +11,7 @@ interface BulkStockItemRow extends Omit<StockItem, 'id'> {
 }
 
 const BulkStockItemCreate: React.FC = () => {
-  const { theme, stockGroups = [], addStockItem } = useAppContext();
+  const { theme, stockGroups = [] } = useAppContext();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 

@@ -59,7 +59,6 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     const gainData: CapitalGain = {
       id: editingGain?.id || Date.now().toString(),
-      employeeId, // include employeeId here
       assetType: formData.assetType!,
       gainType: formData.gainType!,
       purchaseDate: formData.purchaseDate!,
