@@ -1,13 +1,15 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../../context/AppContext';
 import { ArrowLeft, Building2, Plus, Edit, Trash2, Calculator, FileText, TrendingUp } from 'lucide-react';
+
+type BusinessType = 'profession' | 'business' | 'commission' | 'other';
 
 interface BusinessIncome {
   id: string;
   assesseeId: string;
   businessName: string;
-  businessType: 'profession' | 'business' | 'commission' | 'other';
+  businessType: BusinessType;
   registrationNumber?: string;
   financialYear: string;
   // P&L Details
@@ -40,17 +42,67 @@ interface BusinessIncome {
   createdDate: string;
 }
 
+interface BusinessIncomeApiSuccess {
+  success: true;
+  businessIncome: BusinessIncome;
+}
+
+interface BusinessIncomeApiError {
+  success?: false;
+  error?: string;
+  message?: string;
+}
+
+const isObject = (val: unknown): val is Record<string, unknown> => typeof val === 'object' && val !== null;
+
+const isBusinessIncome = (val: unknown): val is BusinessIncome => {
+  if (!isObject(val)) return false;
+  const requiredNumberFields: Array<keyof BusinessIncome> = [
+    'grossReceipts','grossTurnover','otherIncome','totalIncome','purchaseOfTradingGoods','directExpenses','employeeBenefits','financialCharges','depreciation','otherExpenses','totalExpenses','netProfitLoss','booksProfitLoss','additions','deductions','computedIncome'
+  ];
+  return typeof val.id === 'string' &&
+    typeof val.assesseeId === 'string' &&
+    typeof val.businessName === 'string' &&
+    ['profession','business','commission','other'].includes(String(val.businessType)) &&
+    typeof val.financialYear === 'string' &&
+    typeof val.section44AD === 'boolean' &&
+    typeof val.section44ADA === 'boolean' &&
+    typeof val.section44AB === 'boolean' &&
+    typeof val.auditRequired === 'boolean' &&
+    ['draft','finalized'].includes(String(val.status)) &&
+    typeof val.createdDate === 'string' &&
+  requiredNumberFields.every(f => typeof (val as Record<string, unknown>)[f] === 'number');
+};
+
+const isBusinessIncomeArray = (val: unknown): val is BusinessIncome[] => Array.isArray(val) && val.every(isBusinessIncome);
+
+const isBusinessIncomeApiSuccess = (val: unknown): val is BusinessIncomeApiSuccess => {
+  if (!isObject(val)) return false;
+  if (val.success !== true) return false;
+  const bi = (val as Record<string, unknown>).businessIncome;
+  return isBusinessIncome(bi);
+};
+
+const getErrorMessage = (err: unknown): string => {
+  if (err instanceof Error) return err.message;
+  if (isObject(err) && typeof err.message === 'string') return err.message;
+  try { return JSON.stringify(err); } catch { return String(err); }
+};
+
 const BusinessIncomeManagement: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
 
   const [businessIncomes, setBusinessIncomes] = useState<BusinessIncome[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [showForm, setShowForm] = useState(false);
   const [editingIncome, setEditingIncome] = useState<BusinessIncome | null>(null);
   const [activeTab, setActiveTab] = useState<'list' | 'calculator'>('list');
 
-  const [formData, setFormData] = useState<Omit<BusinessIncome, 'id' | 'createdDate'>>({
+  type FormState = Omit<BusinessIncome, 'id' | 'createdDate'>;
+  const [formData, setFormData] = useState<FormState>({
     assesseeId: '',
     businessName: '',
     businessType: 'business',
@@ -79,34 +131,32 @@ const BusinessIncomeManagement: React.FC = () => {
     computedIncome: 0,
     status: 'draft'
   });
-   useEffect(() => {
-    const fetchBusinessIncomes = async () => {
-      try {
-        const employee_id = localStorage.getItem('employee_id');
-        if (!employee_id) {
-          console.error('No employee_id in localStorage');
-          return;
-        }
 
-  const response = await fetch(`https://tally-backend-dyn3.onrender.com/api/business-income?employee_id=${encodeURIComponent(employee_id)}`, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch: ${response.statusText}`);
-        }
-
-        const data: BusinessIncome[] = await response.json();
-        setBusinessIncomes(data);
-      } catch (error) {
-        console.error('Error fetching business income:', error);
+  const fetchBusinessIncomes = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const employee_id = localStorage.getItem('employee_id');
+      if (!employee_id) {
+        setError('Employee id missing');
+        return;
       }
-    };
-
-    fetchBusinessIncomes();
+      const resp = await fetch(`https://tally-backend-dyn3.onrender.com/api/business-income?employee_id=${encodeURIComponent(employee_id)}`);
+      if (!resp.ok) throw new Error(`Failed to fetch (${resp.status})`);
+      const json: unknown = await resp.json();
+      if (isBusinessIncomeArray(json)) {
+        setBusinessIncomes(json);
+      } else {
+        setError('Unexpected response format');
+      }
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => { void fetchBusinessIncomes(); }, [fetchBusinessIncomes]);
   // Auto-calculate fields
   // React.useEffect(() => {
   //   const totalIncome = formData.grossReceipts + formData.grossTurnover + formData.otherIncome;
@@ -149,53 +199,82 @@ const BusinessIncomeManagement: React.FC = () => {
   //   setFormData(prev => ({ ...prev, presumptiveIncome }));
   // }, [formData.section44AD, formData.section44ADA, formData.grossTurnover, formData.grossReceipts]);
 
-  const handleInputChange = (field: keyof typeof formData, value: string | number | boolean) => {
+  const handleInputChange = (field: keyof FormState, value: string | number | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
+  // Derived calculations
+  useEffect(() => {
+    const totalIncome = formData.grossReceipts + formData.grossTurnover + formData.otherIncome;
+    const totalExpenses = formData.purchaseOfTradingGoods + formData.directExpenses + formData.employeeBenefits + formData.financialCharges + formData.depreciation + formData.otherExpenses;
+    const netProfitLoss = totalIncome - totalExpenses;
+    const computedIncome = formData.booksProfitLoss + formData.additions - formData.deductions;
+    setFormData(prev => ({
+      ...prev,
+      totalIncome,
+      totalExpenses,
+      netProfitLoss,
+      booksProfitLoss: prev.booksProfitLoss === 0 ? netProfitLoss : prev.booksProfitLoss, // initialize if untouched
+      computedIncome
+    }));
+  }, [
+    formData.grossReceipts, formData.grossTurnover, formData.otherIncome,
+    formData.purchaseOfTradingGoods, formData.directExpenses, formData.employeeBenefits,
+    formData.financialCharges, formData.depreciation, formData.otherExpenses,
+    formData.additions, formData.deductions, formData.booksProfitLoss
+  ]);
+
+  useEffect(() => {
+    let auditRequired = false;
+    if ((!formData.section44AD && !formData.section44ADA && formData.grossTurnover > 20000000) || (formData.section44AB && formData.grossTurnover > 10000000)) {
+      auditRequired = true;
+    }
+    let presumptiveIncome = 0;
+    if (formData.section44AD) presumptiveIncome = formData.grossTurnover * 0.08;
+    else if (formData.section44ADA) presumptiveIncome = formData.grossReceipts * 0.5;
+    setFormData(prev => ({ ...prev, auditRequired, presumptiveIncome }));
+  }, [formData.section44AD, formData.section44ADA, formData.section44AB, formData.grossTurnover, formData.grossReceipts]);
+
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  try {
-    const employee_id = localStorage.getItem('employee_id');
-    if (!employee_id) {
-      alert('Employee ID not found in local storage');
-      return;
+    e.preventDefault();
+    try {
+      const employee_id = localStorage.getItem('employee_id');
+      if (!employee_id) {
+        alert('Employee ID not found in local storage');
+        return;
+      }
+      const payload = { ...formData, employee_id };
+      const isEdit = Boolean(editingIncome);
+      const url = isEdit ? `https://tally-backend-dyn3.onrender.com/api/business-income/${editingIncome!.id}` : 'https://tally-backend-dyn3.onrender.com/api/business-income';
+      const method = isEdit ? 'PUT' : 'POST';
+      const resp = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const json: unknown = await resp.json().catch(() => null);
+      if (!resp.ok) {
+  const errMsg = isObject(json) && (json.error || json.message) ? String((json as Partial<BusinessIncomeApiError>).error || (json as Partial<BusinessIncomeApiError>).message) : resp.statusText;
+        alert(`Failed to ${isEdit ? 'update' : 'create'} business income: ${errMsg}`);
+        return;
+      }
+      if (isBusinessIncomeApiSuccess(json)) {
+        const saved = json.businessIncome;
+        if (isEdit) {
+          setBusinessIncomes(prev => prev.map(b => b.id === editingIncome!.id ? saved : b));
+          alert('Business income updated successfully.');
+        } else {
+          setBusinessIncomes(prev => [...prev, saved]);
+          alert('Business income saved successfully.');
+        }
+        resetForm();
+      } else {
+        const errMsg = isObject(json) ? String((json as BusinessIncomeApiError).error || (json as BusinessIncomeApiError).message || 'Unknown response') : 'Unknown response';
+        alert(errMsg);
+      }
+    } catch (err) {
+      alert('Error saving business income: ' + getErrorMessage(err));
     }
-
-    const payload = {
-      ...formData,
-      employee_id, // add employee_id here
-    };
-
-  const response = await fetch('https://tally-backend-dyn3.onrender.com/api/business-income', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      alert('Failed to save business income: ' + (errorData.error || response.statusText));
-      return;
-    }
-
-    const data = await response.json();
-
-    if (data.success) {
-      alert('Business income saved successfully.');
-      setBusinessIncomes(prev => [...prev, data.businessIncome]);
-      resetForm();
-    } else {
-      alert('Failed to save business income');
-    }
-  } catch (error: any) {
-    alert('Error saving business income: ' + (error.message || 'Unknown error'));
-  }
-};
+  };
 
 
   const resetForm = () => {
@@ -233,34 +312,34 @@ const BusinessIncomeManagement: React.FC = () => {
   };
 
   const handleEdit = (income: BusinessIncome) => {
-    setFormData(income);
+  const { id: _omitId, createdDate: _omitCreatedDate, ...rest } = income; // exclude non-form fields
+  void _omitId; // silence lint by explicit intent to omit
+  void _omitCreatedDate;
+  setFormData({ ...rest });
     setEditingIncome(income);
     setShowForm(true);
   };
 
   const handleDelete = async (id: string) => {
-  if (!window.confirm('Are you sure you want to delete this business income record?')) return;
-
-  try {
-  const response = await fetch(`https://tally-backend-dyn3.onrender.com/api/business-income/${id}`, {
-      method: 'DELETE',
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      alert('Failed to delete business income: ' + (errorData.error || response.statusText));
-      return;
+    if (!window.confirm('Are you sure you want to delete this business income record?')) return;
+    try {
+      const resp = await fetch(`https://tally-backend-dyn3.onrender.com/api/business-income/${id}`, { method: 'DELETE' });
+      const json: unknown = await resp.json().catch(() => null);
+      if (!resp.ok) {
+        const errMsg = isObject(json) && (json.error || json.message) ? String(json.error || json.message) : resp.statusText;
+        alert('Failed to delete business income: ' + errMsg);
+        return;
+      }
+  if (isBusinessIncomeApiSuccess(json)) {
+        setBusinessIncomes(prev => prev.filter(b => b.id !== id));
+        alert('Deleted successfully');
+      } else {
+        alert('Unexpected response deleting record');
+      }
+    } catch (err) {
+      alert('Error deleting business income: ' + getErrorMessage(err));
     }
-
-    const data = await response.json();
-    if (data.success) {
-      alert('Deleted successfully');
-      setBusinessIncomes(prev => prev.filter(item => item.id !== id));
-    }
-  } catch (error) {
-    alert('Error deleting business income');
-  }
-};
+  };
 
 
   const formatCurrency = (amount: number) => {
@@ -332,6 +411,12 @@ const BusinessIncomeManagement: React.FC = () => {
       {activeTab === 'list' && (
         <>
           {/* Summary Cards */}
+          {loading && (
+            <div className={`mb-4 p-3 text-sm rounded ${theme === 'dark' ? 'bg-gray-700 text-gray-200' : 'bg-blue-50 text-blue-700'}`}>Loading business incomes...</div>
+          )}
+          {error && (
+            <div className={`mb-4 p-3 text-sm rounded border ${theme === 'dark' ? 'bg-red-900/30 border-red-700 text-red-300' : 'bg-red-50 border-red-300 text-red-700'}`}>{error}</div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
               <div className="flex items-center justify-between">
@@ -502,7 +587,7 @@ const BusinessIncomeManagement: React.FC = () => {
                   <label className="block text-sm font-medium mb-1">Business Type</label>
                   <select
                     value={formData.businessType}
-                    onChange={(e) => handleInputChange('businessType', e.target.value as 'business' | 'profession')}
+                    onChange={(e) => handleInputChange('businessType', e.target.value as BusinessType)}
                     className={inputClass}
                     title="Select Business Type"
                   >
@@ -622,7 +707,7 @@ const BusinessIncomeManagement: React.FC = () => {
                       <label className="block text-sm font-medium mb-1">Business Type *</label>
                       <select
                         value={formData.businessType}
-                        onChange={(e) => handleInputChange('businessType', e.target.value as 'business' | 'profession')}
+                        onChange={(e) => handleInputChange('businessType', e.target.value as BusinessType)}
                         className={inputClass}
                         required
                         title="Select Business Type"

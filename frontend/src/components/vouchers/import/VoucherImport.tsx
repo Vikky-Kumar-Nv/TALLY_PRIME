@@ -2,6 +2,14 @@ import React, { useState, useRef } from 'react';
 import { Upload, FileText, Download, ArrowLeft, CheckCircle, AlertTriangle, RefreshCw, FileSpreadsheet } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import * as XLSX from 'xlsx';
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+
+// Configure pdf.js worker
+try {
+  GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).toString();
+} catch {
+  // ignore if fails (will fallback)
+}
 
 interface ImportedVoucher {
   id: string;
@@ -62,6 +70,40 @@ const VoucherImport: React.FC = () => {
           'HSN Code': '8471',
           'GST Rate': 18,
           'Narration': 'Sales to ABC Electronics'
+        }
+      ]
+    },
+    {
+      name: 'Credit Note Voucher Template',
+      type: 'creditnote',
+      description: 'Import credit note vouchers',
+      fields: ['Date', 'Voucher No', 'Party Name', 'Amount', 'Ledger', 'Reason', 'Narration'],
+      sampleData: [
+        {
+          'Date': '16/01/2024',
+          'Voucher No': 'CRN001',
+          'Party Name': 'XYZ Traders',
+          'Amount': 5000,
+          'Ledger': 'Sales Return',
+          'Reason': 'Goods returned',
+          'Narration': 'Credit note for returned goods'
+        }
+      ]
+    },
+    {
+      name: 'Debit Note Voucher Template',
+      type: 'debitnote',
+      description: 'Import debit note vouchers',
+      fields: ['Date', 'Voucher No', 'Party Name', 'Amount', 'Ledger', 'Reason', 'Narration'],
+      sampleData: [
+        {
+          'Date': '17/01/2024',
+          'Voucher No': 'DBN001',
+          'Party Name': 'LMN Suppliers',
+          'Amount': 3000,
+          'Ledger': 'Purchase Return',
+          'Reason': 'Excess charged',
+          'Narration': 'Debit note for excess amount charged'
         }
       ]
     },
@@ -145,7 +187,8 @@ const VoucherImport: React.FC = () => {
     const validTypes = [
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'application/vnd.ms-excel',
-      'text/csv'
+      'text/csv',
+      'application/pdf'
     ];
     
     if (!validTypes.includes(file.type)) {
@@ -161,6 +204,55 @@ const VoucherImport: React.FC = () => {
     setIsProcessing(true);
     
     try {
+      if (file.type === 'application/pdf') {
+        const arrayBuffer = await file.arrayBuffer();
+
+        const pdf = await getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+        interface TextItem { str?: string }
+        interface TextContent { items: TextItem[] }
+        for (let p = 1; p <= pdf.numPages; p++) {
+          const page = await pdf.getPage(p);
+          const content: TextContent = await page.getTextContent() as unknown as TextContent;
+          const pageText = (content.items || []).map((it: TextItem) => (it.str || '')).join(' ');
+          fullText += ' ' + pageText;
+        }
+
+        const cleaned = fullText.replace(/\s+/g, ' ').trim();
+
+        // Heuristic extraction
+  const dateMatch = cleaned.match(/(\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b)/);
+  const amountMatch = cleaned.match(/(?:Total|Amount|Amt)\s*[:-]?\s*(\d+[\d,]*(?:\.\d{1,2})?)/i);
+  const voucherNoMatch = cleaned.match(/(Voucher\s*No\.?|No\.?|Invoice\s*No\.?)\s*[:-]?\s*([A-Za-z0-9\-/]+)/i);
+  const partyMatch = cleaned.match(/(Party|Customer|Supplier|To|From)\s*Name\s*[:-]?\s*([A-Za-z0-9 &.,]+)/i);
+  const narrationMatch = cleaned.match(/(Narration|Description)\s*[:-]?\s*([^:]{10,120})/i);
+
+        const parseDate = (val?: string): string => {
+          if (!val) return '';
+          const parts = val.includes('/') ? val.split('/') : val.split('-');
+          if (parts.length === 3) {
+            const [d, m, y] = parts;
+            const year = y.length === 2 ? '20' + y : y;
+            return `${year.padStart(4, '0')}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+          }
+          return '';
+        };
+
+        const voucher: ImportedVoucher = {
+          id: 'pdf_' + Date.now(),
+          date: parseDate(dateMatch?.[1]),
+          voucherType: selectedTemplate,
+          voucherNumber: voucherNoMatch?.[2] || file.name.replace(/\.pdf$/i, ''),
+          partyName: partyMatch?.[2]?.trim() || 'Unknown Party',
+          amount: amountMatch ? parseFloat(amountMatch[1].replace(/,/g, '')) : 0,
+          narration: narrationMatch?.[2]?.trim() || 'Imported from PDF',
+          status: 'pending'
+        };
+
+        setImportedVouchers([voucher]);
+        setActiveTab('preview');
+        return;
+      }
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
       const sheetName = workbook.SheetNames[0];
@@ -346,6 +438,8 @@ const VoucherImport: React.FC = () => {
               <option value="payment">Payment Voucher</option>
               <option value="receipt">Receipt Voucher</option>
               <option value="journal">Journal Voucher</option>
+              <option value="creditnote">Credit Note</option>
+              <option value="debitnote">Debit Note</option>
             </select>
           </div>
 
@@ -366,7 +460,7 @@ const VoucherImport: React.FC = () => {
               Drop your Excel/CSV file here, or click to browse
             </h3>
             <p className="text-sm text-gray-600 mb-4">
-              Supports .xlsx, .xls, and .csv files up to 10MB
+              Supports .xlsx, .xls, .csv and .pdf files up to 10MB
             </p>
             <button
               onClick={() => fileInputRef.current?.click()}
@@ -377,7 +471,7 @@ const VoucherImport: React.FC = () => {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".xlsx,.xls,.csv"
+              accept=".xlsx,.xls,.csv,.pdf"
               onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
               className="hidden"
               title="Select file for import"

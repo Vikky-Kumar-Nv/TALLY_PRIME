@@ -76,6 +76,26 @@ interface Verification {
   signature: string;
 }
 
+// Return list records (list tab)
+interface ReturnRecord {
+  tan: string;
+  quarter?: string;
+  financialYear?: string;
+  status?: string;
+  filingDate?: string;
+  [key: string]: unknown; // allow unknown extra keys
+}
+
+// Helpers for runtime validation & errors
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+const isReturnRecord = (v: unknown): v is ReturnRecord => isObject(v) && typeof v.tan === 'string';
+const isReturnRecordArray = (v: unknown): v is ReturnRecord[] => Array.isArray(v) && v.every(isReturnRecord);
+const getErrorMessage = (err: unknown): string => {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  try { return JSON.stringify(err); } catch { return 'Unknown error'; }
+};
+
 // Reusable Components (same as Form 26Q for consistent UI)
 const FormSection: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className = '' }) => (
   <div className={`bg-white border border-gray-200 rounded-lg p-6 ${className}`}>
@@ -176,9 +196,10 @@ const Form27EQ: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'list' | 'create' | 'upload'>('list');
   // We need errors state but we'll use it later for validation
   const [errors] = useState<Record<string, string>>({});
-const [returnList, setReturnList] = useState([]);
-const [selectedYear] = useState("2024-25");
-const [selectedQuarter] = useState("");
+  const [returnList, setReturnList] = useState<ReturnRecord[]>([]);
+  const [listError, setListError] = useState<string | null>(null);
+  const [selectedYear] = useState<string>("2024-25");
+  const [selectedQuarter] = useState<string>("");
   // Form data state
   const [collectorDetails, setCollectorDetails] = useState<CollectorDetails>({
     tan: '',
@@ -297,30 +318,6 @@ const [selectedQuarter] = useState("");
     }));
   };
   
-  // Function for handling address changes that we'll use in future implementation
-  // const handleAddressChange = (type: 'collector' | 'responsible', key: string, value: string) => {
-  //   if (type === 'collector') {
-  //     setCollectorDetails(prev => ({
-  //       ...prev,
-  //       address: {
-  //         ...prev.address,
-  //         [key]: value
-  //       }
-  //     }));
-  //   } else {
-  //     setCollectorDetails(prev => ({
-  //       ...prev,
-  //       responsiblePerson: {
-  //         ...prev.responsiblePerson,
-  //         address: {
-  //           ...prev.responsiblePerson.address,
-  //           [key]: value
-  //         }
-  //       }
-  //     }));
-  //   }
-  // };
-
   const handleChallanChange = (index: number, key: keyof ChallanDetails, value: string | number) => {
     const newChallanDetails = [...challanDetails];
     newChallanDetails[index] = {
@@ -328,7 +325,6 @@ const [selectedQuarter] = useState("");
       [key]: value
     };
     
-    // Recalculate total
     if (['tax', 'surcharge', 'educationCess', 'interest', 'fee'].includes(key)) {
       const { tax, surcharge, educationCess, interest, fee } = newChallanDetails[index];
       newChallanDetails[index].total = tax + surcharge + educationCess + interest + fee;
@@ -369,7 +365,6 @@ const [selectedQuarter] = useState("");
     if (challanDetails.length === 1) return;
     
     const newChallanDetails = challanDetails.filter((_, i) => i !== index);
-    // Update serial numbers
     newChallanDetails.forEach((challan, i) => {
       challan.serialNo = i + 1;
     });
@@ -399,7 +394,6 @@ const [selectedQuarter] = useState("");
     if (collecteeDetails.length === 1) return;
     
     const newCollecteeDetails = collecteeDetails.filter((_, i) => i !== index);
-    // Update serial numbers
     newCollecteeDetails.forEach((collectee, i) => {
       collectee.serialNo = i + 1;
     });
@@ -407,7 +401,6 @@ const [selectedQuarter] = useState("");
     setCollecteeDetails(newCollecteeDetails);
   };
 
-  // Calculate summary totals
   const totalSummary = useMemo(() => {
     return {
       totalCollectees: collecteeDetails.length,
@@ -424,53 +417,47 @@ const [selectedQuarter] = useState("");
   //   setActiveTab(tab);
   // };
   
-useEffect(() => {
-  if (activeTab !== "list") return;
-  const params = new URLSearchParams();
-  if (selectedYear) params.append("year", selectedYear);
-  if (selectedQuarter) params.append("quarter", selectedQuarter);
+  useEffect(() => {
+    if (activeTab !== 'list') return;
+    const ac = new AbortController();
+    const load = async () => {
+      setListError(null);
+      const params = new URLSearchParams();
+      if (selectedYear) params.append('year', selectedYear);
+      if (selectedQuarter) params.append('quarter', selectedQuarter);
+      try {
+        const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/tcs27eq?${params.toString()}` , { signal: ac.signal });
+        const json = await res.json();
+        if (!isReturnRecordArray(json)) throw new Error('Unexpected response format');
+        setReturnList(json);
+      } catch (err) {
+        if (ac.signal.aborted) return;
+        setReturnList([]);
+        setListError(getErrorMessage(err));
+      }
+    };
+    load();
+    return () => ac.abort();
+  }, [activeTab, selectedYear, selectedQuarter]);
 
-  fetch(`https://tally-backend-dyn3.onrender.com/api/tcs27eq?${params.toString()}`)
-    .then((res) => res.json())
-    .then((data) => {
-      setReturnList(data);
-    })
-    .catch(() => {
-      setReturnList([]);
-    });
-}, [activeTab, selectedYear, selectedQuarter]);
-const handleSaveForm = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  // Optional: validate the form fields here.
-
-  const payload = {
-    collectorDetails,
-    challanDetails,
-    collecteeDetails,
-    verification,
-  };
-
-  try {
-  const response = await fetch("https://tally-backend-dyn3.onrender.com/api/tcs27eq", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await response.json();
-
-    if (response.ok && data.success) {
-      alert("Form 27EQ saved successfully!");
-      // Optional: Reset form or navigate away
-    } else {
-      alert("Failed to save: " + (data.error || "Unknown error"));
+  const handleSaveForm = async () => {
+    const payload = { collectorDetails, challanDetails, collecteeDetails, verification };
+    try {
+      const response = await fetch("https://tally-backend-dyn3.onrender.com/api/tcs27eq", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (response.ok && (data.success === true || data.success === 'true')) {
+        alert("Form 27EQ saved successfully!");
+      } else {
+        alert("Failed to save: " + (data.error || "Unknown error"));
+      }
+    } catch (err) {
+      alert('Error during saving the form: ' + getErrorMessage(err));
     }
-  } catch (error) {
-    console.error("Error saving Form 27EQ:", error);
-    alert("Error during saving the form.");
-  }
-};
+  };
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -553,13 +540,17 @@ const handleSaveForm = async (e: React.FormEvent) => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      
-                      {returnList.length === 0 ? (
+                      {listError && (
+                        <tr>
+                          <td colSpan={6} className="px-4 py-3 text-center text-red-600 text-sm">{listError}</td>
+                        </tr>
+                      )}
+                      {!listError && returnList.length === 0 ? (
                         <tr>
                           <td colSpan={6} className="px-4 py-3 text-center text-gray-500">No returns found.</td>
                         </tr>
                       ) : (
-                        returnList.map((ret: any, idx: number) => (
+                        !listError && returnList.map((ret, idx) => (
                           <tr key={idx}>
                             <td className="px-4 py-3 text-sm text-gray-800">{ret.tan}</td>
                             <td className="px-4 py-3 text-sm text-gray-800">{ret.quarter || '-'}</td>
@@ -603,11 +594,11 @@ const handleSaveForm = async (e: React.FormEvent) => {
                   </div>
                   <div className="flex gap-2">
                     <ActionButton
-                                          onClick={() => handleSaveForm(new Event('submit') as unknown as React.FormEvent)}
-                                          icon={Save}
-                                          label="Save as Draft"
-                                          variant="primary"
-                                        />
+                      onClick={handleSaveForm}
+                      icon={Save}
+                      label="Save as Draft"
+                      variant="primary"
+                    />
                   </div>
                 </div>
 

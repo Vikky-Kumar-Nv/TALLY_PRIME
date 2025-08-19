@@ -408,7 +408,7 @@ useEffect(() => {
   const response = await fetch(`https://tally-backend-dyn3.onrender.com/api/tds24q?year=${selectedYear}`);
       const data = await response.json();
       setQuarterlyReturns(Array.isArray(data) ? data : []);
-    } catch (e) {
+  } catch {
       setQuarterlyReturns([]);
     }
   };
@@ -586,7 +586,7 @@ useEffect(() => {
       alert("Backend error: " + (error instanceof Error ? error.message : String(error)));
     }
   
-}, [taxDeductionAccount, deductorDetails, responsiblePersonDetails, taxDetails, employeeSalaryDetails, verification, validateForm]);
+}, [taxDeductionAccount, deductorDetails, responsiblePersonDetails, taxDetails, employeeSalaryDetails, verification]);
 
   const generateForm24QHTML = useCallback(() => {
     return `

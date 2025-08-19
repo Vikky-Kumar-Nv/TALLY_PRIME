@@ -300,7 +300,16 @@ const ProfitLoss: React.FC = () => {
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Summary</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            {/* Pre-calculate margins for consistent coloring */}
+            {(() => {
+              const sales = getSalesTotal();
+              const grossMargin = sales > 0 ? (getGrossProfit() / sales) * 100 : 0;
+              const netMargin = sales > 0 ? (getNetProfit() / sales) * 100 : 0;
+              // Treat zero margin as non-loss (green) instead of neutral gray
+              const marginClass = (v: number) => v >= 0 ? 'text-green-600' : 'text-red-600';
+              return (
+                <>
             <div>
               <p className="text-sm opacity-75">Gross Profit/Loss</p>
               <p className={`text-xl font-bold ${getGrossProfit() >= 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -317,10 +326,19 @@ const ProfitLoss: React.FC = () => {
             </div>
             <div>
               <p className="text-sm opacity-75">Gross Profit Margin</p>
-              <p className="text-xl font-bold">
-                {getSalesTotal() > 0 ? ((getGrossProfit() / getSalesTotal()) * 100).toFixed(2) : '0.00'}%
+              <p className={`text-xl font-bold ${marginClass(grossMargin)}`}>
+                {grossMargin.toFixed(2)}%
               </p>
             </div>
+            <div>
+              <p className="text-sm opacity-75">Net Profit Margin</p>
+              <p className={`text-xl font-bold ${marginClass(netMargin)}`}> 
+                {netMargin.toFixed(2)}%
+              </p>
+            </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       </div>

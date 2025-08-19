@@ -37,12 +37,11 @@ const MovementAnalysis: React.FC = () => {
 
   // Populate stockItemId from navigation state or query param if needed
   useEffect(() => {
-    // Option 1: Try loading from location state
-    if (location.state && (location.state as any).stockItemId) {
-      setStockItemId((location.state as any).stockItemId);
+    interface NavState { stockItemId?: string }
+    const navState = location.state as NavState | null;
+    if (navState?.stockItemId) {
+      setStockItemId(navState.stockItemId);
     }
-
-    // Option 2: Try from params or query string (adapt as per your routing)
     if (params.id) {
       setStockItemId(params.id);
     }
@@ -68,8 +67,9 @@ const MovementAnalysis: React.FC = () => {
 
         const result: MovementEntry[] = await response.json();
         setData(result);
-      } catch (e: any) {
-        setError(e.message || 'Unknown error');
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : 'Unknown error';
+        setError(message);
         setData([]);
       } finally {
         setLoading(false);

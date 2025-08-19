@@ -26,49 +26,61 @@ interface Assessee {
   createdDate: string;
 }
 
+type FilterCategory = 'all' | Assessee['category'];
+
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+const isAssessee = (v: unknown): v is Assessee => (
+  isObject(v) &&
+  typeof v.id === 'string' &&
+  typeof v.name === 'string' &&
+  typeof v.pan === 'string'
+);
+const isAssesseeArray = (v: unknown): v is Assessee[] => Array.isArray(v) && v.every(isAssessee);
+const getErrorMessage = (err: unknown): string => {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  try { return JSON.stringify(err); } catch { return 'Unknown error'; }
+};
+
 const AssesseeManagement: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
 
   const [assessees, setAssessees] = useState<Assessee[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-useEffect(() => {
-  const fetchAssessees = async () => {
-    try {
-      const employee_id = localStorage.getItem('employee_id');
-      if (!employee_id) {
-        console.error('Employee ID not found in local storage');
-        return;
+  useEffect(() => {
+    const ac = new AbortController();
+    const fetchAssessees = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const employee_id = localStorage.getItem('employee_id');
+        if (!employee_id) {
+          throw new Error('Employee ID not found in local storage');
+        }
+        const response = await fetch(`https://tally-backend-dyn3.onrender.com/api/assessee?employee_id=${encodeURIComponent(employee_id)}`, { signal: ac.signal });
+        if (!response.ok) throw new Error(`Error fetching assessees: ${response.status} ${response.statusText}`);
+        const data = await response.json();
+        if (!isAssesseeArray(data)) throw new Error('Unexpected response format');
+        setAssessees(data);
+      } catch (err) {
+        if (ac.signal.aborted) return;
+        console.error('Failed to fetch assessees:', err);
+        setError(getErrorMessage(err));
+      } finally {
+        if (!ac.signal.aborted) setLoading(false);
       }
-
-      // Add employee_id as a query parameter
-  const response = await fetch(`https://tally-backend-dyn3.onrender.com/api/assessee?employee_id=${encodeURIComponent(employee_id)}`, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error fetching assessees: ${response.statusText}`);
-      }
-
-      const data: Assessee[] = await response.json();
-      setAssessees(data);
-    } catch (error: any) {
-      console.error('Failed to fetch assessees:', error);
-      // Optional: set error state or notify user here
-    }
-  };
-
-  fetchAssessees();
-}, []);
-
-
+    };
+    fetchAssessees();
+    return () => ac.abort();
+  }, []);
 
   const [showForm, setShowForm] = useState(false);
   const [editingAssessee, setEditingAssessee] = useState<Assessee | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [filterCategory, setFilterCategory] = useState<FilterCategory>('all');
 // Persist/Load assessees locally so other modules (like ITR Filing) can fetch by PAN without backend
   const ASSESSEE_STORAGE_KEY = 'assessee_list_v1';
 
@@ -137,58 +149,31 @@ useEffect(() => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       const employee_id = localStorage.getItem('employee_id');
       if (!employee_id) {
         alert('Employee ID not found in local storage');
         return;
       }
-
-      const payload = {
-        ...formData,
-        employee_id,
-      };
-
+      const payload = { ...formData, employee_id };
       const url = editingAssessee
-  ? `https://tally-backend-dyn3.onrender.com/api/assessee/${editingAssessee.id}` // For update (assuming you have PUT)
-  : 'https://tally-backend-dyn3.onrender.com/api/assessee'; // For create
-
+        ? `https://tally-backend-dyn3.onrender.com/api/assessee/${editingAssessee.id}`
+        : 'https://tally-backend-dyn3.onrender.com/api/assessee';
       const method = editingAssessee ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert('Failed to save assessee: ' + (errorData.error || response.statusText));
+      const response = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const data = await response.json();
+      if (!response.ok || !data.success || !isAssessee(data.assessee)) {
+        alert('Failed to save assessee: ' + (data.error || response.statusText));
         return;
       }
-
-      const data = await response.json();
-
-      if (data.success) {
-        alert(`Assessee ${editingAssessee ? 'updated' : 'added'} successfully.`);
-
-        if (editingAssessee) {
-          // Update assessee in list
-          setAssessees(prev =>
-            prev.map(a => (a.id === editingAssessee.id ? data.assessee : a))
-          );
-        } else {
-          // Add new assessee to list
-          setAssessees(prev => [...prev, data.assessee]);
-        }
-
-        resetForm();
+      if (editingAssessee) {
+        setAssessees(prev => prev.map(a => (a.id === editingAssessee.id ? data.assessee : a)));
       } else {
-        alert('Failed to save assessee');
+        setAssessees(prev => [...prev, data.assessee]);
       }
-    } catch (error: any) {
-      alert('Error submitting form: ' + (error.message || 'Unknown error'));
+      resetForm();
+    } catch (err) {
+      alert('Error submitting form: ' + getErrorMessage(err));
     }
   };
 
@@ -233,28 +218,28 @@ useEffect(() => {
     setShowForm(true);
   };
 
-const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this assessee?')) return;
-
     try {
-  const response = await fetch(`https://tally-backend-dyn3.onrender.com/api/assessee/${id}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch(`https://tally-backend-dyn3.onrender.com/api/assessee/${id}`, { method: 'DELETE' });
       if (!response.ok) {
         alert('Failed to delete assessee');
         return;
       }
       setAssessees(prev => prev.filter(a => a.id !== id));
-    } catch (error) {
-      alert('Error deleting assessee');
+    } catch (err) {
+      alert('Error deleting assessee: ' + getErrorMessage(err));
     }
   };
 
-  const filteredAssessees = assessees.filter(assessee => {
-    const matchesSearch = assessee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         assessee.pan.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         assessee.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || assessee.category === filterCategory;
+  const filteredAssessees = assessees.filter(a => {
+    const term = searchTerm.toLowerCase();
+    const matchesSearch = (
+      a.name.toLowerCase().includes(term) ||
+      a.pan.toLowerCase().includes(term) ||
+      a.email.toLowerCase().includes(term)
+    );
+    const matchesCategory = filterCategory === 'all' || a.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -308,6 +293,9 @@ const handleDelete = async (id: string) => {
         </div>
       </div>
 
+      {error && <div className="mb-4 text-sm text-red-600">{error}</div>}
+      {loading && <div className="mb-4 text-sm opacity-70">Loading assessee list...</div>}
+
       {/* Search and Filter */}
       <div className={sectionClass}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -324,7 +312,7 @@ const handleDelete = async (id: string) => {
           <div>
             <select
               value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
+              onChange={(e) => setFilterCategory(e.target.value as FilterCategory)}
               className={inputClass}
               title="Filter by Category"
             >

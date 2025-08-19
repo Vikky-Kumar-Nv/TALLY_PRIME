@@ -10,8 +10,8 @@ interface PayableBillDetails {
   id: string;
   supplierName: string;
   billNo: string;
-  billDate: string;
-  dueDate: string;
+  billDate: string; // ISO date
+  dueDate: string;  // ISO date
   billAmount: number;
   paidAmount: number;
   outstandingAmount: number;
@@ -32,6 +32,96 @@ interface PayableBillDetails {
   grnNumber?: string;
 }
 
+// Raw API object (may contain numbers as strings)
+interface RawPayableBill {
+  id?: unknown;
+  supplierName?: unknown;
+  billNo?: unknown;
+  billDate?: unknown;
+  dueDate?: unknown;
+  billAmount?: unknown;
+  paidAmount?: unknown;
+  outstandingAmount?: unknown;
+  overdueDays?: unknown;
+  creditDays?: unknown;
+  interestAmount?: unknown;
+  voucherType?: unknown;
+  reference?: unknown;
+  narration?: unknown;
+  ageingBucket?: unknown;
+  supplierGroup?: unknown;
+  supplierAddress?: unknown;
+  supplierPhone?: unknown;
+  supplierGSTIN?: unknown;
+  creditLimit?: unknown;
+  riskCategory?: unknown;
+  poNumber?: unknown;
+  grnNumber?: unknown;
+}
+
+const parseNumber = (v: unknown, fallback = 0): number => {
+  if (typeof v === 'number' && !Number.isNaN(v)) return v;
+  if (typeof v === 'string') {
+    const n = parseFloat(v.replace(/,/g, ''));
+    return Number.isFinite(n) ? n : fallback;
+  }
+  return fallback;
+};
+
+const isValidDate = (v: unknown) => typeof v === 'string' && !Number.isNaN(Date.parse(v));
+
+const isVoucherType = (v: unknown): v is PayableBillDetails['voucherType'] =>
+  typeof v === 'string' && ['Purchase','Payment','Journal','Credit Note','Debit Note'].includes(v);
+const isAgeingBucket = (v: unknown): v is PayableBillDetails['ageingBucket'] =>
+  typeof v === 'string' && ['0-30','31-60','61-90','90+'].includes(v);
+const isRiskCategory = (v: unknown): v is PayableBillDetails['riskCategory'] =>
+  typeof v === 'string' && ['Low','Medium','High','Critical'].includes(v);
+
+const mapRawBill = (raw: RawPayableBill): PayableBillDetails | null => {
+  if (!raw || typeof raw !== 'object') return null;
+  const id = typeof raw.id === 'string' ? raw.id : String(raw.id ?? '');
+  if (!id) return null;
+  const supplierName = typeof raw.supplierName === 'string' ? raw.supplierName : 'Unknown Supplier';
+  const billNo = typeof raw.billNo === 'string' ? raw.billNo : 'N/A';
+  const billDate = isValidDate(raw.billDate) ? String(raw.billDate) : new Date().toISOString();
+  const dueDate = isValidDate(raw.dueDate) ? String(raw.dueDate) : billDate;
+  const voucherType = isVoucherType(raw.voucherType) ? raw.voucherType : 'Purchase';
+  const ageingBucket = isAgeingBucket(raw.ageingBucket) ? raw.ageingBucket : '0-30';
+  const riskCategory = isRiskCategory(raw.riskCategory) ? raw.riskCategory : 'Low';
+  const supplierGroup = typeof raw.supplierGroup === 'string' ? raw.supplierGroup : 'General';
+  return {
+    id,
+    supplierName,
+    billNo,
+    billDate,
+    dueDate,
+    billAmount: parseNumber(raw.billAmount),
+    paidAmount: parseNumber(raw.paidAmount),
+    outstandingAmount: parseNumber(raw.outstandingAmount),
+    overdueDays: parseNumber(raw.overdueDays),
+    creditDays: parseNumber(raw.creditDays),
+    interestAmount: parseNumber(raw.interestAmount),
+    voucherType,
+    reference: typeof raw.reference === 'string' ? raw.reference : undefined,
+    narration: typeof raw.narration === 'string' ? raw.narration : undefined,
+    ageingBucket,
+    supplierGroup,
+    supplierAddress: typeof raw.supplierAddress === 'string' ? raw.supplierAddress : undefined,
+    supplierPhone: typeof raw.supplierPhone === 'string' ? raw.supplierPhone : undefined,
+    supplierGSTIN: typeof raw.supplierGSTIN === 'string' ? raw.supplierGSTIN : undefined,
+    creditLimit: parseNumber(raw.creditLimit, undefined as unknown as number),
+    riskCategory,
+    poNumber: typeof raw.poNumber === 'string' ? raw.poNumber : undefined,
+    grnNumber: typeof raw.grnNumber === 'string' ? raw.grnNumber : undefined,
+  };
+};
+
+const getErrorMessage = (e: unknown): string => {
+  if (e instanceof Error) return e.message;
+  if (typeof e === 'string') return e;
+  try { return JSON.stringify(e); } catch { return 'Unknown error'; }
+};
+
 const BillwisePayables: React.FC = () => {
   const { theme } = useAppContext();
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,37 +137,46 @@ const [loading, setLoading] = useState(false);
 const [error, setError] = useState<string|null>(null);
   // Mock data - यह actual API से आएगा
   React.useEffect(() => {
-  async function fetchData() {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams();
-      if (searchTerm)          params.append('searchTerm', searchTerm);
-      if (selectedSupplier)    params.append('selectedSupplier', selectedSupplier);
-      if (selectedAgeingBucket)params.append('selectedAgeingBucket', selectedAgeingBucket);
-      if (selectedRiskCategory)params.append('selectedRiskCategory', selectedRiskCategory);
-      if (sortBy)              params.append('sortBy', sortBy);
-      if (sortOrder)           params.append('sortOrder', sortOrder);
+    let abort = false;
+    async function fetchData() {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams();
+        if (searchTerm)          params.append('searchTerm', searchTerm);
+        if (selectedSupplier)    params.append('selectedSupplier', selectedSupplier);
+        if (selectedAgeingBucket)params.append('selectedAgeingBucket', selectedAgeingBucket);
+        if (selectedRiskCategory)params.append('selectedRiskCategory', selectedRiskCategory);
+        if (sortBy)              params.append('sortBy', sortBy);
+        if (sortOrder)           params.append('sortOrder', sortOrder);
 
-  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/billwise-payables?${params.toString()}`);
-      if (!res.ok) throw new Error(await res.text() || `Error: ${res.status}`);
-      setPayablesData(await res.json());
-    } catch (e:any) {
-      setError(e.message || "Fetch error");
-      setPayablesData([]);
-    } finally {
-      setLoading(false);
+        const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/billwise-payables?${params.toString()}`);
+        if (!res.ok) throw new Error(await res.text() || `Error: ${res.status}`);
+        const json: unknown = await res.json();
+        const list: PayableBillDetails[] = Array.isArray(json)
+          ? json.map(j => mapRawBill(j as RawPayableBill)).filter((x): x is PayableBillDetails => !!x)
+          : [];
+        if (!abort) setPayablesData(list);
+        if (!Array.isArray(json) && !abort) setError('Unexpected response format');
+      } catch (e: unknown) {
+        if (!abort) {
+          setError(getErrorMessage(e));
+          setPayablesData([]);
+        }
+      } finally {
+        if (!abort) setLoading(false);
+      }
     }
-  }
-  fetchData();
-}, [
-  searchTerm,
-  selectedSupplier,
-  selectedAgeingBucket,
-  selectedRiskCategory,
-  sortBy,
-  sortOrder
-]);
+    fetchData();
+    return () => { abort = true; };
+  }, [
+    searchTerm,
+    selectedSupplier,
+    selectedAgeingBucket,
+    selectedRiskCategory,
+    sortBy,
+    sortOrder
+  ]);
   // Filtering and sorting logic
   const filteredData = useMemo(() => {
     const filtered = payablesData.filter(bill => {
@@ -129,7 +228,7 @@ const [error, setError] = useState<string|null>(null);
       '31-60': filteredData.filter(b => b.ageingBucket === '31-60').reduce((sum, b) => sum + b.outstandingAmount, 0),
       '61-90': filteredData.filter(b => b.ageingBucket === '61-90').reduce((sum, b) => sum + b.outstandingAmount, 0),
       '90+': filteredData.filter(b => b.ageingBucket === '90+').reduce((sum, b) => sum + b.outstandingAmount, 0)
-    };
+    } as const;
 
     return { total, overdue, current, totalInterest, ageingBreakdown };
   }, [filteredData]);
@@ -299,7 +398,7 @@ const [error, setError] = useState<string|null>(null);
                   {formatCurrency(amount)}
                 </p>
                 <p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
-                  {((amount / summaryData.total) * 100).toFixed(1)}%
+                  {summaryData.total > 0 ? ((amount / summaryData.total) * 100).toFixed(1) : '0.0'}%
                 </p>
               </div>
             </div>

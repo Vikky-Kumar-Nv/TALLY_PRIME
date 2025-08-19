@@ -152,7 +152,7 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
   const [selectedVoucher, setSelectedVoucher] = useState<VoucherEntry | null>(null);
   
   // New state for Change View functionality
-  const [viewType, setViewType] = useState<'Daily' | 'Weekly' | 'Fortnightly' | 'Monthly' | 'Quarterly' | 'Half-yearly'>('Daily');
+  const [viewType, setViewType] = useState<'Daily' | 'Weekly' | 'Fortnightly' | 'Monthly' | 'Quarterly' | 'Half-yearly' | 'Yearly'>('Daily');
   const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [showMonthList, setShowMonthList] = useState(false);
 
@@ -292,6 +292,10 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
       case 'Half-yearly': {
         const currentHalf = Math.floor(today.getMonth() / 6);
         startDate = new Date(today.getFullYear(), currentHalf * 6, 1);
+        break;
+      }
+      case 'Yearly': {
+        startDate = new Date(today.getFullYear(), 0, 1);
         break;
       }
       default:
@@ -763,6 +767,7 @@ const VoucherRegisterBase: React.FC<VoucherRegisterBaseProps> = ({
               <option value="Monthly">Monthly</option>
               <option value="Quarterly">Quarterly</option>
               <option value="Half-yearly">Half-yearly</option>
+              <option value="Yearly">Yearly</option>
             </select>
           </div>
           {viewType === 'Monthly' && showMonthList && (

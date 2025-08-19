@@ -9,6 +9,8 @@ const GodownList: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [godowns, setGodowns] = useState<{ id: string, name: string, address: string }[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
   fetch('https://tally-backend-dyn3.onrender.com/api/godowns')
@@ -26,6 +28,14 @@ const GodownList: React.FC = () => {
     g.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     g.address.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const totalPages = Math.max(1, Math.ceil(filteredGodowns.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedGodowns = filteredGodowns.slice(startIndex, startIndex + itemsPerPage);
+
+  // Reset & clamp pagination
+  useEffect(() => { setCurrentPage(1); }, [searchTerm]);
+  useEffect(() => { if (currentPage > totalPages) setCurrentPage(totalPages); }, [currentPage, totalPages]);
 
   return (
     <div className='pt-[56px] px-4 '>
@@ -84,7 +94,7 @@ const GodownList: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredGodowns.map(godown => (
+              {paginatedGodowns.map(godown => (
                 <tr key={godown.id} className={`hover:bg-opacity-10 hover:bg-blue-500 ${theme === 'dark' ? 'border-b border-gray-700' : 'border-b border-gray-200'}`}>
                   <td className="px-4 py-3">{godown.name}</td>
                   <td className="px-4 py-3">{godown.address}</td>
@@ -115,6 +125,52 @@ const GodownList: React.FC = () => {
         {filteredGodowns.length === 0 && (
           <div className="text-center py-8">
             <p className="opacity-70">No godowns found matching your search.</p>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {filteredGodowns.length > 0 && (
+          <div className="flex flex-col md:flex-row items-center justify-between mt-4 gap-4">
+            <div className="text-xs opacity-70">
+              Showing {filteredGodowns.length === 0 ? 0 : startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredGodowns.length)} of {filteredGodowns.length} godowns (Rows per page: {itemsPerPage})
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className={`px-4 py-2 rounded-md border font-medium text-base ${currentPage === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-blue-500 hover:text-white'} ${theme === 'dark' ? 'border-gray-600 text-gray-200' : 'border-gray-300 text-gray-700'}`}
+                aria-label="Previous Page"
+              >
+                Prev
+              </button>
+              {Array.from({ length: totalPages }).slice(0, 7).map((_, i) => {
+                const page = i + 1;
+                return (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-4 py-2 rounded-md text-base border font-medium transition-colors ${page === currentPage ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : theme === 'dark' ? 'border-gray-600 text-gray-200 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
+                    aria-current={page === currentPage ? 'page' : undefined}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+              {totalPages > 7 && (
+                <span className="px-4 text-base">...</span>
+              )}
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className={`px-4 py-2 rounded-md border font-medium text-base ${currentPage === totalPages ? 'opacity-40 cursor-not-allowed' : 'hover:bg-blue-500 hover:text-white'} ${theme === 'dark' ? 'border-gray-600 text-gray-200' : 'border-gray-300 text-gray-700'}`}
+                aria-label="Next Page"
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>

@@ -79,9 +79,11 @@ const StockGroupList: React.FC = () => {
     g => g.name.toLowerCase().includes(filterName.toLowerCase())
   );
 
+  // Pagination derived data
+  const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedStockGroups = filteredStockGroups.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    startIndex,
+    startIndex + itemsPerPage
   );
 
   const totalPages = Math.ceil(filteredStockGroups.length / itemsPerPage);
@@ -281,25 +283,51 @@ const StockGroupList: React.FC = () => {
         />
       </div>
 
-      <div className="flex justify-between items-center mt-4">
-        <button
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage(prev => prev - 1)}
-          className={`px-4 py-2 rounded-md ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
-        >
-          Previous
-        </button>
-        <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          disabled={currentPage === totalPages}
-          onClick={() => setCurrentPage(prev => prev + 1)}
-          className={`px-4 py-2 rounded-md ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
-        >
-          Next
-        </button>
-      </div>
+      {/* Pagination Controls */}
+      {filteredStockGroups.length > 0 && (
+        <div className="flex flex-col md:flex-row items-center justify-between mt-4 gap-4">
+          <div className="text-xs opacity-70">
+            Showing {filteredStockGroups.length === 0 ? 0 : startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredStockGroups.length)} of {filteredStockGroups.length} stock groups (Rows per page: {itemsPerPage})
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              className={`px-4 py-2 rounded-md border font-medium text-base ${currentPage === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-blue-500 hover:text-white'} ${theme === 'dark' ? 'border-gray-600 text-gray-200' : 'border-gray-300 text-gray-700'}`}
+              aria-label="Previous Page"
+            >
+              Prev
+            </button>
+            {Array.from({ length: totalPages }).slice(0, 7).map((_, i) => {
+              const page = i + 1;
+              return (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-4 py-2 rounded-md text-base border font-medium transition-colors ${page === currentPage ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : theme === 'dark' ? 'border-gray-600 text-gray-200 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
+                  aria-current={page === currentPage ? 'page' : undefined}
+                >
+                  {page}
+                </button>
+              );
+            })}
+            {totalPages > 7 && (
+              <span className="px-4 text-base">...</span>
+            )}
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              className={`px-4 py-2 rounded-md border font-medium text-base ${currentPage === totalPages ? 'opacity-40 cursor-not-allowed' : 'hover:bg-blue-500 hover:text-white'} ${theme === 'dark' ? 'border-gray-600 text-gray-200' : 'border-gray-300 text-gray-700'}`}
+              aria-label="Next Page"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className={`mt-6 p-4 rounded ${theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'}`}>
         <p className="text-sm text-gray-700 dark:text-gray-300">

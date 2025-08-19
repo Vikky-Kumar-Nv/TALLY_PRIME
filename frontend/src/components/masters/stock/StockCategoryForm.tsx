@@ -5,21 +5,27 @@ import { ArrowLeft, Save, Printer } from 'lucide-react';
 import type { StockCategory } from '../../../types';
 import Swal from 'sweetalert2';
 
+// Runtime error helper
+const getErrorMessage = (err: unknown): string => {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  try { return JSON.stringify(err); } catch { return 'Unknown error'; }
+};
+
 const StockCategoryForm: React.FC = () => {
   const { theme, companyInfo } = useAppContext();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const isEditMode = !!id;`1`
+  const isEditMode = !!id;
 
   // Mock stockCategories and functions since they're not in context
   const stockCategories = useMemo<StockCategory[]>(() => [], []);
+  // Keep placeholders (could be replaced with context if available)
   const addStockCategory = useCallback((category: StockCategory) => {
-    console.log('Add stock category:', category);
-    alert('Stock category added successfully!');
+    console.log('Add stock category (local placeholder):', category);
   }, []);
   const updateStockCategory = useCallback((category: StockCategory) => {
-    console.log('Update stock category:', category);
-    alert('Stock category updated successfully!');
+    console.log('Update stock category (local placeholder):', category);
   }, []);
 
   const initialFormData: StockCategory = {
@@ -32,10 +38,10 @@ const StockCategoryForm: React.FC = () => {
   const [formData, setFormData] = useState<StockCategory>(
     isEditMode ? stockCategories.find((c: StockCategory) => c.id === id) || initialFormData : initialFormData
   );
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const validateForm = useCallback(() => {
-    const newErrors: { [key: string]: string } = {};
+  const validateForm = useCallback((): boolean => {
+    const newErrors: Record<string, string> = {};
     if (!formData.name.trim()) newErrors.name = 'Stock category name is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -50,33 +56,53 @@ const StockCategoryForm: React.FC = () => {
   };
 
   const handleSubmit = useCallback(async () => {
+    if (!validateForm()) return;
+
     if (!isEditMode) {
-  const newCategory = {
-    ...formData,
-    id: `SC-${Date.now()}`
-  };
-
-  try {
-  const res = await fetch('https://tally-backend-dyn3.onrender.com/api/stock-categories', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newCategory)
-    });
-
-    const data = await res.json();
-    if (res.ok) {
-      Swal.fire("Success", data.message, "success"); // Use sweetalert2
-      navigate('/app/masters/stock-categories');
+      const newCategory: StockCategory = {
+        ...formData,
+        id: `SC-${Date.now()}`
+      };
+      try {
+        const res = await fetch('https://tally-backend-dyn3.onrender.com/api/stock-categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newCategory)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          addStockCategory(newCategory);
+          Swal.fire('Success', data.message || 'Stock Category created', 'success');
+          navigate('/app/masters/stock-categories');
+        } else {
+          Swal.fire('Error', data.message || 'Failed to create Stock Category', 'error');
+        }
+      } catch (err) {
+        Swal.fire('Error', getErrorMessage(err), 'error');
+      }
     } else {
-      Swal.fire("Error", data.message || "Failed to create Stock Category", "error");
+      // Edit mode
+      if (!id) return; // safety
+      const updated: StockCategory = { ...formData, id };
+      try {
+        const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/stock-categories/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          updateStockCategory(updated);
+          Swal.fire('Success', data.message || 'Stock Category updated', 'success');
+          navigate('/app/masters/stock-categories');
+        } else {
+          Swal.fire('Error', data.message || 'Failed to update Stock Category', 'error');
+        }
+      } catch (err) {
+        Swal.fire('Error', getErrorMessage(err), 'error');
+      }
     }
-  } catch (err) {
-    console.error('Create error:', err);
-    Swal.fire("Error", 'Something went wrong!', "error");
-  }
-}
-
-  }, [formData, isEditMode, updateStockCategory, addStockCategory, navigate, validateForm]);
+  }, [isEditMode, formData, id, navigate, validateForm, addStockCategory, updateStockCategory]);
 
   const handlePrint = useCallback(() => {
     const printWindow = window.open('', '_blank');
@@ -114,7 +140,7 @@ const StockCategoryForm: React.FC = () => {
       e.preventDefault();
       handlePrint();
     } else if (e.key === 'Escape') {
-      navigate('/app/masters/stock-category');
+      navigate('/app/masters/stock-categories');
     }
   }, [handleSubmit, handlePrint, navigate]);
 

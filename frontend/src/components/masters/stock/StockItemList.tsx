@@ -16,6 +16,8 @@ const StockItemList = () => {
   const { theme, stockGroups = [], units = [] } = useAppContext();
   const navigate = useNavigate();
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10); // fixed page size
 
   useEffect(() => {
     const fetchData = async () => {
@@ -164,7 +166,10 @@ const StockItemList = () => {
                       </td>
                     </tr>
                   ) : (
-                    stockItems.filter(item => item.id).map((item) => (
+                    stockItems
+                      .filter(item => item.id)
+                      .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                      .map((item) => (
                       <tr key={item.id} className={`${
                         theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
                       }`}>
@@ -226,6 +231,51 @@ const StockItemList = () => {
           </div>
         </div>
       </div>
+      {/* Pagination Controls */}
+      {stockItems.length > 0 && (
+        <div className="flex flex-col md:flex-row items-center justify-between mt-4 gap-4">
+          <div className="text-xs opacity-70">
+            Showing {stockItems.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, stockItems.length)} of {stockItems.length} stock items (Rows per page: {itemsPerPage})
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              className={`px-4 py-2 rounded-md border font-medium text-base ${currentPage === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-blue-500 hover:text-white'} ${theme === 'dark' ? 'border-gray-600 text-gray-200' : 'border-gray-300 text-gray-700'}`}
+              aria-label="Previous Page"
+            >
+              Prev
+            </button>
+            {Array.from({ length: Math.max(1, Math.ceil(stockItems.length / itemsPerPage)) }).slice(0, 7).map((_, i) => {
+              const page = i + 1;
+              return (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-4 py-2 rounded-md text-base border font-medium transition-colors ${page === currentPage ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : theme === 'dark' ? 'border-gray-600 text-gray-200 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
+                  aria-current={page === currentPage ? 'page' : undefined}
+                >
+                  {page}
+                </button>
+              );
+            })}
+            {Math.ceil(stockItems.length / itemsPerPage) > 7 && (
+              <span className="px-4 text-base">...</span>
+            )}
+            <button
+              type="button"
+              disabled={currentPage === Math.max(1, Math.ceil(stockItems.length / itemsPerPage))}
+              onClick={() => setCurrentPage(p => Math.min(Math.max(1, Math.ceil(stockItems.length / itemsPerPage)), p + 1))}
+              className={`px-4 py-2 rounded-md border font-medium text-base ${currentPage === Math.max(1, Math.ceil(stockItems.length / itemsPerPage)) ? 'opacity-40 cursor-not-allowed' : 'hover:bg-blue-500 hover:text-white'} ${theme === 'dark' ? 'border-gray-600 text-gray-200' : 'border-gray-300 text-gray-700'}`}
+              aria-label="Next Page"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

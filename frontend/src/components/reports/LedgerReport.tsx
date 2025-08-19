@@ -20,7 +20,7 @@ interface LedgerTransaction {
 }
 interface LedgerApiResponse {
   success: boolean;
-  ledger: any;      // or your Ledger type if you have it
+  ledger: Ledger | null;
   transactions: LedgerTransaction[];
   summary: {
     openingBalance: number;

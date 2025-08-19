@@ -126,6 +126,7 @@ const StockJournalVoucher: React.FC = () => {
             <div>
               <label className="block text-sm font-medium mb-1">Date</label>
               <input
+                title='Date'
                 type="date"
                 name="date"
                 value={formData.date}
@@ -137,6 +138,7 @@ const StockJournalVoucher: React.FC = () => {
             <div>
               <label className="block text-sm font-medium mb-1">Voucher No.</label>
               <input
+                title='Voucher Number'
                 type="text"
                 name="number"
                 value={formData.number}
@@ -178,6 +180,7 @@ const StockJournalVoucher: React.FC = () => {
                     <tr key={index} className={`${theme === 'dark' ? 'border-b border-gray-600' : 'border-b border-gray-300'}`}>
                       <td className="px-4 py-2">
                         <select
+                        title="Select Stock Item"
                           name="ledgerId"
                           value={entry.ledgerId}
                           onChange={(e) => handleEntryChange(index, e)}
@@ -192,6 +195,7 @@ const StockJournalVoucher: React.FC = () => {
                       </td>
                       <td className="px-4 py-2">
                         <input
+                          title='Batch Number'
                           type="text"
                           name="batchNumber"
                           value={entry.batchNumber}
@@ -202,6 +206,7 @@ const StockJournalVoucher: React.FC = () => {
                       </td>
                       <td className="px-4 py-2">
                         <select
+                          title="In/Out"
                           name="type"
                           value={entry.type}
                           onChange={(e) => handleEntryChange(index, e)}
@@ -213,6 +218,7 @@ const StockJournalVoucher: React.FC = () => {
                       </td>
                       <td className="px-4 py-2">
                         <input
+                           title='Quantity'
                           type="number"
                           name="quantity"
                           value={entry.quantity}
@@ -224,6 +230,7 @@ const StockJournalVoucher: React.FC = () => {
                       </td>
                       <td className="px-4 py-2">
                         <input
+                         title='Rate'
                           type="number"
                           name="rate"
                           value={entry.rate}
@@ -235,6 +242,7 @@ const StockJournalVoucher: React.FC = () => {
                       </td>
                       <td className="px-4 py-2">
                         <input
+                          title='Amount'
                           type="number"
                           name="amount"
                           value={entry.amount}
@@ -244,6 +252,7 @@ const StockJournalVoucher: React.FC = () => {
                       </td>
                       <td className="px-4 py-2 text-center">
                         <button
+                          title='Remove Entry'
                           type="button"
                           onClick={() => removeEntry(index)}
                           disabled={formData.entries.length <= 2}
@@ -284,6 +293,7 @@ const StockJournalVoucher: React.FC = () => {
           <div className="mb-6">
             <label className="block text-sm font-medium mb-1">Narration</label>
             <textarea
+            title='Narration'
               name="narration"
               value={formData.narration}
               onChange={handleChange}

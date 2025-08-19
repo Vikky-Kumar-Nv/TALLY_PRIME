@@ -327,7 +327,7 @@
 
 
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import type { CompanyInfo, Ledger, LedgerGroup, VoucherEntry, StockItem, UnitOfMeasurement, Godown, StockGroup, GstClassification, CapitalGain, TDSEntry } from '../types';
 import { defaultLedgerGroups, defaultLedgers } from '../data/defaultData';
@@ -599,10 +599,22 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     { id: '2', name: 'Kilogram', symbol: 'Kg', type: 'Simple' },
     { id: '3', name: 'Meter', symbol: 'Mtr', type: 'Simple' }
   ]);
-  const [godowns, setGodowns] = useState<Godown[]>([
-    { id: 'g1', name: 'Main Godown' },
-    { id: 'g2', name: 'Secondary Godown' }
-  ]);
+  const [godowns, setGodowns] = useState<Godown[]>([]);
+  // Fetch godowns from backend once (replace static defaults)
+  useEffect(() => {
+    interface RawGodown { id?: string | number; _id?: string; ID?: string | number; code?: string | number; name?: string; godownName?: string; }
+    fetch('https://tally-backend-dyn3.onrender.com/api/godowns')
+      .then(r => r.json())
+      .then(res => {
+        const list: RawGodown[] | undefined = Array.isArray(res?.data) ? res.data as RawGodown[] : undefined;
+        if (list) {
+          const mapped: Godown[] = list.map(g => ({ id: String(g.id ?? g._id ?? g.ID ?? g.code ?? ''), name: g.name || g.godownName || 'Unnamed Godown' }))
+            .filter(g => g.id);
+          setGodowns(mapped);
+        }
+      })
+      .catch(() => { /* silent fail keeps empty list; components can fallback */ });
+  }, []);
   const [capitalGains, setCapitalGains] = useState<CapitalGain[]>([]);
   const [tdsEntries, setTdsEntries] = useState<TDSEntry[]>([]);
 

@@ -78,6 +78,16 @@ interface Verification {
   signature: string;
 }
 
+// API return record shape for list view
+interface ReturnRecord {
+  id: string;
+  tan: string;
+  quarter: string;
+  financial_year: string; // backend naming convention
+  created_at: string; // ISO timestamp
+  status?: string;
+}
+
 // Reusable Components
 const FormSection: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ 
   title, 
@@ -199,7 +209,7 @@ const Form27QPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'list' | 'create' | 'upload'>('list');
   const [errors] = useState<Record<string, string>>({});
-const [returnList, setReturnList] = useState<any[]>([]);
+const [returnList, setReturnList] = useState<ReturnRecord[]>([]);
 const [listLoading, setListLoading] = useState(false);
 const [selectedYear] = useState('2024-25');
 const [selectedQuarter] = useState('');

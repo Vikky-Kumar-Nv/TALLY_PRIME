@@ -13,7 +13,7 @@ const ScenarioList: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 const [scenarios, setScenarios] = useState<Scenario[]>([]);
-const [_, setLoading] = useState(true);
+const [, setLoading] = useState(true);
 
 // Fetch from API
 useEffect(() => {
@@ -22,16 +22,17 @@ useEffect(() => {
   const response = await fetch('https://tally-backend-dyn3.onrender.com/api/scenario/list');
       const rawData = await response.json();
 
-      const formatted = rawData.map((s: any) => ({
+  interface RawScenario { id: string; name: string; include_actuals?: boolean; included_voucher_types?: string[]; excluded_voucher_types?: string[]; from_date?: string; to_date?: string; created_at?: string; updated_at?: string; }
+      const formatted: Scenario[] = (rawData as RawScenario[]).map((s) => ({
         id: s.id,
         name: s.name,
-        includeActuals: s.include_actuals,
-        includedVoucherTypes: s.included_voucher_types || [],
-        excludedVoucherTypes: s.excluded_voucher_types || [],
-        fromDate: s.from_date,
-        toDate: s.to_date,
-        createdAt: s.created_at,
-        updatedAt: s.updated_at
+        includeActuals: !!s.include_actuals,
+        includedVoucherTypes: ((s.included_voucher_types || []).filter(v => typeof v === 'string')) as Scenario['includedVoucherTypes'],
+        excludedVoucherTypes: ((s.excluded_voucher_types || []).filter(v => typeof v === 'string')) as Scenario['excludedVoucherTypes'],
+        fromDate: s.from_date || '',
+        toDate: s.to_date || '',
+        createdAt: s.created_at || '',
+        updatedAt: s.updated_at || ''
       }));
 
       setScenarios(formatted);
@@ -82,12 +83,9 @@ const filteredScenarios = scenarios.filter(
 );
 
 
-  const paginatedScenarios = filteredScenarios.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const totalPages = Math.ceil(filteredScenarios.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedScenarios = filteredScenarios.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredScenarios.length / itemsPerPage));
 
   const columns = useMemo(() => [
     { header: 'Name', accessor: 'name', align: 'left' as const },
@@ -283,25 +281,50 @@ const filteredScenarios = scenarios.filter(
         />
       </div>
 
-      <div className="flex justify-between items-center mt-4">
-        <button
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage(prev => prev - 1)}
-          className={`px-4 py-2 rounded-md ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
-        >
-          Previous
-        </button>
-        <span className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-          Page {currentPage} of {totalPages}
-        </span>
-        <button
-          disabled={currentPage === totalPages}
-          onClick={() => setCurrentPage(prev => prev + 1)}
-          className={`px-4 py-2 rounded-md ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : theme === 'dark' ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'}`}
-        >
-          Next
-        </button>
-      </div>
+      {filteredScenarios.length > 0 && (
+        <div className="flex flex-col md:flex-row items-center justify-between mt-4 gap-4">
+          <div className="text-xs opacity-70">
+            Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredScenarios.length)} of {filteredScenarios.length} scenarios (Rows per page: {itemsPerPage})
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              className={`px-4 py-2 rounded-md border font-medium text-base ${currentPage === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-blue-500 hover:text-white'} ${theme === 'dark' ? 'border-gray-600 text-gray-200' : 'border-gray-300 text-gray-700'}`}
+              aria-label="Previous Page"
+            >
+              Prev
+            </button>
+            {Array.from({ length: totalPages }).slice(0, 7).map((_, i) => {
+              const page = i + 1;
+              return (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-4 py-2 rounded-md text-base border font-medium transition-colors ${page === currentPage ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : theme === 'dark' ? 'border-gray-600 text-gray-200 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
+                  aria-current={page === currentPage ? 'page' : undefined}
+                >
+                  {page}
+                </button>
+              );
+            })}
+            {totalPages > 7 && (
+              <span className="px-4 text-base">...</span>
+            )}
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              className={`px-4 py-2 rounded-md border font-medium text-base ${currentPage === totalPages ? 'opacity-40 cursor-not-allowed' : 'hover:bg-blue-500 hover:text-white'} ${theme === 'dark' ? 'border-gray-600 text-gray-200' : 'border-gray-300 text-gray-700'}`}
+              aria-label="Next Page"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className={`mt-6 p-4 rounded ${theme === 'dark' ? 'bg-gray-800' : 'bg-blue-50'}`}>
         <p className="text-sm text-gray-700 dark:text-gray-300">

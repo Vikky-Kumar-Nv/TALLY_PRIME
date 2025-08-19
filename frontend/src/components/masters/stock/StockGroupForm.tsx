@@ -5,6 +5,12 @@ import { ArrowLeft, Save, Printer } from 'lucide-react';
 import type { StockGroup, GstClassification } from '../../../types';
 import Swal from 'sweetalert2';
 
+const getErrorMessage = (err: unknown): string => {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  try { return JSON.stringify(err); } catch { return 'Unknown error'; }
+};
+
 // Extended type for form data that includes all the properties used in the UI
 type StockGroupFormData = StockGroup & {
   parent?: string;
@@ -78,6 +84,7 @@ const StockGroupForm: React.FC = () => {
       : initialFormData
   );
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [submitting, setSubmitting] = useState(false);
 
   // Mock GST classifications
   const mockGstClassifications: GstClassification[] = [
@@ -103,14 +110,15 @@ const StockGroupForm: React.FC = () => {
     section?: 'hsnSacDetails' | 'gstDetails'
   ) => {
     const { name, value } = e.target;
+    const parsed: string | number = ['integratedTaxRate', 'cess'].includes(name) ? Number(value) : value;
     if (section) {
       setFormData(prev => ({
         ...prev,
-        [section]: { ...prev[section], [name]: value },
+        [section]: { ...prev[section], [name]: parsed },
       }));
       setErrors(prev => ({ ...prev, [name]: '' }));
     } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: parsed }));
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
@@ -129,41 +137,44 @@ const StockGroupForm: React.FC = () => {
 
 
 const handleSubmit = useCallback(async () => {
-  if (validateForm()) {
-    const stockGroupData = {
-      ...formData,
-      id: isEditMode ? formData.id : `SG-${Date.now()}`
-    };
-
-    try {
-  const response = await fetch('https://tally-backend-dyn3.onrender.com/api/stock-groups', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(stockGroupData)
+  if (submitting) return; // guard
+  if (!validateForm()) return;
+  setSubmitting(true);
+  const stockGroupData = {
+    ...formData,
+    id: isEditMode ? formData.id : `SG-${Date.now()}`
+  };
+  const url = isEditMode
+    ? `https://tally-backend-dyn3.onrender.com/api/stock-groups/${stockGroupData.id}`
+    : 'https://tally-backend-dyn3.onrender.com/api/stock-groups';
+  const method = isEditMode ? 'PUT' : 'POST';
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(stockGroupData)
+    });
+    const result = await response.json();
+    if (response.ok) {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: result.message || `Stock Group ${isEditMode ? 'updated' : 'saved'} successfully`
       });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: result.message || 'Stock Group saved successfully'
-        });
-        navigate('/app/masters/stock-group');
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: result.error || 'Something went wrong.'
-        });
-      }
-    } catch (error) {
-          Swal.fire("Error", 'Something went wrong!', "error");
-      
+      navigate('/app/masters/stock-group');
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: result.error || 'Something went wrong.'
+      });
     }
+  } catch (error) {
+    Swal.fire('Error', getErrorMessage(error), 'error');
+  } finally {
+    setSubmitting(false);
   }
-}, [formData, isEditMode, navigate, validateForm]);
+}, [formData, isEditMode, navigate, validateForm, submitting]);
 
   const handlePrint = useCallback(() => {
     const printWindow = window.open('', '_blank');
@@ -239,9 +250,10 @@ const handleSubmit = useCallback(async () => {
           <button
             title="Save Stock Group"
             onClick={handleSubmit}
-            className={`p-2 rounded-md ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white flex items-center`}
+            disabled={submitting}
+            className={`p-2 rounded-md ${theme === 'dark' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-blue-500 hover:bg-blue-600'} text-white flex items-center disabled:opacity-60 disabled:cursor-not-allowed`}
           >
-            <Save size={18} className="mr-2" /> Save
+            <Save size={18} className="mr-2" /> {submitting ? 'Saving...' : 'Save'}
           </button>
           <button
             title="Print Stock Group"

@@ -50,7 +50,7 @@ useEffect(() => {
       setTotalInflow(data.totalInflow);
       setTotalOutflow(data.totalOutflow);
       setTotalNetFlow(data.totalNetFlow);
-    } catch (e) {
+  } catch {
       // handle errors
     }
   }

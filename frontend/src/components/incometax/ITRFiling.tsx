@@ -10,6 +10,7 @@ interface AssesseeInfo {
   pan: string;
   aadhar: string;
   email: string;
+  phone?: string;
   dateOfBirth: string;
   assessmentYear: string;
   financialYear: string;
@@ -21,9 +22,10 @@ interface SalaryIncome {
   deduction16: number;
 }
 
+type BusinessType = 'business' | 'profession' | 'commission' | 'other' | '';
 interface BusinessIncome {
   netProfit: number;
-  businessType: string;
+  businessType: BusinessType;
   grossTurnover: number;
   section44AD: boolean;
   section44AB: boolean;
@@ -62,14 +64,16 @@ interface OtherSources {
   tuitionFee: number;
 }
 
+interface PolicyDetail {
+  date: string;
+  policyNo: string;
+  remark: string;
+  value: number;
+}
+
 interface Deductions80C {
   lifeInsurancePremium: number;
-  policies: Array<{
-    date: string;
-    policyNo: string;
-    remark: string;
-    value: number;
-  }>;
+  policies: PolicyDetail[];
   tuitionFeeFirstSecondChild: number;
 }
 
@@ -92,6 +96,20 @@ interface ITRData {
   tdsDeducted: number;
   taxPayments: TaxPayment[];
 }
+
+interface ITRApiSuccess { success: true; id?: number; }
+interface ITRApiError { success?: false; error?: string; message?: string; }
+
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null;
+const getErrorMessage = (err: unknown): string => {
+  if (err instanceof Error) return err.message;
+  if (isObject(err) && typeof err.message === 'string') return err.message;
+  try { return JSON.stringify(err); } catch { return String(err); }
+};
+
+const isITRApiSuccess = (val: unknown): val is ITRApiSuccess => {
+  return isObject(val) && val.success === true;
+};
 
 const ITRFiling: React.FC = () => {
   const { theme } = useAppContext();
@@ -164,47 +182,35 @@ const ITRFiling: React.FC = () => {
     ]
   });
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-
-  try {
-    const employee_id = localStorage.getItem('employee_id');
-    if (!employee_id) {
-      alert('Employee ID not found in local storage');
-      return;
+    e.preventDefault();
+    try {
+      const employee_id = localStorage.getItem('employee_id');
+      if (!employee_id) {
+        alert('Employee ID not found in local storage');
+        return;
+      }
+      const payload = { ...formData, employee_id };
+      const resp = await fetch('https://tally-backend-dyn3.onrender.com/api/itr-filling', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const json: unknown = await resp.json().catch(() => null);
+      if (!resp.ok) {
+        const errMsg = isObject(json) && (json.error || json.message) ? String(json.error || json.message) : resp.statusText;
+        alert('Failed to file ITR: ' + errMsg);
+        return;
+      }
+      if (isITRApiSuccess(json)) {
+        alert(`ITR filed successfully with ID: ${json.id ?? 'N/A'}`);
+      } else {
+        const errMsg = isObject(json) ? String((json as ITRApiError).error || (json as ITRApiError).message || 'Unknown response') : 'Unknown response';
+        alert(errMsg);
+      }
+    } catch (err) {
+      alert('Error submitting ITR: ' + getErrorMessage(err));
     }
-
-    const payload = {
-      ...formData,
-      employee_id,
-    };
-
-  const response = await fetch('https://tally-backend-dyn3.onrender.com/api/itr-filling', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      // If the server responds with an error status
-      const errorData = await response.json();
-      alert('Failed to file ITR: ' + (errorData.error || response.statusText));
-      return;
-    }
-
-    const data: { success: boolean; id?: number; error?: string } = await response.json();
-
-    if (data.success) {
-      alert(`ITR filed successfully with ID: ${data.id}`);
-      // Optionally reset form or redirect here
-    } else {
-      alert('Failed to file ITR');
-    }
-  } catch (error: any) {
-    alert('Error submitting ITR: ' + (error.message || "Unknown error"));
-  }
-};
+  };
 
 
   const handleInputChange = (section: keyof ITRData, field: string, value: string | number | boolean) => {
@@ -958,6 +964,7 @@ const ITRFiling: React.FC = () => {
                     <td className="px-4 py-2">
                       {index === formData.deductions80C.policies.length - 1 && (
                         <button
+                          type="button"
                           onClick={addPolicy}
                           className="text-blue-600 hover:text-blue-800"
                           title="Add Policy"
@@ -1096,6 +1103,7 @@ const ITRFiling: React.FC = () => {
                   <td className="px-4 py-2">
                     {index === formData.taxPayments.length - 1 && (
                       <button
+                        type="button"
                         onClick={addTaxPayment}
                         className="text-blue-600 hover:text-blue-800"
                         title="Add Payment"

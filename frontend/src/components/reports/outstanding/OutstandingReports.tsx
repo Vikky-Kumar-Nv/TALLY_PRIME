@@ -9,11 +9,43 @@ import OutstandingGroup from './OutstandingGroup';
 import BillwiseReceivables from './BillwiseReceivables';
 import BillwisePayables from './BillwisePayables';
 
+interface OutstandingSummary {
+  totalReceivables: number;
+  totalPayables: number;
+  netOutstanding: number;
+}
+
+type SectionColor = 'green' | 'red' | 'blue' | 'orange' | 'indigo' | 'purple';
+
+interface SectionDef {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: SectionColor;
+  component: React.ComponentType;
+}
+
+const colorClasses: Record<SectionColor, string> = {
+  green: 'from-green-500 to-green-600',
+  red: 'from-red-500 to-red-600',
+  blue: 'from-blue-500 to-blue-600',
+  orange: 'from-orange-500 to-orange-600',
+  indigo: 'from-indigo-500 to-indigo-600',
+  purple: 'from-purple-500 to-purple-600'
+};
+
+const getErrorMessage = (e: unknown): string => {
+  if (e instanceof Error) return e.message;
+  if (typeof e === 'string') return e;
+  try { return JSON.stringify(e); } catch { return 'Unknown error'; }
+};
+
 const OutstandingReports: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState<string | null>(null);
-const [summary, setSummary] = useState<{totalReceivables: number, totalPayables: number, netOutstanding: number} | null>(null);
+  const [summary, setSummary] = useState<OutstandingSummary | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,16 +54,28 @@ const [summary, setSummary] = useState<{totalReceivables: number, totalPayables:
       try {
         const res = await fetch('https://tally-backend-dyn3.onrender.com/api/outstanding-summary');
         if (!res.ok) throw new Error('Failed to load summary');
-        setSummary(await res.json());
-      } catch (e:any) {
-        setSummaryError(e.message || 'Failed to load summary');
+        const json: unknown = await res.json();
+        if (json && typeof json === 'object') {
+          const r = json as Record<string, unknown>;
+          const candidate: OutstandingSummary = {
+            totalReceivables: typeof r.totalReceivables === 'number' ? r.totalReceivables : 0,
+            totalPayables: typeof r.totalPayables === 'number' ? r.totalPayables : 0,
+            netOutstanding: typeof r.netOutstanding === 'number' ? r.netOutstanding : 0
+          };
+          setSummary(candidate);
+        } else {
+          setSummary(null);
+          setSummaryError('Unexpected response format');
+        }
+      } catch (e: unknown) {
+        setSummaryError(getErrorMessage(e));
         setSummary(null);
       }
     }
     fetchSummary();
   }, []);
 
-  const sections = [
+  const sections: SectionDef[] = [
     {
       id: 'receivables',
       title: 'Receivables Outstanding',
@@ -146,15 +190,6 @@ const [summary, setSummary] = useState<{totalReceivables: number, totalPayables:
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {sections.map((section) => {
             const Icon = section.icon;
-            const colorClasses = {
-              green: 'from-green-500 to-green-600',
-              red: 'from-red-500 to-red-600',
-              blue: 'from-blue-500 to-blue-600',
-              orange: 'from-orange-500 to-orange-600',
-              indigo: 'from-indigo-500 to-indigo-600',
-              purple: 'from-purple-500 to-purple-600'
-            };
-
             return (
               <button
                 key={section.id}
@@ -166,7 +201,7 @@ const [summary, setSummary] = useState<{totalReceivables: number, totalPayables:
                 }`}
               >
                 <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-lg bg-gradient-to-r ${colorClasses[section.color as keyof typeof colorClasses]}`}>
+                  <div className={`p-3 rounded-lg bg-gradient-to-r ${colorClasses[section.color]}`}>
                     <Icon className="w-6 h-6 text-white" />
                   </div>
                   <Calendar className={`w-5 h-5 ${

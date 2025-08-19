@@ -37,6 +37,8 @@ const BatchList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'expiring' | 'expired'>('all');
   const [filterStockItem, setFilterStockItem] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Fetch stock items on mount
   useEffect(() => {
@@ -119,6 +121,16 @@ const BatchList: React.FC = () => {
     expiring: allBatches.filter(b => b.status === 'expiring').length,
     expired: allBatches.filter(b => b.status === 'expired').length
   }), [allBatches]);
+
+  // Pagination derived data
+  const totalPages = Math.max(1, Math.ceil(filteredBatches.length / itemsPerPage));
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedBatches = filteredBatches.slice(startIndex, startIndex + itemsPerPage);
+
+  // Reset page on filter changes
+  useEffect(() => { setCurrentPage(1); }, [searchTerm, filterStatus, filterStockItem]);
+  // Clamp if out of range
+  useEffect(() => { if (currentPage > totalPages) setCurrentPage(totalPages); }, [currentPage, totalPages]);
 
   // Utility functions for UI
   const getStatusColor = (status: string) => {
@@ -308,7 +320,7 @@ const BatchList: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredBatches.map((batch) => (
+                paginatedBatches.map((batch) => (
                   <tr
                     key={`${batch.stockItemId}-${batch.id}`}
                     className={`${theme === 'dark' ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
@@ -369,6 +381,52 @@ const BatchList: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Pagination Controls */}
+      {filteredBatches.length > 0 && (
+        <div className="flex flex-col md:flex-row items-center justify-between mt-4 gap-4">
+          <div className="text-xs opacity-70">
+            Showing {filteredBatches.length === 0 ? 0 : startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredBatches.length)} of {filteredBatches.length} batches (Rows per page: {itemsPerPage})
+          </div>
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              className={`px-4 py-2 rounded-md border font-medium text-base ${currentPage === 1 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-blue-500 hover:text-white'} ${theme === 'dark' ? 'border-gray-600 text-gray-200' : 'border-gray-300 text-gray-700'}`}
+              aria-label="Previous Page"
+            >
+              Prev
+            </button>
+            {Array.from({ length: totalPages }).slice(0, 7).map((_, i) => {
+              const page = i + 1;
+              return (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-4 py-2 rounded-md text-base border font-medium transition-colors ${page === currentPage ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : theme === 'dark' ? 'border-gray-600 text-gray-200 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-100'}`}
+                  aria-current={page === currentPage ? 'page' : undefined}
+                >
+                  {page}
+                </button>
+              );
+            })}
+            {totalPages > 7 && (
+              <span className="px-4 text-base">...</span>
+            )}
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              className={`px-4 py-2 rounded-md border font-medium text-base ${currentPage === totalPages ? 'opacity-40 cursor-not-allowed' : 'hover:bg-blue-500 hover:text-white'} ${theme === 'dark' ? 'border-gray-600 text-gray-200' : 'border-gray-300 text-gray-700'}`}
+              aria-label="Next Page"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -55,15 +55,22 @@ const GroupSummary: React.FC = () => {
         const data = await res.json();
 
         // Normalize ledger balances (ensure opening_balance is number)
-        const normalizedLedgers = data.ledgers.map((l: any) => ({
+        const normalizedLedgers: Ledger[] = data.ledgers.map((l: Partial<Ledger>) => ({
           ...l,
+          id: Number(l.id) || 0,
+          name: String(l.name || ''),
+          group_id: Number(l.group_id) || 0,
           opening_balance: Number(l.opening_balance) || 0,
+          balance_type: (l.balance_type === 'credit' ? 'credit' : 'debit'),
+          group_name: String(l.group_name || ''),
+          group_type: l.group_type ?? null,
         }));
 
         setLedgers(normalizedLedgers);
         setLedgerGroups(data.ledgerGroups || []);
-      } catch (err: any) {
-        console.error('Failed to load group summary data:', err);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Unknown error';
+        console.error('Failed to load group summary data:', message);
         setLedgers([]);
         setLedgerGroups([]);
       }

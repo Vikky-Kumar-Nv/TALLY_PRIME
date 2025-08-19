@@ -7,11 +7,22 @@ import { ArrowLeft, Filter } from 'lucide-react';
 
 type AgeingBucket = { label: string; qty: number; value: number };
 
-type AgeingData = {
+export interface AgeingData {
   item: { id: string; name: string; code?: string };
   ageing: AgeingBucket[];
   totalQty: number;
   totalValue: number;
+}
+
+// API response assumed to be an array of AgeingData; adapt if backend changes structure
+type AgeingApiResponse = unknown; // we'll validate at runtime
+
+const BUCKET_LABELS = ['0-30 Days', '31-60 Days', '61-90 Days', '91-180 Days', 'Above 180 Days'] as const;
+
+const getErrorMessage = (err: unknown): string => {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  try { return JSON.stringify(err); } catch { return 'Unknown error'; }
 };
 
 const AgeingAnalysis: React.FC = () => {
@@ -48,50 +59,58 @@ const AgeingAnalysis: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let abort = false;
     async function fetchData() {
       setLoading(true);
       setError(null);
       try {
         const params = new URLSearchParams();
         Object.entries(filters).forEach(([key, value]) => {
-          if (value) params.append(key, String(value));
+          if (value !== undefined && value !== null && value !== '') {
+            params.append(key, String(value));
+          }
         });
 
-  const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/ageing-analysis?${params.toString()}`);
-        if (!res.ok) throw new Error(`Error fetching data: ${res.status}`);
+        const res = await fetch(`https://tally-backend-dyn3.onrender.com/api/ageing-analysis?${params.toString()}`);
+        if (!res.ok) throw new Error(`Failed to fetch data (${res.status})`);
+        const json: AgeingApiResponse = await res.json();
 
-        const json = await res.json();
-        setData(json);
-      } catch (e: any) {
-        setError(e.message || 'Error');
-        setData([]);
+        // Runtime validation
+        const validated: AgeingData[] = Array.isArray(json)
+          ? json.filter((row): row is AgeingData => {
+              if (!row || typeof row !== 'object') return false;
+              const r = row as Record<string, unknown>;
+              return typeof r.totalQty === 'number' && Array.isArray(r.ageing);
+            })
+          : [];
+
+        if (!abort) {
+          setData(validated);
+          if (!Array.isArray(json)) setError('Unexpected response format');
+        }
+      } catch (e: unknown) {
+        if (!abort) {
+          setError(getErrorMessage(e));
+          setData([]);
+        }
       } finally {
-        setLoading(false);
+        if (!abort) setLoading(false);
       }
     }
     fetchData();
+    return () => { abort = true; };
   }, [filters]);
 
   const columns = useMemo(() => {
-    const buckets = ['0-30 Days', '31-60 Days', '61-90 Days', '91-180 Days', 'Above 180 Days'];
-
     return [
       { header: 'Item', accessor: 'item', render: (row: AgeingData) => row.item.name },
-      ...buckets.map((b, i) => ({
+      ...BUCKET_LABELS.map((b, i) => ({
         header: b,
         accessor: `ageing.${i}.qty`,
         render: (row: AgeingData) => row.ageing[i]?.qty.toLocaleString() ?? '0',
       })),
-      {
-        header: 'Total Qty',
-        accessor: 'totalQty',
-        render: (row: AgeingData) => row.totalQty.toLocaleString(),
-      },
-      {
-        header: 'Total Value',
-        accessor: 'totalValue',
-        render: (row: AgeingData) => `₹${row.totalValue.toLocaleString()}`,
-      },
+      { header: 'Total Qty', accessor: 'totalQty', render: (row: AgeingData) => row.totalQty.toLocaleString() },
+      { header: 'Total Value', accessor: 'totalValue', render: (row: AgeingData) => `₹${row.totalValue.toLocaleString()}` },
     ];
   }, []);
 

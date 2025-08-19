@@ -25,11 +25,24 @@ interface GroupSummary {
 }
 
 const StockSummary: React.FC = () => {
-  const { theme, stockGroups, companyInfo } = useAppContext();
+  const { theme, stockGroups, companyInfo, godowns } = useAppContext();
   const navigate = useNavigate();
    const [showFilterPanel, setShowFilterPanel] = useState(false);
-   const [view, setView] = useState<'Item' | 'Group'>('Item'); 
-   const [data, setData] = useState<any[]>([]);
+  // Added 'HSN' view for HSN-wise summary similar to Tally
+  const [view, setView] = useState<'Item' | 'Group' | 'HSN'>('Item'); 
+   type RawItemRow = {
+     item?: StockItem & { openingBalance?: number };
+     group?: StockGroup;
+     inwardQty?: number;
+     outwardQty?: number;
+     closingQty?: number;
+     closingValue?: number;
+     profit?: number;
+     unit?: string;
+     openingBalance?: number; // some APIs might return directly
+     name?: string; // fallback name
+   };
+   const [data, setData] = useState<RawItemRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,8 +83,9 @@ const StockSummary: React.FC = () => {
 
         setData(json);
       }
-      catch (e: any) {
-        setError(e.message || 'Failed to load data');
+      catch (e: unknown) {
+        const message = e instanceof Error ? e.message : 'Failed to load data';
+        setError(message);
         setData([]);
       }
       finally {
@@ -83,7 +97,7 @@ const StockSummary: React.FC = () => {
 // Compute grouped data if view is Group, else use data directly
   const groupedData = useMemo(() => {
     if (view === 'Group') {
-      const groupsMap = new Map<string, any>();
+  const groupsMap = new Map<string, GroupSummary>();
       data.forEach(item => {
         const groupId = item.item?.stockGroupId || item.group?.id || 'unknown';
         if (!groupsMap.has(groupId)) {
@@ -99,85 +113,180 @@ const StockSummary: React.FC = () => {
           });
         }
         const grp = groupsMap.get(groupId);
-        grp.inwardQty += item.inwardQty ?? 0;
-        grp.outwardQty += item.outwardQty ?? 0;
-        grp.closingQty += item.closingQty ?? 0;
-        grp.closingValue += item.closingValue ?? 0;
-        grp.profit += item.profit ?? 0;
+        if (grp) {
+          grp.inwardQty += item.inwardQty ?? 0;
+          grp.outwardQty += item.outwardQty ?? 0;
+          grp.closingQty += item.closingQty ?? 0;
+          grp.closingValue += item.closingValue ?? 0;
+          grp.profit += item.profit ?? 0;
+        }
       });
       return Array.from(groupsMap.values());
     }
     return data;
   }, [data, view, stockGroups]);
 
+  // Compute HSN-wise grouped data when view is HSN
+  interface HsnSummary {
+    hsnCode: string;
+    inwardQty: number;
+    outwardQty: number;
+    closingQty: number;
+    closingValue: number;
+    profit: number;
+    openingQty: number;
+  }
+
+  const hsnData = useMemo(() => {
+    if (view !== 'HSN') return [] as HsnSummary[];
+    const map = new Map<string, HsnSummary>();
+    data.forEach(row => {
+      const code = row.item?.hsnCode || 'Unknown';
+      if (!map.has(code)) {
+        map.set(code, {
+          hsnCode: code,
+          inwardQty: 0,
+          outwardQty: 0,
+          closingQty: 0,
+          closingValue: 0,
+          profit: 0,
+          openingQty: 0,
+        });
+      }
+      const rec = map.get(code)!;
+      rec.inwardQty += row.inwardQty ?? 0;
+      rec.outwardQty += row.outwardQty ?? 0;
+      rec.closingQty += row.closingQty ?? 0;
+      rec.closingValue += row.closingValue ?? 0;
+      rec.profit += row.profit ?? 0;
+      rec.openingQty += row.openingBalance ?? row.item?.openingBalance ?? 0;
+    });
+    return Array.from(map.values());
+  }, [data, view]);
+
   // Define your columns (adjust accessors/renderers for your data)
-  const columns = useMemo(() => [
-  {
-    header: view === 'Item' ? 'Stock Item' : 'Stock Group',
-    accessor: 'name',
-    align: 'left' as const,
-    render: (row: any) =>
-      view === 'Item' ? row.name : row.group?.name || '',
-  },
-  {
-    header: 'Unit',
-    accessor: 'unit',
-    align: 'left' as const,
-    render: (row: any) => view === 'Item' ? row.unit : '',
-  },
-  {
-    header: 'Opening Qty',
-    accessor: 'openingBalance',
-    align: 'right' as const,
-    render: (row: any) => view === 'Item' ? (row.openingBalance?.toLocaleString() ?? '0') : '',
-  },
-  {
-    header: 'Inward Qty',
-    accessor: 'inwardQty',
-    align: 'right' as const,
-    render: (row: any) => row.inwardQty?.toLocaleString() ?? '0',
-  },
-  {
-    header: 'Outward Qty',
-    accessor: 'outwardQty',
-    align: 'right' as const,
-    render: (row: any) => row.outwardQty?.toLocaleString() ?? '0',
-  },
-  {
-    header: 'Closing Qty',
-    accessor: 'closingQty',
-    align: 'right' as const,
-    render: (row: any) => row.closingQty?.toLocaleString() ?? '0',
-  },
-  {
-    header: 'Closing Value',
-    accessor: 'closingValue',
-    align: 'right' as const,
-    render: (row: any) => `₹${row.closingValue?.toLocaleString() ?? '0'}`,
-  },
-  ...(filters.show
-    ? [{
-        header: 'Profit',
-        accessor: 'profit',
-        align: 'right' as const,
-        render: (row: any) => `₹${row.profit?.toLocaleString() ?? '0'}`,
-      }]
-    : []),
-], [view, filters.show]);
+  interface ColumnDef {
+    header: string;
+    accessor: string;
+    align: 'left' | 'right' | 'center';
+    // Allow render to accept any row variant used across views
+    render?: (row: RawItemRow | GroupSummary | HsnSummary) => React.ReactNode;
+  }
+  const columns: ColumnDef[] = useMemo(() => {
+    if (view === 'HSN') {
+      const hsnCols: ColumnDef[] = [
+        { header: 'HSN Code', accessor: 'hsnCode', align: 'left', render: (row) => (row as HsnSummary).hsnCode },
+        { header: 'Opening Qty', accessor: 'openingQty', align: 'right', render: (row) => (row as HsnSummary).openingQty.toLocaleString() },
+        { header: 'Inward Qty', accessor: 'inwardQty', align: 'right', render: (row) => (row as HsnSummary).inwardQty.toLocaleString() },
+        { header: 'Outward Qty', accessor: 'outwardQty', align: 'right', render: (row) => (row as HsnSummary).outwardQty.toLocaleString() },
+        { header: 'Closing Qty', accessor: 'closingQty', align: 'right', render: (row) => (row as HsnSummary).closingQty.toLocaleString() },
+        { header: 'Closing Value', accessor: 'closingValue', align: 'right', render: (row) => `₹${(row as HsnSummary).closingValue.toLocaleString()}` },
+      ];
+      if (filters.show) {
+        hsnCols.push({ header: 'Profit', accessor: 'profit', align: 'right', render: (row) => `₹${(row as HsnSummary).profit.toLocaleString()}` });
+      }
+      return hsnCols;
+    }
+    const base: ColumnDef[] = [
+      {
+        header: view === 'Item' ? 'Stock Item' : 'Stock Group',
+        accessor: 'name',
+        align: 'left',
+        render: (row) =>
+          view === 'Item'
+            ? (row as RawItemRow).item?.name || (row as RawItemRow).name || ''
+            : (row as GroupSummary).group?.name || '',
+      },
+      // HSN column only for Item view (not Group)
+      ...(view === 'Item' ? [{
+        header: 'HSN Code',
+        accessor: 'hsnCode',
+        align: 'left' as const,
+        render: (row: RawItemRow) => row.item?.hsnCode || '-',
+      }] : []),
+      {
+        header: 'Unit',
+        accessor: 'unit',
+        align: 'left',
+        render: (row) => view === 'Item' ? (row as RawItemRow).unit || '' : '',
+      },
+      {
+        header: 'Opening Qty',
+        accessor: 'openingBalance',
+        align: 'right',
+        render: (row) => view === 'Item'
+          ? ((row as RawItemRow).openingBalance ?? (row as RawItemRow).item?.openingBalance ?? 0).toLocaleString()
+          : '',
+      },
+      {
+        header: 'Inward Qty',
+        accessor: 'inwardQty',
+        align: 'right',
+        render: (row) => ((row as RawItemRow | GroupSummary).inwardQty ?? 0).toLocaleString(),
+      },
+      {
+        header: 'Outward Qty',
+        accessor: 'outwardQty',
+        align: 'right',
+        render: (row) => ((row as RawItemRow | GroupSummary).outwardQty ?? 0).toLocaleString(),
+      },
+      {
+        header: 'Closing Qty',
+        accessor: 'closingQty',
+        align: 'right',
+        render: (row) => ((row as RawItemRow | GroupSummary).closingQty ?? 0).toLocaleString(),
+      },
+      {
+        header: 'Closing Value',
+        accessor: 'closingValue',
+        align: 'right',
+        render: (row) => `₹${((row as RawItemRow | GroupSummary).closingValue ?? 0).toLocaleString()}`,
+      },
+      ...(filters.show
+        ? [{
+            header: 'Profit',
+            accessor: 'profit',
+            align: 'right' as const,
+            render: (row: RawItemRow | GroupSummary) => `₹${((row as RawItemRow | GroupSummary).profit ?? 0).toLocaleString()}`,
+          }]
+        : []),
+    ];
+    return base;
+  }, [view, filters.show]);
 
   // Footer totals
   const footer = useMemo(() => {
+    // Totals always derived from raw item-level data for consistency
+    const totalOpening = data.reduce((sum, r) => sum + (r.item?.openingBalance || r.openingBalance || 0), 0);
+    const totalInward = data.reduce((sum, r) => sum + (r.inwardQty || 0), 0);
+    const totalOutward = data.reduce((sum, r) => sum + (r.outwardQty || 0), 0);
+    const totalClosingQty = data.reduce((sum, r) => sum + (r.closingQty || 0), 0);
+    const totalClosingValue = data.reduce((sum, r) => sum + (r.closingValue || 0), 0);
+    const totalProfit = data.reduce((sum, r) => sum + (r.profit || 0), 0);
+
+    if (view === 'HSN') {
+      return [
+        { accessor: 'hsnCode', value: 'Total' },
+        { accessor: 'openingQty', value: totalOpening.toLocaleString() },
+        { accessor: 'inwardQty', value: totalInward.toLocaleString() },
+        { accessor: 'outwardQty', value: totalOutward.toLocaleString() },
+        { accessor: 'closingQty', value: totalClosingQty.toLocaleString() },
+        { accessor: 'closingValue', value: `₹${totalClosingValue.toLocaleString()}` },
+        ...(filters.show ? [{ accessor: 'profit', value: `₹${totalProfit.toLocaleString()}` }] : []),
+      ];
+    }
     return [
       { accessor: 'name', value: 'Total' },
+      ...(view === 'Item' ? [{ accessor: 'hsnCode', value: '' }] : []),
       { accessor: 'unit', value: '' },
-      { accessor: 'openingQty', value: data.reduce((sum, r) => sum + (r.item?.openingBalance || 0), 0).toLocaleString() },
-      { accessor: 'inwardQty', value: data.reduce((sum, r) => sum + (r.inwardQty || 0), 0).toLocaleString() },
-      { accessor: 'outwardQty', value: data.reduce((sum, r) => sum + (r.outwardQty || 0), 0).toLocaleString() },
-      { accessor: 'closingQty', value: data.reduce((sum, r) => sum + (r.closingQty || 0), 0).toLocaleString() },
-      { accessor: 'closingValue', value: `₹${data.reduce((sum, r) => sum + (r.closingValue || 0), 0).toLocaleString()}` },
-      ...(filters.show ? [{ accessor: 'profit', value: `₹${data.reduce((sum, r) => sum + (r.profit || 0), 0).toLocaleString()}` }] : []),
+      { accessor: 'openingQty', value: totalOpening.toLocaleString() },
+      { accessor: 'inwardQty', value: totalInward.toLocaleString() },
+      { accessor: 'outwardQty', value: totalOutward.toLocaleString() },
+      { accessor: 'closingQty', value: totalClosingQty.toLocaleString() },
+      { accessor: 'closingValue', value: `₹${totalClosingValue.toLocaleString()}` },
+      ...(filters.show ? [{ accessor: 'profit', value: `₹${totalProfit.toLocaleString()}` }] : []),
     ];
-  }, [data, filters.show]);
+  }, [data, filters.show, view]);
 
 
   
@@ -264,11 +373,12 @@ const StockSummary: React.FC = () => {
           <select
           title="View Type"
             value={view}
-            onChange={(e) => setView(e.target.value as 'Item' | 'Group')}
+            onChange={(e) => setView(e.target.value as 'Item' | 'Group' | 'HSN')}
             className={`p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'}`}
           >
             <option value="Item">Stock Item-wise</option>
             <option value="Group">Stock Group-wise</option>
+            <option value="HSN">HSN-wise</option>
           </select>
           <button
             title="Toggle Filters"
@@ -294,7 +404,54 @@ const StockSummary: React.FC = () => {
         </div>
       </div>
 
-      
+      {/* Filters Panel */}
+      {showFilterPanel && (
+        <div className={`p-4 mb-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
+          <h3 className="font-semibold mb-4">Filters</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Godown</label>
+              <select
+                title="Filter by Godown"
+                value={filters.godownId}
+                onChange={(e)=> setFilters(f=>({...f, godownId: e.target.value }))}
+                className={`w-full p-2 rounded border ${theme==='dark'?'bg-gray-700 border-gray-600':'bg-white border-gray-300'}`}
+              >
+                <option value="">All Godowns</option>
+                {godowns.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">From Date</label>
+              <input
+                title="From Date"
+                type="date"
+                value={filters.fromDate}
+                onChange={(e)=> setFilters(f=>({...f, fromDate: e.target.value }))}
+                className={`w-full p-2 rounded border ${theme==='dark'?'bg-gray-700 border-gray-600':'bg-white border-gray-300'}`}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">To Date</label>
+              <input
+                title="To Date"
+                type="date"
+                value={filters.toDate}
+                onChange={(e)=> setFilters(f=>({...f, toDate: e.target.value }))}
+                className={`w-full p-2 rounded border ${theme==='dark'?'bg-gray-700 border-gray-600':'bg-white border-gray-300'}`}
+              />
+            </div>
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={()=> setFilters(f=>({...f}))}
+                className={`px-4 py-2 rounded font-medium ${theme==='dark'?'bg-blue-600 hover:bg-blue-700 text-white':'bg-blue-600 hover:bg-blue-700 text-white'}`}
+              >Apply</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
   <div className="mb-4 text-center">
     <h2 className="text-xl font-bold">Stock Summary Report</h2>
@@ -310,15 +467,16 @@ const StockSummary: React.FC = () => {
     <ReportTable
       theme={theme}
       columns={columns}
-      data={view === 'Group' ? groupedData : data}
+      data={view === 'Group' ? groupedData : view === 'HSN' ? hsnData : data}
       footer={footer}
-      onRowClick={(row) =>
-        navigate(
-          `/reports/movement-analysis?itemId=${
-            view === 'Item' ? (row as ItemSummary).item.id ?? '' : ''
-          }&groupId=${view === 'Group' ? (row as GroupSummary).group.id ?? '' : ''}`
-        )
-      }
+      onRowClick={(row) => {
+        if (view === 'Item') {
+          navigate(`/reports/movement-analysis?itemId=${(row as ItemSummary).item.id ?? ''}`);
+        } else if (view === 'Group') {
+          navigate(`/reports/movement-analysis?groupId=${(row as GroupSummary).group.id ?? ''}`);
+        }
+        // No navigation for HSN rows (could be extended later)
+      }}
     />
   )}
 </div>

@@ -20,6 +20,38 @@ interface LedgerGroup {
   type: string | null;
 }
 
+// Raw API shapes
+interface ApiLedger {
+  id: number;
+  name: string;
+  group_id: number;
+  opening_balance: string | number | null;
+  balance_type: 'debit' | 'credit';
+  group_name: string;
+  group_type: string | null;
+}
+
+interface ApiLedgerGroup {
+  id: number;
+  name: string;
+  type: string | null;
+}
+
+interface BalanceSheetApiResponse {
+  ledgers: ApiLedger[];
+  ledgerGroups: ApiLedgerGroup[];
+}
+
+const getErrorMessage = (err: unknown): string => {
+  if (err instanceof Error) return err.message;
+  if (typeof err === 'string') return err;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return 'Unknown error occurred';
+  }
+};
+
 const BalanceSheet: React.FC = () => {
   const { theme } = useAppContext();
   const navigate = useNavigate();
@@ -29,6 +61,7 @@ const BalanceSheet: React.FC = () => {
   const [showFilterPanel, setShowFilterPanel] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [layoutMode, setLayoutMode] = useState<'horizontal' | 'vertical'>('vertical'); // default to vertical as requested
 
   // Load ledgers and ledger groups from backend API
   useEffect(() => {
@@ -36,25 +69,30 @@ const BalanceSheet: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-  const res = await fetch('https://tally-backend-dyn3.onrender.com/api/balance-sheet');
+        const res = await fetch('https://tally-backend-dyn3.onrender.com/api/balance-sheet');
         if (!res.ok) throw new Error('Failed to load balance sheet data');
-        const data = await res.json();
+        const data: BalanceSheetApiResponse = await res.json();
 
-        // Map data to frontend keys and convert balances to number
-        const normalizedLedgers = data.ledgers.map((l: any) => ({
+        // Defensive guards in case API shape changes
+        const rawLedgers = Array.isArray(data.ledgers) ? data.ledgers : [];
+        const rawGroups = Array.isArray(data.ledgerGroups) ? data.ledgerGroups : [];
+
+        const normalizedLedgers: Ledger[] = rawLedgers.map((l: ApiLedger): Ledger => ({
           id: l.id,
           name: l.name,
-          groupId: l.group_id,
-          openingBalance: parseFloat(l.opening_balance) || 0,
+            groupId: l.group_id,
+          openingBalance: typeof l.opening_balance === 'number' ? l.opening_balance : parseFloat(l.opening_balance || '0') || 0,
           balanceType: l.balance_type,
           groupName: l.group_name,
           groupType: l.group_type
         }));
 
+        const normalizedGroups: LedgerGroup[] = rawGroups.map(g => ({ id: g.id, name: g.name, type: g.type }));
+
         setLedgers(normalizedLedgers);
-        setLedgerGroups(data.ledgerGroups);
-      } catch (err: any) {
-        setError(err.message || 'Unknown error occurred');
+        setLedgerGroups(normalizedGroups);
+      } catch (err: unknown) {
+        setError(getErrorMessage(err));
       } finally {
         setLoading(false);
       }
@@ -170,6 +208,30 @@ const BalanceSheet: React.FC = () => {
         </button>
         <h1 className="text-2xl font-bold">Balance Sheet</h1>
         <div className="ml-auto flex space-x-2">
+          <div
+            className="relative flex items-center rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 p-1 shadow-sm"
+            role="tablist"
+            aria-label="Balance Sheet Layout Mode"
+          >
+            {(['vertical','horizontal'] as const).map(mode => {
+              const active = layoutMode === mode;
+              const label = mode === 'vertical' ? 'Vertical' : 'Horizontal';
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  role="tab"
+                  data-active={active ? 'true' : 'false'}
+                  onClick={() => setLayoutMode(mode)}
+                  title={`${label} Layout`}
+                  className={`relative flex items-center justify-center rounded-full px-5 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/60
+                    ${active ? 'bg-blue-600 dark:bg-blue-500 text-white shadow' : 'text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700 hover:text-blue-700 dark:hover:text-blue-300'}`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
           <button
             title="Toggle Filters"
             type="button"
@@ -220,7 +282,7 @@ const BalanceSheet: React.FC = () => {
       {loading && <p>Loading...</p>}
       {error && <p className="text-red-600">{error}</p>}
 
-      {!loading && !error && (
+      {!loading && !error && layoutMode === 'horizontal' && (
         <>
           {/* Liabilities Section */}
           <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
@@ -403,6 +465,67 @@ const BalanceSheet: React.FC = () => {
             </p>
           </div>
         </>
+      )}
+
+      {!loading && !error && layoutMode === 'vertical' && (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Liabilities Card */}
+            <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'} relative`}> 
+              <h2 className="mb-4 text-xl font-bold text-center">Liabilities</h2>
+              <ul className="text-sm">
+                <li className="flex justify-between py-2 border-b border-gray-300 dark:border-gray-600">
+                  <button onClick={() => handleGroupClick('capital')} className="text-left text-blue-600 dark:text-blue-400 underline">Capital Account</button>
+                  <span className="font-mono">{getGroupTotal('capital').toLocaleString()}</span>
+                </li>
+                <li className="flex justify-between py-2 border-b border-gray-300 dark:border-gray-600">
+                  <button onClick={() => handleGroupClick('loans')} className="text-left text-blue-600 dark:text-blue-400 underline">Loans (Liability)</button>
+                  <span className="font-mono">{getGroupTotal('loans').toLocaleString()}</span>
+                </li>
+                <li className="flex justify-between py-2 border-b border-gray-300 dark:border-gray-600">
+                  <button onClick={() => handleGroupClick('current-liabilities')} className="text-left text-blue-600 dark:text-blue-400 underline">Current Liabilities</button>
+                  <span className="font-mono">{getGroupTotal('current-liabilities').toLocaleString()}</span>
+                </li>
+                <li className="flex justify-between py-2 border-b border-gray-300 dark:border-gray-600">
+                  <button onClick={handleProfitLossClick} className="text-left text-blue-600 dark:text-blue-400 underline">Profit &amp; Loss A/c</button>
+                  <span className="font-mono">{getProfitLoss().toLocaleString()}</span>
+                </li>
+                <li className="flex justify-between py-2 mt-1 border-t-2 border-b-2 border-gray-400 dark:border-gray-500 font-semibold text-base">
+                  <span>Total Liabilities</span>
+                  <span className="font-mono">{getLiabilityTotal().toLocaleString()}</span>
+                </li>
+              </ul>
+            </div>
+            {/* Assets Card */}
+            <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'} relative`}> 
+              <h2 className="mb-4 text-xl font-bold text-center">Assets</h2>
+              <ul className="text-sm">
+                <li className="flex justify-between py-2 border-b border-gray-300 dark:border-gray-600">
+                  <button onClick={() => handleGroupClick('fixed-assets')} className="text-left text-blue-600 dark:text-blue-400 underline">Fixed Assets</button>
+                  <span className="font-mono">{getGroupTotal('fixed-assets').toLocaleString()}</span>
+                </li>
+                <li className="flex justify-between py-2 border-b border-gray-300 dark:border-gray-600">
+                  <button onClick={() => handleGroupClick('current-assets')} className="text-left text-blue-600 dark:text-blue-400 underline">Current Assets</button>
+                  <span className="font-mono">{getGroupTotal('current-assets').toLocaleString()}</span>
+                </li>
+                <li className="flex justify-between py-2 mt-1 border-t-2 border-b-2 border-gray-400 dark:border-gray-500 font-semibold text-base">
+                  <span>Total Assets</span>
+                  <span className="font-mono">{getAssetTotal().toLocaleString()}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div className={`p-4 rounded flex items-center justify-between ${theme === 'dark' ? 'bg-gray-800' : 'bg-white shadow'}`}>
+            <div>
+              {getAssetTotal() === getLiabilityTotal() ? (
+                <span className={`px-3 py-1 rounded text-sm ${theme === 'dark' ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'}`}>Balanced ✓</span>
+              ) : (
+                <span className={`px-3 py-1 rounded text-sm ${theme === 'dark' ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-800'}`}>Difference: ₹ {Math.abs(getAssetTotal() - getLiabilityTotal()).toLocaleString()}</span>
+              )}
+            </div>
+            <p className="text-xs opacity-70"><span className="font-semibold">Tip:</span> Switch to Horizontal view for opening/current/closing columns.</p>
+          </div>
+        </div>
       )}
     </div>
   );
