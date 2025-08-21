@@ -590,7 +590,7 @@ useEffect(() => {
                             className={`w-full p-2 rounded border ${theme === 'dark' ? 'bg-gray-700 border-gray-600 text-gray-100' : 'bg-white border-gray-300 text-gray-900'} focus:border-blue-500 focus:ring-blue-500`}
                           >
                             <option value="debit">Dr</option>
-                            {/* <option value="credit">Cr</option> */}
+                            <option value="credit">Cr</option>
                           </select>
                         </td>
                         <td className="px-4 py-2">
